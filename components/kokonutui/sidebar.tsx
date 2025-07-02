@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import {
   BarChart2,
   Receipt,
@@ -14,12 +16,14 @@ import {
   Settings,
   HelpCircle,
   Menu,
+  Mic,
+  Camera,
+  Calendar,
 } from "lucide-react"
 
 import { Home } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
-import Image from "next/image"
 
 export default function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -32,16 +36,22 @@ export default function Sidebar() {
     href,
     icon: Icon,
     children,
+    isActive = false,
   }: {
     href: string
     icon: any
     children: React.ReactNode
+    isActive?: boolean
   }) {
     return (
       <Link
         href={href}
         onClick={handleNavigation}
-        className="flex items-center px-3 py-2 text-sm rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#1F1F23]"
+        className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 ${
+          isActive
+            ? "bg-gradient-to-r from-green-500/20 to-blue-600/20 dark:from-[#00FF88]/20 dark:to-[#00D4AA]/20 text-green-600 dark:text-[#00FF88] border-l-2 border-green-500 dark:border-[#00FF88]"
+            : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#1F1F23]"
+        }`}
       >
         <Icon className="h-4 w-4 mr-3 flex-shrink-0" />
         {children}
@@ -66,32 +76,16 @@ export default function Sidebar() {
             `}
       >
         <div className="h-full flex flex-col">
-          <Link
-            href="https://kokonutui.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="h-16 px-6 flex items-center border-b border-gray-200 dark:border-[#1F1F23]"
-          >
+          <div className="h-16 px-6 flex items-center border-b border-gray-200 dark:border-[#1F1F23]">
             <div className="flex items-center gap-3">
-              <Image
-                src="https://kokonutui.com/logo.svg"
-                alt="Acme"
-                width={32}
-                height={32}
-                className="flex-shrink-0 hidden dark:block"
-              />
-              <Image
-                src="https://kokonutui.com/logo-black.svg"
-                alt="Acme"
-                width={32}
-                height={32}
-                className="flex-shrink-0 block dark:hidden"
-              />
+              <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 dark:from-[#00FF88] dark:to-[#00D4AA] rounded-lg flex items-center justify-center">
+                <Mic className="h-4 w-4 text-white" />
+              </div>
               <span className="text-lg font-semibold hover:cursor-pointer text-gray-900 dark:text-white">
-                KokonutUI
+                Ongea Pesa
               </span>
             </div>
-          </Link>
+          </div>
 
           <div className="flex-1 overflow-y-auto py-4 px-4">
             <div className="space-y-6">
@@ -100,7 +94,7 @@ export default function Sidebar() {
                   Overview
                 </div>
                 <div className="space-y-1">
-                  <NavItem href="#" icon={Home}>
+                  <NavItem href="#" icon={Home} isActive>
                     Dashboard
                   </NavItem>
                   <NavItem href="#" icon={BarChart2}>
@@ -117,37 +111,46 @@ export default function Sidebar() {
 
               <div>
                 <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Finance
+                  Voice Finance
                 </div>
                 <div className="space-y-1">
+                  <NavItem href="#" icon={Mic}>
+                    Voice Commands
+                  </NavItem>
                   <NavItem href="#" icon={Wallet}>
                     Transactions
                   </NavItem>
                   <NavItem href="#" icon={Receipt}>
-                    Invoices
+                    Bills & Payments
                   </NavItem>
                   <NavItem href="#" icon={CreditCard}>
-                    Payments
+                    M-Pesa Integration
+                  </NavItem>
+                  <NavItem href="#" icon={Camera}>
+                    Payment Scanner
+                  </NavItem>
+                  <NavItem href="#" icon={Calendar}>
+                    Recurring Payments
                   </NavItem>
                 </div>
               </div>
 
               <div>
                 <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Team
+                  Team & Support
                 </div>
                 <div className="space-y-1">
                   <NavItem href="#" icon={Users2}>
-                    Members
+                    Contacts
                   </NavItem>
                   <NavItem href="#" icon={Shield}>
-                    Permissions
+                    Security
                   </NavItem>
                   <NavItem href="#" icon={MessagesSquare}>
-                    Chat
+                    Voice Chat
                   </NavItem>
                   <NavItem href="#" icon={Video}>
-                    Meetings
+                    Video Support
                   </NavItem>
                 </div>
               </div>

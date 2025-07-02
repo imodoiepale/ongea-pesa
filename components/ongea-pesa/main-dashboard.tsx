@@ -30,7 +30,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
   }
 
   return (
-    <div className="min-h-screen p-4 pb-20 relative overflow-hidden">
+    <div className="min-h-screen p-4 pb-24 relative overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 opacity-10 dark:opacity-20">
         <WaveAnimation />

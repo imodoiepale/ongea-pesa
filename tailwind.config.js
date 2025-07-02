@@ -54,6 +54,12 @@ module.exports = {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "bounce-slow": "bounce 2s infinite",
         "ping-slow": "ping 3s cubic-bezier(0, 0, 0.2, 1) infinite",
+        "gradient-x": "gradient-x 3s ease infinite",
+        "spin-slow": "spin-slow 3s linear infinite",
+        "bounce-subtle": "bounce-subtle 2s ease-in-out infinite",
+        float: "float 3s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        ripple: "ripple 0.6s linear",
       },
       keyframes: {
         "fade-in": {
@@ -64,9 +70,40 @@ module.exports = {
           "0%": { transform: "translateY(100%)" },
           "100%": { transform: "translateY(0)" },
         },
+        "gradient-x": {
+          "0%, 100%": { transform: "translateX(0%)" },
+          "50%": { transform: "translateX(100%)" },
+        },
+        "spin-slow": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        "bounce-subtle": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-2px)" },
+        },
+        float: {
+          "0%, 100%": {
+            transform: "translateY(0px) rotate(0deg)",
+            opacity: "0.6",
+          },
+          "50%": {
+            transform: "translateY(-10px) rotate(180deg)",
+            opacity: "1",
+          },
+        },
+        "pulse-glow": {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(0, 255, 136, 0.3)" },
+          "50%": { boxShadow: "0 0 40px rgba(0, 255, 136, 0.6)" },
+        },
+        ripple: {
+          "0%": { transform: "scale(0)", opacity: "1" },
+          "100%": { transform: "scale(4)", opacity: "0" },
+        },
       },
       backdropBlur: {
         xs: "2px",
+        "2xl": "40px",
       },
     },
   },
