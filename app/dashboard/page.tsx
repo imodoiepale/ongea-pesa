@@ -1,5 +1,5 @@
-import Dashboard from "@/components/kokonutui/dashboard"
+import OngeaPesaDashboard from "@/components/ongea-pesa/dashboard"
 
 export default function DashboardPage() {
-  return <Dashboard />
+  return <OngeaPesaDashboard />
 }

@@ -26,10 +26,10 @@ export default function Layout({ children }: LayoutProps) {
     <div className={`flex h-screen ${theme === "dark" ? "dark" : ""}`}>
       <Sidebar />
       <div className="w-full flex flex-1 flex-col">
-        <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]">
+        <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23] bg-white dark:bg-[#0F0F12]">
           <TopNav />
         </header>
-        <main className="flex-1 overflow-auto p-6 bg-white dark:bg-[#0F0F12]">{children}</main>
+        <main className="flex-1 overflow-auto p-6 pb-24 bg-white dark:bg-[#0F0F12]">{children}</main>
       </div>
     </div>
   )
