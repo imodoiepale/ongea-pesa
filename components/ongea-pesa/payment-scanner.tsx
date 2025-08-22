@@ -1,10 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowLeft, Camera, QrCode, Receipt, CreditCard, Building2, Mic, Check, X } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ArrowLeft, Camera, QrCode, Receipt, CreditCard, Building2, Mic, Check, X, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useCamera } from "@/hooks/use-camera"
+import { geminiVision, PaymentScanResult } from "@/lib/gemini-vision"
 
 interface PaymentScannerProps {
   onNavigate: (screen: string) => void
@@ -12,33 +15,28 @@ interface PaymentScannerProps {
 
 type ScanMode = "paybill" | "till" | "qr" | "receipt" | "bank" | "pochi"
 
-interface ScanResult {
-  type: ScanMode
-  data: {
-    paybill?: string
-    account?: string
-    till?: string
-    amount?: string
-    merchant?: string
-    phone?: string
-    bank?: string
-    accountNumber?: string
-    receiptData?: {
-      vendor: string
-      amount: string
-      date: string
-      category: string
-    }
-  }
-  confidence: number
-}
-
 export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
   const [scanMode, setScanMode] = useState<ScanMode | null>(null)
   const [isScanning, setIsScanning] = useState(false)
-  const [scanResult, setScanResult] = useState<ScanResult | null>(null)
+  const [scanResult, setScanResult] = useState<PaymentScanResult | null>(null)
   const [isVoiceMode, setIsVoiceMode] = useState(false)
   const [voiceCommand, setVoiceCommand] = useState("")
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [scanError, setScanError] = useState<string | null>(null)
+  const [autoScanEnabled, setAutoScanEnabled] = useState(true)
+  const [lastScanTime, setLastScanTime] = useState(0)
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true)
+  const [currentlySpeaking, setCurrentlySpeaking] = useState(false)
+
+  const { 
+    videoRef, 
+    canvasRef, 
+    isStreaming, 
+    error: cameraError, 
+    startCamera, 
+    stopCamera, 
+    captureImage 
+  } = useCamera()
 
   const scanModes = [
     {
@@ -91,6 +89,123 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     },
   ]
 
+  // Generate contextual audio messages for detected payments
+  const generateAudioMessage = (result: PaymentScanResult): string => {
+    const { type, data, confidence } = result;
+    
+    switch (type) {
+      case 'paybill':
+        return `Paybill detected! Number ${data.paybill}. ${confidence}% confidence.`;
+      case 'buy_goods_till':
+        return `Till number found! ${data.till}. Ready to pay?`;
+      case 'qr':
+        return `QR code scanned successfully! Payment details extracted with ${confidence}% confidence.`;
+      case 'receipt':
+        return `Receipt detected from ${data.receiptData?.vendor || 'vendor'}. Amount ${data.receiptData?.amount || 'unknown'}.`;
+      case 'bank_to_mpesa':
+      case 'bank_to_bank':
+        return `Bank details found! Code ${data.bankCode} account ${data.account}. ${confidence}% confidence.`;
+      case 'buy_goods_pochi':
+        return `Pochi la Biashara detected! Phone ${data.phone}. Ready to send?`;
+      default:
+        return `Payment document detected with ${confidence}% confidence. Processing...`;
+    }
+  };
+
+  // Text-to-speech function for live audio feedback
+  const speakText = (text: string) => {
+    if (!isAudioEnabled || currentlySpeaking) return
+    
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel()
+    
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'en-US'
+    utterance.rate = 1.1
+    utterance.pitch = 1.0
+    
+    utterance.onstart = () => setCurrentlySpeaking(true)
+    utterance.onend = () => setCurrentlySpeaking(false)
+    utterance.onerror = () => setCurrentlySpeaking(false)
+    
+    window.speechSynthesis.speak(utterance)
+  }
+
+  // Cleanup camera when component unmounts
+  useEffect(() => {
+    return () => {
+      stopCamera()
+      window.speechSynthesis.cancel()
+    }
+  }, [stopCamera])
+
+  // Auto-scan functionality - continuously analyze frames
+  useEffect(() => {
+    if (!isStreaming || !autoScanEnabled || isProcessing || scanResult) return
+
+    console.log('Setting up auto-scan interval');
+    const autoScanInterval = setInterval(async () => {
+      const now = Date.now()
+      if (now - lastScanTime < 3000) return // Throttle to every 3 seconds
+
+      try {
+        console.log('Attempting auto-scan capture...');
+        const imageData = captureImage()
+        if (!imageData) {
+          console.log('No image data captured');
+          return
+        }
+
+        console.log('Image captured, size:', imageData.length, 'chars');
+        console.log('Checking Gemini API key...');
+        
+        // Check if API key exists
+        const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+        if (!apiKey) {
+          console.error('❌ GEMINI API KEY MISSING! Add NEXT_PUBLIC_GEMINI_API_KEY to .env.local');
+          setScanError('Gemini API key not configured. Check environment setup.');
+          return;
+        }
+        
+        console.log('✅ API key found, sending to Gemini...');
+        setLastScanTime(now)
+        setIsProcessing(true)
+        
+        const result = await geminiVision.autoDetectPaymentType(imageData)
+        console.log('Gemini result:', result);
+        
+        if (result && result.confidence > 70) {
+          console.log('Payment detected with confidence:', result.confidence);
+          
+          // Live audio feedback for detected payment
+          const audioMessage = generateAudioMessage(result);
+          speakText(audioMessage);
+          
+          setScanResult(result)
+          setIsScanning(false)
+          stopCamera()
+        } else if (result && result.confidence > 30) {
+          // Provide feedback for partial detection
+          speakText(`I can see something, but I'm only ${result.confidence}% confident. Keep the camera steady.`);
+          console.log('Partial detection:', result?.confidence || 0);
+        } else {
+          console.log('No payment detected or low confidence:', result?.confidence || 0);
+        }
+        
+        setIsProcessing(false)
+      } catch (error) {
+        console.error('Auto-scan error:', error)
+        setScanError(error instanceof Error ? error.message : 'Auto-scan failed')
+        setIsProcessing(false)
+      }
+    }, 2000) // Check every 2 seconds
+
+    return () => {
+      console.log('Clearing auto-scan interval');
+      clearInterval(autoScanInterval)
+    }
+  }, [isStreaming, autoScanEnabled, isProcessing, scanResult, lastScanTime, captureImage, stopCamera])
+
   const handleVoiceScan = () => {
     setIsVoiceMode(true)
     setTimeout(() => {
@@ -111,81 +226,59 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     }, 2000)
   }
 
-  const handleScan = (mode: ScanMode) => {
-    setScanMode(mode)
+  const handleScan = async (mode: ScanMode | null = null) => {
+    console.log('Starting scan with mode:', mode);
+    
+    // If no mode specified, use auto-detect mode
+    if (!mode) {
+      setScanMode(null)
+    } else {
+      setScanMode(mode)
+    }
+    
     setIsScanning(true)
-
-    // Simulate scanning process
-    setTimeout(() => {
+    setScanError(null)
+    setScanResult(null)
+    setIsProcessing(false)
+    
+    try {
+      console.log('Attempting to start camera...');
+      await startCamera()
+      console.log('Camera started successfully');
+    } catch (error) {
+      console.error('Camera start failed:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to start camera. Please check permissions."
+      setScanError(errorMessage)
       setIsScanning(false)
+    }
+  }
 
-      // Mock scan results based on mode
-      const mockResults: Record<ScanMode, ScanResult> = {
-        paybill: {
-          type: "paybill",
-          data: {
-            paybill: "247247",
-            account: "786520",
-            merchant: "Safaricom Ltd",
-            amount: "KSh 1,200",
-          },
-          confidence: 95,
-        },
-        till: {
-          type: "till",
-          data: {
-            till: "832909",
-            merchant: "Naivas Supermarket",
-            amount: "KSh 2,450",
-          },
-          confidence: 92,
-        },
-        pochi: {
-          type: "pochi",
-          data: {
-            phone: "0722123456",
-            merchant: "Mama Mboga Shop",
-          },
-          confidence: 88,
-        },
-        qr: {
-          type: "qr",
-          data: {
-            till: "883992",
-            merchant: "Naivas Ltd",
-            amount: "KSh 1,200",
-          },
-          confidence: 98,
-        },
-        receipt: {
-          type: "receipt",
-          data: {
-            receiptData: {
-              vendor: "Total Moi Avenue",
-              amount: "KSh 3,500",
-              date: "2024-01-15",
-              category: "Fuel",
-            },
-          },
-          confidence: 90,
-        },
-        bank: {
-          type: "bank",
-          data: {
-            bank: "KCB Bank",
-            accountNumber: "1122430052",
-            merchant: "Jane Otieno",
-          },
-          confidence: 85,
-        },
+  const handleCapture = async () => {
+    if (!scanMode) return
+    
+    setIsProcessing(true)
+    setScanError(null)
+    
+    try {
+      const imageData = captureImage()
+      if (!imageData) {
+        throw new Error("Failed to capture image")
       }
 
-      setScanResult(mockResults[mode])
-    }, 3000)
+      const result = await geminiVision.scanPaymentDocument(imageData, scanMode)
+      setScanResult(result)
+      setIsScanning(false)
+      stopCamera()
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to process image"
+      setScanError(errorMessage)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const handleConfirmPayment = () => {
-    // Navigate to payment confirmation
+    // Navigate to payment confirmation with scan result data
     onNavigate("send")
   }
 
@@ -194,6 +287,22 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     alert("Receipt saved to expenses!")
     setScanResult(null)
     setScanMode(null)
+  }
+
+  const handleRetry = () => {
+    setScanResult(null)
+    setScanError(null)
+    if (scanMode) {
+      handleScan(scanMode)
+    }
+  }
+
+  const handleCancel = () => {
+    setScanResult(null)
+    setScanMode(null)
+    setScanError(null)
+    setIsScanning(false)
+    stopCamera()
   }
 
   const renderScanResult = () => {
@@ -214,14 +323,26 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
             <div className="space-y-3">
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Paybill Detected</p>
-                <p className="text-lg font-bold">Paybill: {data.paybill}</p>
-                <p className="text-sm">Account: {data.account}</p>
-                <p className="text-sm">Merchant: {data.merchant}</p>
-                {data.amount && <p className="text-sm">Amount: {data.amount}</p>}
+                <div className="mt-2 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Paybill:</span>
+                    <span className="text-sm font-mono bg-white dark:bg-gray-800 px-2 py-1 rounded border">{data.paybill}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Account:</span>
+                    <span className="text-sm font-mono bg-white dark:bg-gray-800 px-2 py-1 rounded border">{data.account}</span>
+                  </div>
+                  {data.amount && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Amount:</span>
+                      <span className="text-lg font-bold text-green-600">{data.amount}</span>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <p className="text-sm text-green-700 dark:text-green-300">
-                  AI: "Nimesoma Paybill {data.paybill} ya {data.merchant}. Imethibitishwa?"
+                  AI: "Nimesoma Paybill {data.paybill}. Imethibitishwa?"
                 </p>
               </div>
             </div>
@@ -231,13 +352,22 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
             <div className="space-y-3">
               <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <p className="text-sm font-medium text-green-700 dark:text-green-300">Till Number Detected</p>
-                <p className="text-lg font-bold">Till: {data.till}</p>
-                <p className="text-sm">Merchant: {data.merchant}</p>
-                {data.amount && <p className="text-sm">Amount: {data.amount}</p>}
+                <div className="mt-2 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Till Number:</span>
+                    <span className="text-lg font-bold font-mono bg-white dark:bg-gray-800 px-2 py-1 rounded border">{data.till}</span>
+                  </div>
+                  {data.amount && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Amount:</span>
+                      <span className="text-lg font-bold text-green-600">{data.amount}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  AI: "Lipa kwa {data.merchant}, Till {data.till}. Endelea?"
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  AI: "Nimeona Till {data.till}. Unataka kulipa?"
                 </p>
               </div>
             </div>
@@ -252,7 +382,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
               </div>
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <p className="text-sm text-green-700 dark:text-green-300">
-                  AI: "Tuma kwa Pochi {data.phone} ya {data.merchant}?"
+                  AI: "Nimesoma Pochi la Biashara. Unataka kutuma pesa?"
                 </p>
               </div>
             </div>
@@ -296,13 +426,12 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
             <div className="space-y-3">
               <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
                 <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Bank Account Detected</p>
-                <p className="text-lg font-bold">{data.bank}</p>
-                <p className="text-sm">Account: {data.accountNumber}</p>
-                <p className="text-sm">Name: {data.merchant}</p>
+                <p className="text-lg font-bold">Bank Code: {data.bankCode}</p>
+                <p className="text-sm">Account: {data.account}</p>
               </div>
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <p className="text-sm text-green-700 dark:text-green-300">
-                  AI: "Send to {data.bank} Account {data.accountNumber}, {data.merchant}?"
+                  AI: "Nimesoma bank details. Code {data.bankCode} account {data.account}."
                 </p>
               </div>
             </div>
@@ -338,44 +467,99 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     )
   }
 
-  if (scanMode && isScanning) {
+  if (isScanning) {
     return (
       <div className="min-h-screen p-4 pb-20">
         <div className="flex items-center mb-6 pt-8">
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              setScanMode(null)
-              setIsScanning(false)
-            }}
+            onClick={handleCancel}
             className="mr-3"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Scanning...</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Hold steady, reading {scanMode}</p>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              {isProcessing ? "AI Processing..." : "🤖 Auto-Scanning"}
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {isProcessing ? "Analyzing document with AI" : "Point at any payment document"}
+            </p>
           </div>
         </div>
 
         <Card className="mb-6">
           <CardContent className="p-6">
-            <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-green-500/20 animate-pulse" />
-              <div className="text-center text-white">
-                <Camera className="h-16 w-16 mx-auto mb-4 animate-bounce" />
-                <p className="text-lg font-semibold">Scanning {scanMode}...</p>
-                <p className="text-sm opacity-75">Keep the document in view</p>
-              </div>
+            <div className="aspect-video bg-gray-900 rounded-lg relative overflow-hidden">
+              {/* Hidden canvas for image capture */}
+              <canvas 
+                ref={canvasRef}
+                className="hidden"
+              />
+              
+              {/* Real camera video - ALWAYS visible when streaming */}
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                muted
+                className={`absolute inset-0 w-full h-full object-cover ${isStreaming ? 'block' : 'hidden'}`}
+              />
+              
+              {/* Loading overlay when not streaming */}
+              {!isStreaming && (
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-green-500/20 animate-pulse flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <Camera className="h-16 w-16 mx-auto mb-4 animate-bounce" />
+                    <p className="text-lg font-semibold">
+                      {cameraError ? "Camera Error" : "Starting AI scanner..."}
+                    </p>
+                    <p className="text-sm opacity-75">
+                      {cameraError ? "Check permissions" : "Point at any payment document"}
+                    </p>
+                  </div>
+                </div>
+              )}
 
-              {/* Scanning overlay */}
-              <div className="absolute inset-4 border-2 border-green-400 rounded-lg">
-                <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-400" />
-                <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-400" />
-                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-400" />
-                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-400" />
-              </div>
+              {/* Scanning overlay - ONLY borders, no background */}
+              {isStreaming && (
+                <>
+                  {/* Scanning frame */}
+                  <div className="absolute inset-4 border-2 border-green-400 rounded-lg pointer-events-none">
+                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-400" />
+                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-400" />
+                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-400" />
+                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-400" />
+                  </div>
+                  
+                  {/* Auto-scan indicator with audio status */}
+                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-green-500/90 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+                    🤖 AI Auto-Scanning...
+                    {currentlySpeaking && (
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                        <div className="w-1 h-1 bg-white rounded-full animate-pulse ml-1"></div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Instructions */}
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm text-center">
+                    Point camera at: Paybill • Till • QR • Receipt • Bank slip
+                  </div>
+                </>
+              )}
+
+              {/* Processing overlay */}
+              {isProcessing && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-30">
+                  <div className="text-center text-white">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                    <p className="text-lg font-semibold">AI Processing...</p>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -384,16 +568,65 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
           <CardContent className="p-4">
             <div className="text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                {scanMode === "paybill" && "Looking for Paybill numbers and account details..."}
-                {scanMode === "till" && "Detecting Till numbers from receipts or stickers..."}
-                {scanMode === "pochi" && "Reading Pochi la Biashara phone numbers..."}
-                {scanMode === "qr" && "Scanning QR code for payment details..."}
-                {scanMode === "receipt" && "Extracting receipt information for expense tracking..."}
-                {scanMode === "bank" && "Reading bank account details from slip..."}
+                🤖 <strong>AI Auto-Detection Active</strong>
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-500">
+                Simply point your camera at any payment document. The AI will automatically recognize:
+                Paybill numbers • Till numbers • QR codes • Receipts • Bank details • Pochi numbers
+              </p>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+                ✨ Works with handwritten text and simple formats too!
               </p>
             </div>
           </CardContent>
         </Card>
+
+        {/* Audio and scan controls */}
+        {isStreaming && !isProcessing && (
+          <div className="flex justify-center gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+              className={isAudioEnabled ? "bg-blue-100 border-blue-300" : ""}
+              size="sm"
+            >
+              {isAudioEnabled ? "🔊 Audio ON" : "🔇 Audio OFF"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setAutoScanEnabled(!autoScanEnabled)}
+              className={autoScanEnabled ? "bg-green-100 border-green-300" : ""}
+              size="sm"
+            >
+              {autoScanEnabled ? "🤖 Auto-Scan ON" : "📷 Manual Mode"}
+            </Button>
+            {!autoScanEnabled && (
+              <Button onClick={handleCapture} disabled={!scanMode} size="sm">
+                📸 Capture
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Camera Error Alert */}
+        {cameraError && (
+          <Alert className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Camera Error: {cameraError}. Please check permissions and try again.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Scan Error Alert */}
+        {scanError && (
+          <Alert className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {scanError}
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
     )
   }
@@ -438,27 +671,55 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
       {/* Scan Result */}
       {renderScanResult()}
 
-      {/* Scan Mode Selection */}
+      {/* Quick Start Auto-Scan */}
       {!scanResult && (
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          {scanModes.map((mode) => (
-            <Card
-              key={mode.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => handleScan(mode.id)}
-            >
-              <CardContent className="p-4 text-center">
-                <div className={`w-12 h-12 ${mode.color} rounded-lg flex items-center justify-center mx-auto mb-3`}>
-                  <mode.icon className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-sm mb-1">{mode.title}</h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{mode.description}</p>
-                <Badge variant="outline" className="text-xs">
-                  "{mode.voiceCommand}"
-                </Badge>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="mb-6">
+          <Card className="mb-4 border-2 border-green-500 bg-green-50 dark:bg-green-900/20">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Camera className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-green-700 dark:text-green-300 mb-2">
+                🤖 Smart Auto-Scanner
+              </h3>
+              <p className="text-sm text-green-600 dark:text-green-400 mb-4">
+                Just point your camera - AI will automatically detect and extract payment details from any document!
+              </p>
+              <Button 
+                onClick={() => handleScan()} 
+                size="lg"
+                className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full"
+              >
+                <Camera className="h-5 w-5 mr-2" />
+                Start Auto-Scanning
+              </Button>
+            </CardContent>
+          </Card>
+          
+          <div className="text-center mb-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Or choose specific scan mode:</p>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {scanModes.map((mode) => (
+              <Card
+                key={mode.id}
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => handleScan(mode.id)}
+              >
+                <CardContent className="p-3 text-center">
+                  <div className={`w-10 h-10 ${mode.color} rounded-lg flex items-center justify-center mx-auto mb-2`}>
+                    <mode.icon className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold text-xs mb-1">{mode.title}</h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{mode.description}</p>
+                  <Badge variant="outline" className="text-xs">
+                    "{mode.voiceCommand}"
+                  </Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 

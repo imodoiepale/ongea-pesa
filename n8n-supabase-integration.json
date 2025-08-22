@@ -1,0 +1,47 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "name": "send_money",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "user_id": {"type": "string", "format": "uuid"},
+            "type": {"type": "string", "enum": ["send_phone", "buy_goods_till", "paybill", "withdraw"]},
+            "amount": {"type": "string"},
+            "phone": {"type": "string"},
+            "till": {"type": "string"},
+            "paybill": {"type": "string"},
+            "account": {"type": "string"},
+            "voice_command": {"type": "string"}
+          },
+          "required": ["user_id", "type", "amount"]
+        }
+      },
+      "type": "n8n-nodes-base.mcpTool",
+      "id": "send_money_tool",
+      "name": "Send Money MCP Tool"
+    },
+    {
+      "parameters": {
+        "tableId": "transactions",
+        "operation": "insert",
+        "dataToSend": "autoMapInputData"
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "id": "create_transaction",
+      "name": "Create Transaction",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AENdc18obuOMLZSw",
+          "name": "ONGEA PESA V1"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "send_money_tool": {
+      "main": [["create_transaction"]]
+    }
+  }
+}

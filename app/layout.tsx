@@ -5,9 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "KokonutUI Dashboard",
-  description: "A modern dashboard with theme switching",
-    generator: 'v0.dev'
+  title: "Ongea Pesa",
+  description: "Ongea Pesa - Kenya's fastest voice-activated M-Pesa assistant"
 }
 
 export default function RootLayout({

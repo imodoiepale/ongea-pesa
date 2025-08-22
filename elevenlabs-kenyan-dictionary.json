@@ -1,0 +1,406 @@
+{
+  "name": "Kenyan M-Pesa Voice Dictionary",
+  "description": "ElevenLabs pronunciation dictionary for Kenyan Kiswahili and M-Pesa terms",
+  "version": "1.0",
+  "language": "en-KE",
+  "phonetic_alphabet": "IPA",
+  "entries": {
+    "M-Pesa": {
+      "phonetic": "ɛm ˈpɛsə",
+      "pronunciation": "em-PEH-sah",
+      "audio_sample": "m_pesa.wav",
+      "usage": "Mobile money service",
+      "alternatives": ["Mpesa", "mpesa"]
+    },
+    "Paybill": {
+      "phonetic": "ˈpeɪbɪl",
+      "pronunciation": "PAY-bill",
+      "audio_sample": "paybill.wav",
+      "usage": "Bill payment service number"
+    },
+    "Till": {
+      "phonetic": "tɪl",
+      "pronunciation": "TILL",
+      "audio_sample": "till.wav",
+      "usage": "Business payment number"
+    },
+    "Pochi": {
+      "phonetic": "ˈpoʧi",
+      "pronunciation": "POH-chee",
+      "audio_sample": "pochi.wav",
+      "usage": "Small bag/wallet for business",
+      "context": "Pochi la Biashara"
+    },
+    "Biashara": {
+      "phonetic": "biˈaʃara",
+      "pronunciation": "bee-ah-SHAH-rah",
+      "audio_sample": "biashara.wav",
+      "usage": "Business",
+      "context": "Pochi la Biashara"
+    },
+    "Tuma": {
+      "phonetic": "ˈtuma",
+      "pronunciation": "TOO-mah",
+      "audio_sample": "tuma.wav",
+      "usage": "Send",
+      "context": "Tuma pesa (send money)"
+    },
+    "Pesa": {
+      "phonetic": "ˈpɛsa",
+      "pronunciation": "PEH-sah",
+      "audio_sample": "pesa.wav",
+      "usage": "Money",
+      "context": "Universal term for money"
+    },
+    "Lipa": {
+      "phonetic": "ˈlipa",
+      "pronunciation": "LEE-pah",
+      "audio_sample": "lipa.wav",
+      "usage": "Pay",
+      "context": "Lipa bill (pay bill)"
+    },
+    "Toa": {
+      "phonetic": "ˈtoa",
+      "pronunciation": "TOH-ah",
+      "audio_sample": "toa.wav",
+      "usage": "Take out/withdraw",
+      "context": "Toa pesa (withdraw money)"
+    },
+    "Nunua": {
+      "phonetic": "nuˈnua",
+      "pronunciation": "noo-NOO-ah",
+      "audio_sample": "nunua.wav",
+      "usage": "Buy",
+      "context": "Nunua goods (buy goods)"
+    },
+    "Shillingi": {
+      "phonetic": "ʃiˈlɪŋgi",
+      "pronunciation": "shee-LING-gee",
+      "audio_sample": "shillingi.wav",
+      "usage": "Shillings (currency)",
+      "alternatives": ["shilingi", "bob"]
+    },
+    "Elfu": {
+      "phonetic": "ˈɛlfu",
+      "pronunciation": "EL-foo",
+      "audio_sample": "elfu.wav",
+      "usage": "Thousand",
+      "context": "Elfu moja (one thousand)"
+    },
+    "Mia": {
+      "phonetic": "ˈmia",
+      "pronunciation": "MEE-ah",
+      "audio_sample": "mia.wav",
+      "usage": "Hundred",
+      "context": "Mia moja (one hundred)"
+    },
+    "Ishirini": {
+      "phonetic": "iʃiˈrini",
+      "pronunciation": "ee-shee-REE-nee",
+      "audio_sample": "ishirini.wav",
+      "usage": "Twenty"
+    },
+    "Hamsini": {
+      "phonetic": "hamˈsini",
+      "pronunciation": "ham-SEE-nee",
+      "audio_sample": "hamsini.wav",
+      "usage": "Fifty"
+    },
+    "Mia": {
+      "phonetic": "ˈmia",
+      "pronunciation": "MEE-ah",
+      "audio_sample": "mia.wav",
+      "usage": "Hundred"
+    },
+    "Wakala": {
+      "phonetic": "waˈkala",
+      "pronunciation": "wah-KAH-lah",
+      "audio_sample": "wakala.wav",
+      "usage": "Agent",
+      "context": "M-Pesa agent"
+    },
+    "Duka": {
+      "phonetic": "ˈduka",
+      "pronunciation": "DOO-kah",
+      "audio_sample": "duka.wav",
+      "usage": "Shop/store"
+    },
+    "Benki": {
+      "phonetic": "ˈbɛnki",
+      "pronunciation": "BEN-kee",
+      "audio_sample": "benki.wav",
+      "usage": "Bank"
+    },
+    "Akaunti": {
+      "phonetic": "aˈkaunti",
+      "pronunciation": "ah-KOWN-tee",
+      "audio_sample": "akaunti.wav",
+      "usage": "Account"
+    },
+    "Nambari": {
+      "phonetic": "namˈbari",
+      "pronunciation": "nam-BAH-ree",
+      "audio_sample": "nambari.wav",
+      "usage": "Number"
+    },
+    "Simu": {
+      "phonetic": "ˈsimu",
+      "pronunciation": "SEE-moo",
+      "audio_sample": "simu.wav",
+      "usage": "Phone"
+    },
+    "Habari": {
+      "phonetic": "haˈbari",
+      "pronunciation": "hah-BAH-ree",
+      "audio_sample": "habari.wav",
+      "usage": "Hello/How are you?",
+      "context": "Common greeting"
+    },
+    "Sawa": {
+      "phonetic": "ˈsawa",
+      "pronunciation": "SAH-wah",
+      "audio_sample": "sawa.wav",
+      "usage": "Okay/fine/good"
+    },
+    "Tumeshinda": {
+      "phonetic": "tumeˈʃinda",
+      "pronunciation": "too-meh-SHEEN-dah",
+      "audio_sample": "tumeshinda.wav",
+      "usage": "We have succeeded/done it",
+      "context": "Transaction success"
+    },
+    "Imefika": {
+      "phonetic": "imeˈfika",
+      "pronunciation": "ee-meh-FEE-kah",
+      "audio_sample": "imefika.wav",
+      "usage": "It has arrived",
+      "context": "Money has been received"
+    },
+    "Imethibitishwa": {
+      "phonetic": "imeθibiˈtiʃwa",
+      "pronunciation": "ee-meh-thee-bee-TEESH-wah",
+      "audio_sample": "imethibitishwa.wav",
+      "usage": "It has been confirmed",
+      "context": "Transaction confirmed"
+    },
+    "Gharama": {
+      "phonetic": "ɣaˈrama",
+      "pronunciation": "ghah-RAH-mah",
+      "audio_sample": "gharama.wav",
+      "usage": "Cost/expense"
+    },
+    "Risiti": {
+      "phonetic": "riˈsiti",
+      "pronunciation": "ree-SEE-tee",
+      "audio_sample": "risiti.wav",
+      "usage": "Receipt"
+    },
+    "Mama": {
+      "phonetic": "ˈmama",
+      "pronunciation": "MAH-mah",
+      "audio_sample": "mama.wav",
+      "usage": "Mother/mom",
+      "context": "Common reference for sending money"
+    },
+    "Baba": {
+      "phonetic": "ˈbaba",
+      "pronunciation": "BAH-bah",
+      "audio_sample": "baba.wav",
+      "usage": "Father/dad"
+    },
+    "Kaka": {
+      "phonetic": "ˈkaka",
+      "pronunciation": "KAH-kah",
+      "audio_sample": "kaka.wav",
+      "usage": "Brother"
+    },
+    "Dada": {
+      "phonetic": "ˈdada",
+      "pronunciation": "DAH-dah",
+      "audio_sample": "dada.wav",
+      "usage": "Sister"
+    },
+    "Rafiki": {
+      "phonetic": "raˈfiki",
+      "pronunciation": "rah-FEE-kee",
+      "audio_sample": "rafiki.wav",
+      "usage": "Friend"
+    },
+    "Haraka": {
+      "phonetic": "haˈraka",
+      "pronunciation": "hah-RAH-kah",
+      "audio_sample": "haraka.wav",
+      "usage": "Quickly/fast"
+    },
+    "Pole": {
+      "phonetic": "ˈpole",
+      "pronunciation": "POH-leh",
+      "audio_sample": "pole.wav",
+      "usage": "Slowly/sorry"
+    },
+    "Asante": {
+      "phonetic": "aˈsante",
+      "pronunciation": "ah-SAHN-teh",
+      "audio_sample": "asante.wav",
+      "usage": "Thank you"
+    },
+    "Karibu": {
+      "phonetic": "kaˈribu",
+      "pronunciation": "kah-REE-boo",
+      "audio_sample": "karibu.wav",
+      "usage": "Welcome/you're welcome"
+    },
+    "Ngoja": {
+      "phonetic": "ˈŋgoja",
+      "pronunciation": "NGOH-jah",
+      "audio_sample": "ngoja.wav",
+      "usage": "Wait"
+    },
+    "Tayari": {
+      "phonetic": "taˈjari",
+      "pronunciation": "tah-YAH-ree",
+      "audio_sample": "tayari.wav",
+      "usage": "Ready"
+    },
+    "Kwaheri": {
+      "phonetic": "kwaˈhɛri",
+      "pronunciation": "kwah-HEH-ree",
+      "audio_sample": "kwaheri.wav",
+      "usage": "Goodbye"
+    }
+  },
+  "number_pronunciations": {
+    "0": {
+      "kiswahili": "sifuri",
+      "phonetic": "siˈfuri",
+      "pronunciation": "see-FOO-ree"
+    },
+    "1": {
+      "kiswahili": "moja",
+      "phonetic": "ˈmoja",
+      "pronunciation": "MOH-jah"
+    },
+    "2": {
+      "kiswahili": "mbili",
+      "phonetic": "ˈmbili",
+      "pronunciation": "m-BEE-lee"
+    },
+    "3": {
+      "kiswahili": "tatu",
+      "phonetic": "ˈtatu",
+      "pronunciation": "TAH-too"
+    },
+    "4": {
+      "kiswahili": "nne",
+      "phonetic": "ˈnːe",
+      "pronunciation": "n-NEH"
+    },
+    "5": {
+      "kiswahili": "tano",
+      "phonetic": "ˈtano",
+      "pronunciation": "TAH-noh"
+    },
+    "6": {
+      "kiswahili": "sita",
+      "phonetic": "ˈsita",
+      "pronunciation": "SEE-tah"
+    },
+    "7": {
+      "kiswahili": "saba",
+      "phonetic": "ˈsaba",
+      "pronunciation": "SAH-bah"
+    },
+    "8": {
+      "kiswahili": "nane",
+      "phonetic": "ˈnane",
+      "pronunciation": "NAH-neh"
+    },
+    "9": {
+      "kiswahili": "tisa",
+      "phonetic": "ˈtisa",
+      "pronunciation": "TEE-sah"
+    },
+    "10": {
+      "kiswahili": "kumi",
+      "phonetic": "ˈkumi",
+      "pronunciation": "KOO-mee"
+    }
+  },
+  "common_phrases": {
+    "Tuma pesa": {
+      "phonetic": "ˈtuma ˈpɛsa",
+      "pronunciation": "TOO-mah PEH-sah",
+      "meaning": "Send money"
+    },
+    "Lipa bill": {
+      "phonetic": "ˈlipa bɪl",
+      "pronunciation": "LEE-pah BILL",
+      "meaning": "Pay bill"
+    },
+    "Toa pesa": {
+      "phonetic": "ˈtoa ˈpɛsa",
+      "pronunciation": "TOH-ah PEH-sah",
+      "meaning": "Withdraw money"
+    },
+    "Pochi la Biashara": {
+      "phonetic": "ˈpoʧi la biˈaʃara",
+      "pronunciation": "POH-chee lah bee-ah-SHAH-rah",
+      "meaning": "Business wallet"
+    },
+    "Elfu moja": {
+      "phonetic": "ˈɛlfu ˈmoja",
+      "pronunciation": "EL-foo MOH-jah",
+      "meaning": "One thousand"
+    },
+    "Mia moja": {
+      "phonetic": "ˈmia ˈmoja",
+      "pronunciation": "MEE-ah MOH-jah",
+      "meaning": "One hundred"
+    },
+    "Pesa imefika": {
+      "phonetic": "ˈpɛsa imeˈfika",
+      "pronunciation": "PEH-sah ee-meh-FEE-kah",
+      "meaning": "Money has arrived"
+    },
+    "Sawa sawa": {
+      "phonetic": "ˈsawa ˈsawa",
+      "pronunciation": "SAH-wah SAH-wah",
+      "meaning": "Okay okay/all good"
+    }
+  },
+  "pronunciation_rules": {
+    "vowels": {
+      "a": "Always pronounced as 'ah' (like 'father')",
+      "e": "Always pronounced as 'eh' (like 'bet')",
+      "i": "Always pronounced as 'ee' (like 'see')",
+      "o": "Always pronounced as 'oh' (like 'go')",
+      "u": "Always pronounced as 'oo' (like 'boot')"
+    },
+    "consonants": {
+      "ng": "Pronounced as 'ng' in 'sing', not 'n-g'",
+      "ny": "Pronounced as 'ny' in 'canyon'",
+      "ch": "Pronounced as 'ch' in 'church'",
+      "th": "Pronounced as 'th' in 'think'",
+      "dh": "Pronounced as 'th' in 'this'"
+    },
+    "stress": {
+      "rule": "Stress is usually on the penultimate (second-to-last) syllable",
+      "examples": [
+        "ha-BA-ri (not HA-ba-ri)",
+        "a-SAN-te (not a-san-TE)",
+        "ka-RI-bu (not KA-ri-bu)"
+      ]
+    }
+  },
+  "elevenlabs_config": {
+    "voice_settings": {
+      "stability": 0.75,
+      "similarity_boost": 0.85,
+      "style": 0.2,
+      "use_speaker_boost": true
+    },
+    "model_id": "eleven_multilingual_v2",
+    "voice_id": "recommended_kenyan_voice",
+    "pronunciation_dictionary_id": "kenyan_mpesa_dict_v1"
+  }
+}

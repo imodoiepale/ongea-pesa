@@ -1,0 +1,130 @@
+# ElevenLabs Kenyan Sheng & Street Language Dictionary
+# Format: WORD|PHONETIC|PRONUNCIATION|MEANING|CONTEXT
+
+# SHENG SLANG & STREET LANGUAGE
+doh|doʊ|DOH|money|"Huna doh enough" (You don't have enough money)
+mzee|mˈzeː|m-ZEH|old man/boss|"Wewe mzee" (You old man/boss)
+msee|mˈseː|m-SEH|guy/person|"Ule msee" (That guy)
+msupa|mˈsupa|m-SOO-pah|super/cool person|"Msee msupa" (Cool guy)
+mkurugenzi|mkuruˈɡɛnzi|m-koo-roo-GEN-zee|director/big shot|"Msee mkurugenzi" (Big shot guy)
+keja|ˈkɛja|KEH-jah|house/place|"Kuja keja" (Come to the house)
+mathree|maˈθriː|mah-THREE|matatu/public transport|"Panda mathree" (Board matatu)
+ka|ka|KAH|small/little|"Ka-doh" (little money)
+mob|moːb|MOHB|many/a lot|"Pesa mob" (A lot of money)
+sana|ˈsana|SAH-nah|very/a lot|"Haraka sana" (Very fast)
+buda|ˈbuda|BOO-dah|brother/friend|"Eish buda" (Hey brother)
+dem|dɛm|DEM|girl/lady|"Huyo dem" (That girl)
+jamaa|jaˈmaː|jah-MAH|person/guy|"Jamaa ako na doh" (Guy has money)
+kitu|ˈkitu|KEE-too|thing/something|"Kitu kidogo" (Something small)
+kidogo|kiˈdoɡo|kee-DOH-goh|little/small amount|"Pesa kidogo" (Little money)
+kubwa|ˈkubwa|KOOB-wah|big/large|"Doh kubwa" (Big money)
+ndogo|ˈndoɡo|n-DOH-goh|small|"Kitu ndogo" (Small thing)
+poa|ˈpoa|POH-ah|cool/good|"Poa sana" (Very cool)
+fresh|frɛʃ|FRESH|good/cool|"Msee fresh" (Cool guy)
+tight|taɪt|TIGHT|difficult/tough|"Situation ni tight" (Situation is tough)
+sorted|ˈsɔrtɪd|SORT-ed|fixed/handled|"Umesorted" (You're sorted)
+shida|ˈʃida|SHEE-dah|problem|"Hakuna shida" (No problem)
+stress|strɛs|STRESS|worry/problem|"Usistress" (Don't stress)
+vibes|vaɪbz|VIBES|good feeling|"Good vibes" (Good feeling)
+choma|ˈʧoma|CHOH-mah|meat/food|"Tukule choma" (Let's eat meat)
+kula|ˈkula|KOO-lah|eat|"Kuja tukule" (Come let's eat)
+nyama|ˈɲama|NYAH-mah|meat|"Nyama choma" (Roasted meat)
+chapati|ʧaˈpati|chah-PAH-tee|flatbread|"Chapati moja" (One chapati)
+sukuma|suˈkuma|soo-KOO-mah|collard greens|"Sukuma wiki" (Push the week)
+ugali|uˈɡali|oo-GAH-lee|cornmeal staple|"Ugali na nyama" (Ugali and meat)
+
+# WITTY MONEY PHRASES
+broke|broʊk|BROHK|no money|"Niko broke kabisa" (I'm completely broke)
+loaded|ˈloʊdɪd|LOH-ded|rich|"Msee ako loaded" (Guy is loaded)
+ballin|ˈbɔlɪn|BALL-in|living large|"Tuko ballin" (We're ballin)
+hustle|ˈhʌsəl|HUSS-el|work hard|"Lazima tuhustle" (We must hustle)
+grind|ɡraɪnd|GRIND|work hard|"Daily grind" (Daily work)
+stack|stæk|STACK|save money|"Tunastack doh" (We're stacking money)
+flex|flɛks|FLEX|show off|"Unaflex na doh" (You're flexing with money)
+splash|splæʃ|SPLASH|spend big|"Tumasplash leo" (Let's splash today)
+budget|ˈbʌdʒɪt|BUD-jet|money plan|"Budget iko tight" (Budget is tight)
+change|ʧeɪndʒ|CHAYNJ|small money|"Huna change?" (Don't you have change?)
+
+# TRANSACTION SLANG
+send|sɛnd|SEND|transfer money|"Send doh haraka" (Send money fast)
+receive|rɪˈsiːv|ree-SEEV|get money|"Nimereceive" (I've received)
+transfer|ˈtrænsfər|TRANS-fer|move money|"Transfer kwangu" (Transfer to me)
+withdraw|wɪðˈdrɔ|with-DRAW|take out money|"Withdraw kidogo" (Withdraw a little)
+deposit|dɪˈpɑzɪt|dee-POZ-it|put in money|"Deposit kwa account" (Deposit to account)
+balance|ˈbæləns|BAL-ance|money left|"Check balance" (Check balance)
+limit|ˈlɪmɪt|LIM-it|maximum amount|"Daily limit" (Daily limit)
+charges|ˈʧɑrdʒɪz|CHAR-jez|fees|"Charges ni ngapi?" (How much are charges?)
+
+# FAMILY & FRIENDS SLANG
+moms|mɑmz|MAHMS|mother|"Send kwa moms" (Send to mom)
+pops|pɑps|PAHPS|father|"Pops anahitaji doh" (Dad needs money)
+bro|broʊ|BROH|brother|"Bro uko na change?" (Bro do you have change?)
+sis|sɪs|SIS|sister|"Sis anataka doh" (Sister wants money)
+bestie|ˈbɛsti|BEST-ee|best friend|"Bestie send kidogo" (Bestie send a little)
+squad|skwɑd|SKWAHD|group of friends|"Squad iko broke" (Squad is broke)
+crew|kruː|KROO|group|"Crew yetu" (Our crew)
+fam|fæm|FAM|family|"Fam first" (Family first)
+
+# SUCCESS & FAILURE EXPRESSIONS
+winning|ˈwɪnɪŋ|WIN-ing|succeeding|"Tuko winning" (We're winning)
+losing|ˈluzɪŋ|LOOZ-ing|failing|"Sio losing" (Not losing)
+blessed|ˈblɛsɪd|BLESS-ed|fortunate|"Niko blessed" (I'm blessed)
+struggling|ˈstrʌɡəlɪŋ|STRUG-gling|having problems|"Sio struggling" (Not struggling)
+thriving|ˈθraɪvɪŋ|THRYV-ing|doing well|"Business inathrive" (Business is thriving)
+surviving|sərˈvaɪvɪŋ|sur-VYV-ing|getting by|"Tu-survive tu" (We're just surviving)
+
+# AMOUNTS & QUANTITIES
+change|ʧeɪndʒ|CHAYNJ|small money|"Huna change?" (Don't you have change?)
+coins|kɔɪnz|KOYNZ|small money|"Coins tu" (Just coins)
+notes|noʊts|NOHTS|paper money|"Notes proper" (Proper notes)
+cash|kæʃ|KASH|physical money|"Cash iko?" (Is there cash?)
+liquid|ˈlɪkwɪd|LIK-wid|available money|"Liquid cash" (Available cash)
+solid|ˈsɑlɪd|SOL-id|good amount|"Solid amount" (Good amount)
+
+# EMOTIONAL EXPRESSIONS
+eish|eɪʃ|AYSH|expression of concern|"Eish buda" (Oh man)
+aii|aɪ|AY|expression of surprise|"Aii msee" (Wow guy)
+kwani|ˈkwani|KWAH-nee|what/why|"Kwani huna doh?" (Why don't you have money?)
+alafu|aˈlafu|ah-LAH-foo|then/and then|"Alafu utanisaidia" (Then you'll help me)
+lakini|laˈkini|lah-KEE-nee|but|"Lakini huna doh" (But you don't have money)
+kumbe|ˈkumbe|KOOM-beh|turns out|"Kumbe huna doh" (Turns out you don't have money)
+
+# BUSINESS SLANG
+biashara|biˈaʃara|bee-ah-SHAH-rah|business|"Biashara iko poa" (Business is good)
+kazi|ˈkazi|KAH-zee|work/job|"Kazi iko?" (Is there work?)
+deal|diːl|DEEL|business deal|"Deal iko solid" (Deal is solid)
+profit|ˈprɑfɪt|PROF-it|earnings|"Profit kidogo" (Small profit)
+loss|lɔs|LOSS|money lost|"Hakuna loss" (No loss)
+investment|ɪnˈvɛstmənt|in-VEST-ment|money put in|"Investment poa" (Good investment)
+
+# TIME EXPRESSIONS
+sasa|ˈsasa|SAH-sah|now|"Sasa hivi" (Right now)
+mapema|maˈpema|mah-PEH-mah|early|"Mapema sana" (Very early)
+chelewa|ʧeˈlewa|cheh-LEH-wah|late|"Usichelewa" (Don't be late)
+haraka|haˈraka|hah-RAH-kah|quickly|"Haraka haraka" (Very quickly)
+polepole|poleˈpole|poh-leh-POH-leh|slowly|"Polepole tu" (Just slowly)
+
+# PHONE NUMBERS IN SHENG
+namba|ˈnamba|NAM-bah|number|"Namba yako" (Your number)
+zero|ˈzɪroʊ|ZEE-roh|0|"Zero saba" (Zero seven)
+moja|ˈmoja|MOH-jah|1|"Moja moja" (One one)
+mbili|ˈmbili|m-BEE-lee|2|"Mbili mbili" (Two two)
+tatu|ˈtatu|TAH-too|3|"Tatu tatu" (Three three)
+nne|ˈnːe|n-NEH|4|"Nne nne" (Four four)
+tano|ˈtano|TAH-noh|5|"Tano tano" (Five five)
+sita|ˈsita|SEE-tah|6|"Sita sita" (Six six)
+saba|ˈsaba|SAH-bah|7|"Saba saba" (Seven seven)
+nane|ˈnane|NAH-neh|8|"Nane nane" (Eight eight)
+tisa|ˈtisa|TEE-sah|9|"Tisa tisa" (Nine nine)
+
+# WITTY RESPONSE PHRASES
+"Huna doh enough buda"|"You don't have enough money brother"
+"Wewe mzee unafaa kutumia ule msee"|"You old man should use that guy"
+"Msee msupa mkurugenzi"|"Cool guy big shot"
+"Eish jamaa ako na shida"|"Oh man, guy has problems"
+"Poa sana msee, umesorted"|"Very cool guy, you're sorted"
+"Kwani huna change kidogo?"|"Why don't you have small change?"
+"Aii buda, doh iko tight"|"Wow brother, money is tight"
+"Lakini msee, hustle lazima"|"But guy, hustle is necessary"
+"Kumbe wewe ni mkurugenzi"|"Turns out you're a big shot"
+"Sasa hivi send haraka"|"Right now send quickly"
