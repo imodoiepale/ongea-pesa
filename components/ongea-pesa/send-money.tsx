@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+
 interface SendMoneyProps {
-  onNavigate: (screen: string) => void
+  onNavigate: (screen: Screen) => void;
 }
 
 export default function SendMoney({ onNavigate }: SendMoneyProps) {

@@ -1,7 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 
 export interface PaymentScanResult {
-  type: 'send_phone' | 'buy_goods_pochi' | 'buy_goods_till' | 'paybill' | 'withdraw' | 'bank_to_mpesa' | 'bank_to_bank' | 'receipt';
+  type: 'send_phone' | 'buy_goods_pochi' | 'buy_goods_till' | 'paybill' | 'withdraw' | 'bank_to_mpesa' | 'bank_to_bank' | 'receipt' | 'qr';
   data: {
     // Core numbers - no business names needed
     phone?: string;           // For send_phone, buy_goods_pochi
@@ -45,10 +45,10 @@ class GeminiVisionService {
     if (!this.ai) {
       throw new Error('Gemini AI not initialized. Check API key.');
     }
-    
+
     try {
       const prompt = this.getPromptForScanMode(scanMode);
-      
+
       const response = await this.ai.models.generateContent({
         model: "gemini-2.5-pro",
         contents: [
@@ -74,7 +74,7 @@ class GeminiVisionService {
     if (!this.ai) {
       throw new Error('Gemini AI not initialized. Check API key.');
     }
-    
+
     try {
       console.log('🚀 Starting Gemini API request...');
       const autoDetectPrompt = `
@@ -120,10 +120,10 @@ class GeminiVisionService {
           "confidence": 0
         }
       `;
-      
+
       console.log('📡 Making network request to Gemini API...');
       const startTime = Date.now();
-      
+
       const response = await this.ai.models.generateContent({
         model: "gemini-2.5-pro",
         contents: [
@@ -139,13 +139,13 @@ class GeminiVisionService {
 
       const endTime = Date.now();
       console.log(`✅ Gemini API response received in ${endTime - startTime}ms`);
-      
+
       const result = response.text || '';
       console.log('📝 Raw Gemini response:', result.substring(0, 200) + '...');
-      
+
       const parsed = this.parseAutoDetectResponse(result);
       console.log('🔍 Parsed result:', parsed);
-      
+
       if (parsed.detected && parsed.confidence > 70) {
         console.log('🎯 Payment detected with high confidence!');
         return {
@@ -155,7 +155,7 @@ class GeminiVisionService {
           rawText: result
         };
       }
-      
+
       console.log('❌ No payment detected or low confidence');
       return null;
     } catch (error) {
@@ -174,7 +174,7 @@ class GeminiVisionService {
   private parseAutoDetectResponse(response: string): any {
     try {
       let jsonStr = response.trim();
-      
+
       if (jsonStr.includes('```json')) {
         jsonStr = jsonStr.split('```json')[1].split('```')[0].trim();
       } else if (jsonStr.includes('```')) {
@@ -366,7 +366,7 @@ class GeminiVisionService {
   // Validate and format numbers for accuracy
   private validateAndFormatNumbers(data: any): any {
     const formatted = { ...data };
-    
+
     // Validate Paybill numbers (6-7 digits)
     if (formatted.paybill) {
       formatted.paybill = formatted.paybill.replace(/[^0-9]/g, ''); // Remove non-digits
@@ -374,7 +374,7 @@ class GeminiVisionService {
         console.warn('Invalid paybill length:', formatted.paybill);
       }
     }
-    
+
     // Validate Till numbers (6-7 digits)
     if (formatted.till) {
       formatted.till = formatted.till.replace(/[^0-9]/g, ''); // Remove non-digits
@@ -382,7 +382,7 @@ class GeminiVisionService {
         console.warn('Invalid till length:', formatted.till);
       }
     }
-    
+
     // Validate Agent numbers (6-7 digits)
     if (formatted.agent) {
       formatted.agent = formatted.agent.replace(/[^0-9]/g, '');
@@ -390,7 +390,7 @@ class GeminiVisionService {
         console.warn('Invalid agent length:', formatted.agent);
       }
     }
-    
+
     // Format phone numbers
     if (formatted.phone) {
       let phone = formatted.phone.replace(/[^0-9]/g, '');
@@ -399,7 +399,7 @@ class GeminiVisionService {
       }
       formatted.phone = phone;
     }
-    
+
     // Format amounts
     if (formatted.amount) {
       // Ensure currency prefix
@@ -410,7 +410,7 @@ class GeminiVisionService {
         }
       }
     }
-    
+
     return formatted;
   }
 
@@ -418,7 +418,7 @@ class GeminiVisionService {
     try {
       // Clean the response to extract JSON
       let jsonStr = response.trim();
-      
+
       // Remove markdown code blocks if present
       if (jsonStr.includes('```json')) {
         jsonStr = jsonStr.split('```json')[1].split('```')[0].trim();
@@ -427,7 +427,7 @@ class GeminiVisionService {
       }
 
       const parsed = JSON.parse(jsonStr);
-      
+
       // Validate and structure the response
       const result: PaymentScanResult = {
         type: parsed.type || scanMode as any,

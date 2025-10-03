@@ -7,9 +7,11 @@ import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
 import WaveAnimation from "./wave-animation"
 
+type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+
 interface MainDashboardProps {
-  onNavigate: (screen: string) => void
-  onVoiceActivate: () => void
+  onNavigate: (screen: Screen) => void;
+  onVoiceActivate: () => void;
 }
 
 export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashboardProps) {

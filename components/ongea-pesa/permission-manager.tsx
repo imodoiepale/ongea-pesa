@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 
+type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+
 interface PermissionManagerProps {
-  onNavigate: (screen: string) => void
+  onNavigate: (screen: Screen) => void;
 }
 
 interface Permission {

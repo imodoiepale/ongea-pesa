@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
+type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+
 interface CameraCaptureProps {
-  onNavigate: (screen: string) => void
+  onNavigate: (screen: Screen) => void;
 }
 
 export default function CameraCapture({ onNavigate }: CameraCaptureProps) {
@@ -272,7 +274,7 @@ export default function CameraCapture({ onNavigate }: CameraCaptureProps) {
               Cancel
             </Button>
             <Button
-              variant="primary"
+              variant="default"
               onClick={() => {
                 setConfirmationDialogOpen(false)
                 alert("Payment Sent!")

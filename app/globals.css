@@ -71,6 +71,152 @@
   animation-delay: 600ms;
 }
 
+.animation-delay-1000 {
+  animation-delay: 1000ms;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2000ms;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4000ms;
+}
+
+/* Blob animations for voice interface */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+/* Voice pulse animation */
+@keyframes voice-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.animate-voice-pulse {
+  animation: voice-pulse 2s ease-in-out infinite;
+}
+
+/* Gradient text animation */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background: linear-gradient(-45deg, #00ff88, #00d4aa, #0099cc, #6366f1);
+  background-size: 400% 400%;
+  animation: gradient-shift 3s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Enhanced push-to-talk animations */
+@keyframes record-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.8);
+  }
+}
+
+.animate-record-pulse {
+  animation: record-pulse 1s ease-in-out infinite;
+}
+
+/* Microphone glow effect */
+@keyframes mic-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.8));
+  }
+}
+
+.animate-mic-glow {
+  animation: mic-glow 2s ease-in-out infinite;
+}
+
+/* Floating animation for background elements */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+  66% {
+    transform: translateY(10px) rotate(-5deg);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Ripple effect */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 0.6s linear;
+}
+
+/* Enhanced border animations */
+.border-animate {
+  background: linear-gradient(45deg, transparent, rgba(34, 197, 94, 0.5), transparent);
+  background-size: 200% 200%;
+  animation: border-flow 2s linear infinite;
+}
+
+@keyframes border-flow {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 200%;
+  }
+}
+
 /* Glassmorphism effects */
 .glass {
   background: rgba(255, 255, 255, 0.1);

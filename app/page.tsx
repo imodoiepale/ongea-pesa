@@ -1,5 +1,9 @@
-import OngeaPesaApp from "@/components/ongea-pesa/app"
+import OngeaPesaApp from "@/components/ongea-pesa/app";
 
 export default function Home() {
-  return <OngeaPesaApp />
+  return (
+    <main>
+      <OngeaPesaApp />
+    </main>
+  );
 }

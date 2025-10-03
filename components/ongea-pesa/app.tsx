@@ -27,30 +27,30 @@ export default function OngeaPesaApp() {
     return null
   }
 
+  const navigate = (screen: Screen) => setCurrentScreen(screen);
+
   const renderScreen = () => {
     switch (currentScreen) {
       case "dashboard":
-        return <MainDashboard onNavigate={setCurrentScreen} onVoiceActivate={() => setIsListening(true)} />
+        return <MainDashboard onNavigate={navigate} onVoiceActivate={() => setIsListening(true)} />
       case "voice":
-        return (
-          <VoiceInterface onNavigate={setCurrentScreen} isListening={isListening} setIsListening={setIsListening} />
-        )
+        return <VoiceInterface onNavigate={navigate} />
       case "send":
-        return <SendMoney onNavigate={setCurrentScreen} />
+        return <SendMoney onNavigate={navigate} />
       case "camera":
-        return <CameraCapture onNavigate={setCurrentScreen} />
+        return <CameraCapture onNavigate={navigate} />
       case "recurring":
-        return <RecurringPayments onNavigate={setCurrentScreen} />
+        return <RecurringPayments onNavigate={navigate} />
       case "analytics":
-        return <Analytics onNavigate={setCurrentScreen} />
+        return <Analytics onNavigate={navigate} />
       case "test":
-        return <VoiceTest onNavigate={setCurrentScreen} />
+        return <VoiceTest onNavigate={navigate} />
       case "permissions":
-        return <PermissionManager onNavigate={setCurrentScreen} />
+        return <PermissionManager onNavigate={navigate} />
       case "scanner":
-        return <PaymentScanner onNavigate={setCurrentScreen} />
+        return <PaymentScanner onNavigate={navigate} />
       default:
-        return <MainDashboard onNavigate={setCurrentScreen} onVoiceActivate={() => setIsListening(true)} />
+        return <MainDashboard onNavigate={navigate} onVoiceActivate={() => setIsListening(true)} />
     }
   }
 

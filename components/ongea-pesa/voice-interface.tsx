@@ -1,198 +1,519 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Mic, MicOff, Volume2, ArrowLeft } from "lucide-react"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { Mic, MicOff, Volume2, ArrowLeft, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import VoiceWaveform from "./voice-waveform"
+import { useConversation } from '@elevenlabs/react';
+
+type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
 interface VoiceInterfaceProps {
-  onNavigate: (screen: string) => void
-  isListening: boolean
-  setIsListening: (listening: boolean) => void
+  onNavigate: (screen: Screen) => void;
 }
 
-export default function VoiceInterface({ onNavigate, isListening, setIsListening }: VoiceInterfaceProps) {
-  const [transcript, setTranscript] = useState("")
-  const [response, setResponse] = useState("")
-  const [recordingTime, setRecordingTime] = useState(0)
+export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
+  const [transcript, setTranscript] = useState("");
+  const [response, setResponse] = useState("");
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [isListening, setIsListening] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPushToTalk, setIsPushToTalk] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const conversation = useConversation({
+    onMessage: (message: any) => {
+      console.log('Received message:', message);
+      
+      // Handle different message formats from ElevenLabs
+      if (message.source === 'user') {
+        setTranscript(message.message || message.transcript || '');
+        setIsProcessing(true);
+      } else if (message.source === 'ai') {
+        setResponse(message.message || message.text || '');
+        setIsProcessing(false);
+      } else if (message.type === 'user_transcript') {
+        setTranscript(message.user_transcript || message.transcript || '');
+        setIsProcessing(true);
+      } else if (message.type === 'agent_response') {
+        setResponse(message.agent_response || message.text || '');
+        setIsProcessing(false);
+      } else if (message.transcript) {
+        setTranscript(message.transcript);
+        setIsProcessing(true);
+      } else if (message.text || message.message) {
+        setResponse(message.text || message.message);
+        setIsProcessing(false);
+      }
+    },
+    onConnect: () => {
+      setIsListening(true);
+      setIsConnecting(false);
+      setError(null);
+      console.log('Connected to ElevenLabs');
+    },
+    onDisconnect: () => {
+      console.log('Disconnected from ElevenLabs');
+      setIsListening(false);
+      setIsConnecting(false);
+      setIsPushToTalk(false);
+      // Don't auto-reconnect anymore
+    },
+    onError: (error: any) => {
+      console.error('ElevenLabs error:', error);
+      setError(error.message || 'Connection failed');
+      setIsConnecting(false);
+      setIsListening(false);
+    }
+  });
+
+  // Inactivity timer function
+  const resetInactivityTimer = useCallback(() => {
+    // Clear existing timer
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    
+    // Set new timer for 5 seconds of inactivity
+    inactivityTimerRef.current = setTimeout(async () => {
+      console.log('5 seconds of inactivity - closing session and going back');
+      try {
+        await conversation.endSession();
+      } catch (error) {
+        console.error('Error ending session:', error);
+      }
+      onNavigate("dashboard");
+    }, 5000);
+  }, [conversation, onNavigate]);
+
+  const getSignedUrl = async (): Promise<string> => {
+    try {
+      const response = await fetch("/api/get-signed-url");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to get signed url: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+      const { signedUrl } = await response.json();
+      if (!signedUrl) {
+        throw new Error('No signed URL received from server');
+      }
+      return signedUrl;
+    } catch (error) {
+      console.error('Error getting signed URL:', error);
+      throw error;
+    }
+  };
+
+  const startConversation = useCallback(async () => {
+    if (isConnecting || isListening) return;
+    
+    setIsConnecting(true);
+    setError(null);
+    
+    try {
+      // Request microphone permission
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 44100
+        } 
+      });
+      
+      // Stop the stream immediately as ElevenLabs will handle audio
+      stream.getTracks().forEach(track => track.stop());
+      
+      const signedUrl = await getSignedUrl();
+      console.log('Starting conversation with signed URL');
+      
+      await conversation.startSession({ 
+        signedUrl,
+        // Add session configuration to maintain connection
+        timeoutMs: 300000, // 5 minutes timeout
+        maxDuration: 600000, // 10 minutes max duration
+      });
+      
+    } catch (error: any) {
+      console.error('Failed to start conversation:', error);
+      setError(error.message || 'Failed to start voice conversation');
+      setIsConnecting(false);
+    }
+  }, [conversation, isConnecting, isListening]);
+
+  const stopConversation = useCallback(async () => {
+    try {
+      await conversation.endSession();
+      setTranscript("");
+      setResponse("");
+      setRecordingTime(0);
+      setIsProcessing(false);
+      setIsPushToTalk(false);
+    } catch (error) {
+      console.error('Error stopping conversation:', error);
+    }
+  }, [conversation]);
+
+  // Auto-start conversation when component mounts
+  useEffect(() => {
+    let mounted = true;
+    let autoStartTimer: NodeJS.Timeout;
+    
+    const autoStart = async () => {
+      if (!mounted) return;
+      
+      console.log('🚀 Auto-starting voice conversation in 2 seconds...');
+      
+      autoStartTimer = setTimeout(async () => {
+        if (!mounted || isListening || isConnecting || error) return;
+        
+        console.log('🎤 Starting voice conversation...');
+        await startConversation();
+      }, 2000);
+    };
+    
+    autoStart();
+    
+    return () => {
+      mounted = false;
+      if (autoStartTimer) clearTimeout(autoStartTimer);
+    };
+  }, []); // Only run once on mount
+
+  // Start inactivity timer when connected
+  useEffect(() => {
+    if (isListening) {
+      resetInactivityTimer();
+    }
+    
+    // Cleanup timer on unmount
+    return () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    };
+  }, [isListening, resetInactivityTimer]);
+
+  // Push-to-talk functionality
+  const handleMouseDown = useCallback(() => {
+    if (!isListening) return;
+    setIsPushToTalk(true);
+    // Reset inactivity timer when user starts talking
+    resetInactivityTimer();
+    console.log('Started push-to-talk');
+  }, [isListening, resetInactivityTimer]);
+
+  const handleMouseUp = useCallback(() => {
+    if (!isPushToTalk) return;
+    setIsPushToTalk(false);
+    // Reset inactivity timer when user stops talking
+    resetInactivityTimer();
+    console.log('Stopped push-to-talk');
+  }, [isPushToTalk, resetInactivityTimer]);
+
+  // Handle keyboard events for push-to-talk
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !isPushToTalk && isListening) {
+        e.preventDefault();
+        handleMouseDown();
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && isPushToTalk) {
+        e.preventDefault();
+        handleMouseUp();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [isPushToTalk, isListening, handleMouseDown, handleMouseUp]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout
+    let interval: NodeJS.Timeout;
     if (isListening) {
       interval = setInterval(() => {
-        setRecordingTime((prev) => prev + 1)
-      }, 1000)
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
     } else {
-      setRecordingTime(0)
+      setRecordingTime(0);
     }
-    return () => clearInterval(interval)
-  }, [isListening])
+    return () => clearInterval(interval);
+  }, [isListening]);
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
-
-  const handleVoiceCommand = (command: string) => {
-    setTranscript(command)
-    setIsListening(false)
-
-    // Simulate AI response
-    setTimeout(() => {
-      if (command.includes("tuma") || command.includes("send")) {
-        setResponse("Nimeelewa. Unataka kutuma pesa. Ni kiasi gani na kwa nani?")
-      } else if (command.includes("balance") || command.includes("salio")) {
-        setResponse("Salio lako ni shilingi elfu kumi na mia nne hamsini. KSh 12,450.")
-      } else {
-        setResponse("Samahani, sijaelewi. Tafadhali rudia.")
-      }
-    }, 1000)
-  }
-
-  const simulateCommands = [
-    "Ongea Pesa, tuma 500 kwa John",
-    "Check my balance",
-    "Tuma 200 kwa namba 0712345678",
-    "Seti malipo ya kodi kila tarehe moja",
-  ]
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-[#0A1A2A] dark:via-[#0F2027] dark:to-[#203A43] relative overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center mb-6 pt-8 px-4 relative z-10">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 relative overflow-hidden">
+      {/* Soft Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* Clean Header */}
+      <div className="flex items-center justify-between pt-12 pb-6 px-6 relative z-10">
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => onNavigate("dashboard")}
-          className="mr-3 text-gray-600 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-gray-800/50"
+          onClick={() => {
+            // End session when going back
+            if (isListening) {
+              stopConversation();
+            }
+            onNavigate("dashboard");
+          }}
+          className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-all duration-300"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-6 w-6" />
         </Button>
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Record</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Speak naturally in Swahili or English</p>
+        
+        <div className="text-center">
+          <h1 className="text-xl font-semibold text-gray-800">
+            AI Assistant
+          </h1>
+          <div className="flex items-center justify-center gap-2 mt-1">
+            <div className={`w-2 h-2 rounded-full transition-colors ${
+              isListening ? 'bg-green-500' : 
+              isConnecting ? 'bg-yellow-500' : 
+              error ? 'bg-red-500' : 'bg-gray-400'
+            }`}></div>
+            <p className="text-sm text-gray-500">
+              {isListening ? 'Connected' : 
+               isConnecting ? 'Connecting...' : 
+               error ? 'Error' : 'Starting...'}
+            </p>
+          </div>
         </div>
+
+        <div className="w-10"></div> {/* Spacer for centering */}
       </div>
 
-      {/* Main Voice Interface */}
-      <div className="px-4 relative z-10">
-        <Card className="mb-6 bg-white/80 dark:bg-[#0A1A2A]/90 backdrop-blur-sm border-gray-200 dark:border-gray-700/50 shadow-2xl">
-          <CardContent className="p-8 text-center">
-            {/* Top Waveform */}
-            <div className="mb-8">
-              <VoiceWaveform isActive={isListening} position="top" />
-            </div>
+      <div className="px-6 relative z-10 flex flex-col items-center">
+        {/* Error Alert */}
+        {error && (
+          <Alert className="mb-6 border-red-200 bg-red-50 animate-in slide-in-from-top-2 max-w-md w-full">
+            <AlertCircle className="h-4 w-4 text-red-500" />
+            <AlertDescription className="text-red-700">
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
 
-            {/* Main Content */}
-            <div className="mb-8">
-              {transcript ? (
-                <div className="space-y-4">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-relaxed">{transcript}</h2>
-                  <div className="text-[#00FF88] font-mono text-lg">{formatTime(recordingTime)}</div>
-                </div>
+        {/* 3D Orb Container */}
+        <div className="relative mb-8">
+          {/* 3D Glassmorphic Orb */}
+          <div className={`relative w-48 h-48 rounded-full transition-all duration-700 ${
+            isPushToTalk 
+              ? 'bg-gradient-to-br from-red-200 via-pink-100 to-red-200 shadow-2xl shadow-red-200/50' 
+              : isProcessing
+              ? 'bg-gradient-to-br from-blue-200 via-purple-100 to-blue-200 shadow-2xl shadow-blue-200/50 animate-pulse'
+              : isListening
+              ? 'bg-gradient-to-br from-green-200 via-emerald-100 to-green-200 shadow-2xl shadow-green-200/50'
+              : 'bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 shadow-xl shadow-gray-200/30'
+          }`}>
+            {/* Inner glow effect */}
+            <div className={`absolute inset-4 rounded-full transition-all duration-500 ${
+              isPushToTalk
+                ? 'bg-gradient-to-br from-red-300/50 to-pink-300/50 animate-pulse'
+                : isProcessing
+                ? 'bg-gradient-to-br from-blue-300/50 to-purple-300/50 animate-pulse'
+                : isListening
+                ? 'bg-gradient-to-br from-green-300/50 to-emerald-300/50'
+                : 'bg-gradient-to-br from-gray-300/30 to-gray-300/30'
+            }`}></div>
+            
+            {/* Animated rings for active states */}
+            {isPushToTalk && (
+              <>
+                <div className="absolute -inset-4 rounded-full border-2 border-red-300 opacity-60 animate-ping"></div>
+                <div className="absolute -inset-8 rounded-full border border-red-200 opacity-40 animate-ping animation-delay-200"></div>
+              </>
+            )}
+            
+            {isProcessing && !isPushToTalk && (
+              <>
+                <div className="absolute -inset-4 rounded-full border-2 border-blue-300 opacity-60 animate-pulse"></div>
+                <div className="absolute -inset-8 rounded-full border border-blue-200 opacity-40 animate-pulse animation-delay-400"></div>
+              </>
+            )}
+
+            {/* Center icon */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              {isConnecting ? (
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
+              ) : isPushToTalk ? (
+                <Mic className="h-16 w-16 text-red-600 animate-pulse" />
+              ) : isProcessing ? (
+                <Volume2 className="h-16 w-16 text-blue-600 animate-pulse" />
+              ) : isListening ? (
+                <Mic className="h-16 w-16 text-green-600" />
               ) : (
-                <div className="space-y-4">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-relaxed">
-                    {isListening ? "Listening..." : "Tap to speak"}
-                  </h2>
-                  {isListening && (
-                    <div className="text-[#00FF88] font-mono text-lg animate-pulse">{formatTime(recordingTime)}</div>
-                  )}
-                </div>
+                <MicOff className="h-16 w-16 text-gray-500" />
               )}
             </div>
-
-            {/* Voice Control Button */}
-            <div className="relative mb-8">
-              {/* Pulsing rings when listening */}
-              {isListening && (
-                <>
-                  <div className="absolute inset-0 rounded-full bg-[#00FF88] animate-ping opacity-20" />
-                  <div className="absolute inset-2 rounded-full bg-[#00FF88] animate-ping opacity-30 animation-delay-200" />
-                  <div className="absolute inset-4 rounded-full bg-[#00FF88] animate-ping opacity-40 animation-delay-400" />
-                </>
-              )}
-
-              <Button
-                onMouseDown={() => setIsListening(true)}
-                onMouseUp={() => setIsListening(false)}
-                onTouchStart={() => setIsListening(true)}
-                onTouchEnd={() => setIsListening(false)}
-                className={`w-20 h-20 rounded-full shadow-2xl transition-all duration-300 relative z-10 ${
-                  isListening
-                    ? "bg-[#00FF88] hover:bg-[#00E67A] scale-110"
-                    : "bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600"
-                }`}
-              >
-                {isListening ? <Mic className="h-8 w-8 text-white" /> : <MicOff className="h-8 w-8 text-white" />}
-              </Button>
-            </div>
-
-            {/* Bottom Waveform */}
-            <div className="mb-4">
-              <VoiceWaveform isActive={isListening} position="bottom" />
-            </div>
-
-            {/* Status Text */}
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {isListening ? "Release to stop recording" : "Hold to record"}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Transcript */}
-        {transcript && (
-          <Card className="mb-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700">
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-blue-500 dark:bg-[#00D4AA] rounded-full flex items-center justify-center">
-                  <Mic className="h-4 w-4 text-white" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm text-gray-900 dark:text-white">You said:</p>
-                  <p className="text-gray-700 dark:text-gray-300">{transcript}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* AI Response */}
-        {response && (
-          <Card className="mb-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700">
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-[#00FF88] rounded-full flex items-center justify-center">
-                  <Volume2 className="h-4 w-4 text-white" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm text-gray-900 dark:text-white">Ongea Pesa:</p>
-                  <p className="text-gray-700 dark:text-gray-300">{response}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Quick Test Commands */}
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Try these commands:</p>
-          {simulateCommands.map((command, index) => (
-            <Button
-              key={index}
-              variant="outline"
-              className="w-full text-left justify-start h-auto p-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-gray-200 dark:border-gray-700 hover:bg-white/80 dark:hover:bg-gray-800/80"
-              onClick={() => handleVoiceCommand(command)}
-            >
-              <div>
-                <p className="font-medium text-sm text-gray-900 dark:text-white">{command}</p>
-              </div>
-            </Button>
-          ))}
+          </div>
         </div>
+
+        {/* Status Text */}
+        <div className="text-center mb-8 max-w-md">
+          {transcript ? (
+            <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
+              <h2 className="text-xl font-medium text-gray-800 leading-relaxed">
+                "{transcript}"
+              </h2>
+              {isProcessing && (
+                <div className="text-blue-600 text-sm flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce animation-delay-200"></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce animation-delay-400"></div>
+                  <span className="ml-2">AI is thinking...</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <h2 className="text-2xl font-semibold text-gray-800">
+                {isConnecting ? (
+                  "Connecting to AI..."
+                ) : isListening ? (
+                  isPushToTalk ? (
+                    "Listening..."
+                  ) : (
+                    "Greetings, human!"
+                  )
+                ) : (
+                  "Starting AI..."
+                )}
+              </h2>
+              <p className="text-gray-600">
+                {isListening && !isPushToTalk ? (
+                  "How may I assist you today?"
+                ) : isPushToTalk ? (
+                  "Speak now..."
+                ) : isConnecting ? (
+                  "Please wait..."
+                ) : (
+                  "Initializing..."
+                )}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Push-to-Talk Button */}
+        <div className="relative mb-12">
+          <Button
+            ref={buttonRef}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleMouseDown}
+            onTouchEnd={handleMouseUp}
+            disabled={!isListening}
+            className={`w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${
+              isPushToTalk
+                ? "bg-red-500 hover:bg-red-600 scale-110 shadow-red-200"
+                : isListening
+                ? "bg-green-500 hover:bg-green-600 shadow-green-200"
+                : "bg-gray-400 cursor-not-allowed shadow-gray-200"
+            }`}
+          >
+            {isPushToTalk ? (
+              <div className="relative">
+                <Mic className="h-8 w-8 text-white" />
+                <div className="absolute inset-0 animate-ping opacity-50">
+                  <Mic className="h-8 w-8 text-white" />
+                </div>
+              </div>
+            ) : (
+              <Mic className="h-8 w-8 text-white" />
+            )}
+          </Button>
+          
+          {/* Instructions */}
+          <p className="text-center text-gray-600 mt-4 text-sm">
+            {isListening ? "Hold to speak" : "Connecting..."}
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-4 max-w-md w-full mb-8">
+          <Button
+            variant="outline"
+            className="h-12 rounded-xl border-green-200 text-green-700 hover:bg-green-50"
+            disabled={!isListening}
+          >
+            <Mic className="h-4 w-4 mr-2" />
+            Voice Mode
+          </Button>
+          <Button
+            variant="outline"
+            className="h-12 rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50"
+            disabled={!isListening}
+          >
+            <Volume2 className="h-4 w-4 mr-2" />
+            Listen
+          </Button>
+        </div>
+
+        {/* Conversation History */}
+        {transcript && (
+          <Card className="mb-4 bg-white/80 backdrop-blur-sm border-gray-200 shadow-sm animate-in slide-in-from-left-4 duration-500 max-w-md w-full">
+            <CardContent className="p-4">
+              <div className="flex items-start space-x-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Mic className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm text-gray-600 mb-1">You</p>
+                  <p className="text-gray-800 text-sm leading-relaxed">{transcript}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {response && (
+          <Card className="mb-6 bg-white/80 backdrop-blur-sm border-gray-200 shadow-sm animate-in slide-in-from-right-4 duration-500 max-w-md w-full">
+            <CardContent className="p-4">
+              <div className="flex items-start space-x-3">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <Volume2 className="h-4 w-4 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm text-gray-600 mb-1 flex items-center gap-2">
+                    AI assistant
+                    {isProcessing && (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                        Thinking...
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-gray-800 text-sm leading-relaxed">{response}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
-  )
+  );
 }

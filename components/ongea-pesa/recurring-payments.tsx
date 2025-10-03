@@ -5,8 +5,10 @@ import { ArrowLeft, Calendar, Plus, Mic, Bell, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+
 interface RecurringPaymentsProps {
-  onNavigate: (screen: string) => void
+  onNavigate: (screen: Screen) => void;
 }
 
 interface RecurringPayment {
