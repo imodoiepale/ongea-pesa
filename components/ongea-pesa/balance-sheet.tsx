@@ -81,12 +81,13 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
         console.error('Error updating balance:', error)
         alert('Failed to add balance')
       } else {
-        // Success!
+        // Success! Update parent component immediately
+        console.log('✅ Balance updated successfully to:', newBalance)
         onBalanceUpdate(newBalance)
         setAddAmount("")
         
         // Create a deposit transaction record
-        await supabase.from('transactions').insert({
+        const { error: txError } = await supabase.from('transactions').insert({
           user_id: user.id,
           type: 'deposit',
           amount: amount,
@@ -94,8 +95,15 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
           voice_command_text: `Manual deposit of KSh ${amount.toLocaleString()}`
         })
         
-        // Refresh transactions
+        if (txError) {
+          console.error('Error creating transaction:', txError)
+        }
+        
+        // Refresh transactions list
         fetchTransactions()
+        
+        // Show success feedback
+        console.log('💰 Added KSh', amount.toLocaleString(), 'to balance')
       }
     } catch (error) {
       console.error('Error:', error)

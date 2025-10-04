@@ -1,6 +1,6 @@
 "use client"
 
-import { Mic, Send, Camera, Calendar, BarChart3, Settings, TestTube, Moon, Sun, LogOut } from "lucide-react"
+import { Mic, Send, Camera, Calendar, BarChart3, Settings, TestTube, Moon, Sun, LogOut, Wallet, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -8,6 +8,8 @@ import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
 import WaveAnimation from "./wave-animation"
 import { useAuth } from "@/components/providers/auth-provider"
+import { createClient } from '@/lib/supabase/client'
+import BalanceSheet from "./balance-sheet"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -22,14 +24,16 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
   const [mounted, setMounted] = useState(false)
   const [balance, setBalance] = useState<number>(0)
   const [loading, setLoading] = useState(true)
+  const [isBalanceSheetOpen, setIsBalanceSheetOpen] = useState(false)
+  const supabase = createClient()
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Fetch user balance
+  // Fetch user balance and setup real-time subscription
   useEffect(() => {
-    if (!user) return
+    if (!user?.id) return
     
     const fetchBalance = async () => {
       try {
@@ -37,6 +41,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
         if (response.ok) {
           const data = await response.json()
           setBalance(data.balance || 0)
+          console.log('💰 Balance fetched:', data.balance)
         }
       } catch (error) {
         console.error('Failed to fetch balance:', error)
@@ -47,10 +52,31 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
 
     fetchBalance()
 
-    // Refresh balance every 30 seconds
-    const interval = setInterval(fetchBalance, 30000)
-    return () => clearInterval(interval)
-  }, [user])
+    // Set up real-time subscription for balance changes
+    const channel = supabase
+      .channel('dashboard-balance-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('✅ Balance updated in real-time:', payload)
+          if (payload.new && 'wallet_balance' in payload.new) {
+            setBalance(payload.new.wallet_balance || 0)
+          }
+        }
+      )
+      .subscribe()
+
+    // Cleanup
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id, supabase])
 
   const handleVoiceActivation = () => {
     onVoiceActivate()
@@ -120,8 +146,11 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
         </div>
       </div>
 
-      {/* Balance Card */}
-      <Card className="mb-6 bg-gradient-to-r from-green-500 to-blue-600 dark:from-[#00FF88] dark:to-[#00D4AA] text-white border-0 shadow-2xl relative overflow-hidden">
+      {/* Balance Card - Clickable */}
+      <Card 
+        className="mb-6 bg-gradient-to-r from-green-500 to-blue-600 dark:from-[#00FF88] dark:to-[#00D4AA] text-white border-0 shadow-2xl relative overflow-hidden cursor-pointer hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]"
+        onClick={() => setIsBalanceSheetOpen(true)}
+      >
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent dark:from-black/40 dark:to-transparent" />
         <CardContent className="p-6 relative z-10">
           <div className="text-center">
@@ -135,8 +164,12 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
                 KSh {balance.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h2>
             )}
-            <p className="text-green-100 dark:text-gray-300 text-xs">
+            <p className="text-green-100 dark:text-gray-300 text-xs flex items-center justify-center gap-2">
+              <Wallet className="h-3 w-3" />
               {user?.email || 'Ongea Pesa Wallet'}
+            </p>
+            <p className="text-green-100 dark:text-gray-300 text-xs mt-2 opacity-80">
+              Tap to manage balance
             </p>
           </div>
         </CardContent>
@@ -256,6 +289,26 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
           </div>
         </CardContent>
       </Card>
+
+      {/* Floating Add Balance Button */}
+      <Button
+        onClick={() => setIsBalanceSheetOpen(true)}
+        className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-2xl hover:shadow-green-500/50 transition-all duration-300 hover:scale-110 z-40"
+        size="icon"
+      >
+        <Plus className="h-6 w-6 text-white" />
+      </Button>
+
+      {/* Balance Sheet */}
+      <BalanceSheet
+        isOpen={isBalanceSheetOpen}
+        onClose={() => setIsBalanceSheetOpen(false)}
+        currentBalance={balance}
+        onBalanceUpdate={(newBalance) => {
+          setBalance(newBalance)
+          console.log('✅ Balance updated to:', newBalance)
+        }}
+      />
     </div>
   )
 }
