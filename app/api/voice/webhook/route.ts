@@ -237,7 +237,19 @@ export async function POST(request: NextRequest) {
       
       // Transaction details from ElevenLabs
       type: body.type,
-      amount: body.amount ? parseFloat(body.amount) : 0,
+      amount: (() => {
+        const amt = parseFloat(body.amount)
+        if (isNaN(amt) || amt <= 0) {
+          console.error('❌ Invalid amount received:', body.amount)
+          throw new Error(`Invalid amount: ${body.amount}. Must be a positive number.`)
+        }
+        if (amt > 999999) {
+          console.error('❌ Amount exceeds maximum:', amt)
+          throw new Error(`Amount ${amt} exceeds maximum of 999,999`)
+        }
+        console.log('✅ Valid amount:', amt)
+        return amt
+      })(),
       phone: body.phone || '',
       till: body.till || '',
       paybill: body.paybill || '',
@@ -283,19 +295,48 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(n8nPayload),
     })
 
+    console.log('n8n Response Status:', n8nResponse.status)
+    console.log('n8n Response Headers:', Object.fromEntries(n8nResponse.headers.entries()))
+
     if (!n8nResponse.ok) {
       const errorText = await n8nResponse.text()
       console.error('❌ n8n webhook failed')
       console.error('Status:', n8nResponse.status)
       console.error('Response:', errorText)
       return NextResponse.json(
-        { error: 'Failed to process transaction', success: false },
+        { error: 'Failed to process transaction', success: false, n8n_response: errorText },
         { status: 500 }
       )
     }
 
-    const n8nResult = await n8nResponse.json()
-    console.log('✅ n8n Response:', n8nResult)
+    // Parse n8n response safely
+    const responseText = await n8nResponse.text()
+    console.log('n8n Raw Response:', responseText)
+    
+    let n8nResult: any = {}
+    try {
+      if (responseText && responseText.trim()) {
+        n8nResult = JSON.parse(responseText)
+        console.log('✅ n8n Response parsed:', n8nResult)
+      } else {
+        console.log('⚠️ n8n returned empty response, using default')
+        n8nResult = { 
+          success: true, 
+          message: 'Transaction queued for processing',
+          transaction_id: `tx_${Date.now()}`
+        }
+      }
+    } catch (parseError) {
+      console.error('❌ Failed to parse n8n response as JSON:', parseError)
+      console.error('Raw response:', responseText)
+      // If n8n doesn't return JSON, assume success since the request went through
+      n8nResult = { 
+        success: true, 
+        message: 'Transaction sent to n8n',
+        raw_response: responseText,
+        transaction_id: `tx_${Date.now()}`
+      }
+    }
 
     // Return success response to ElevenLabs
     console.log('\n=== SENDING RESPONSE TO ELEVENLABS ===')
