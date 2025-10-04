@@ -1,0 +1,155 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.balance_history (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid NOT NULL,
+  transaction_id uuid,
+  previous_balance numeric NOT NULL,
+  new_balance numeric NOT NULL,
+  change_amount numeric NOT NULL,
+  reason text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT balance_history_pkey PRIMARY KEY (id),
+  CONSTRAINT balance_history_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT balance_history_transaction_id_fkey FOREIGN KEY (transaction_id) REFERENCES public.transactions(id)
+);
+CREATE TABLE public.contacts (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid NOT NULL,
+  name text NOT NULL,
+  phone_number text,
+  nickname text,
+  relationship text,
+  default_amount numeric,
+  favorite boolean DEFAULT false,
+  transaction_count integer DEFAULT 0,
+  total_sent numeric DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT contacts_pkey PRIMARY KEY (id),
+  CONSTRAINT contacts_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.mpesa_transactions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid NOT NULL,
+  checkout_request_id text UNIQUE,
+  merchant_request_id text,
+  amount numeric NOT NULL,
+  phone_number text NOT NULL,
+  mpesa_receipt_number text,
+  status text DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'completed'::text, 'failed'::text])),
+  error_message text,
+  created_at timestamp with time zone DEFAULT now(),
+  completed_at timestamp with time zone,
+  CONSTRAINT mpesa_transactions_pkey PRIMARY KEY (id),
+  CONSTRAINT mpesa_transactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.payment_methods (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid NOT NULL,
+  method_type text NOT NULL CHECK (method_type = ANY (ARRAY['card'::text, 'mpesa'::text, 'bank'::text])),
+  card_last4 text,
+  card_brand text,
+  card_token text,
+  mpesa_number text,
+  bank_name text,
+  bank_account_number text,
+  bank_code text,
+  is_default boolean DEFAULT false,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT payment_methods_pkey PRIMARY KEY (id),
+  CONSTRAINT payment_methods_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  phone_number text UNIQUE,
+  mpesa_number text,
+  wallet_balance numeric DEFAULT 0.00 CHECK (wallet_balance >= 0::numeric),
+  mpesa_auto_topup boolean DEFAULT false,
+  mpesa_auto_topup_threshold numeric DEFAULT 100.00,
+  mpesa_auto_topup_amount numeric DEFAULT 500.00,
+  card_auto_topup boolean DEFAULT false,
+  default_payment_method text DEFAULT 'wallet'::text CHECK (default_payment_method = ANY (ARRAY['wallet'::text, 'mpesa'::text, 'card'::text])),
+  pin_hash text,
+  biometric_enabled boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  last_login timestamp with time zone,
+  email text,
+  bank_account text,
+  daily_limit text,
+  monthly_limit text,
+  kyc_verified text,
+  wallet_type text,
+  active text,
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.subscription_plans (
+  id text NOT NULL,
+  name text NOT NULL,
+  monthly_fee numeric NOT NULL,
+  transaction_fee_percentage numeric NOT NULL,
+  monthly_transaction_limit integer,
+  features jsonb,
+  CONSTRAINT subscription_plans_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.subscriptions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid NOT NULL,
+  plan_type text NOT NULL CHECK (plan_type = ANY (ARRAY['free'::text, 'basic'::text, 'pro'::text, 'business'::text])),
+  status text DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'cancelled'::text, 'expired'::text, 'past_due'::text])),
+  monthly_fee numeric NOT NULL,
+  transaction_fee_percentage numeric NOT NULL,
+  monthly_transaction_limit integer,
+  stripe_subscription_id text,
+  stripe_customer_id text,
+  current_period_start timestamp with time zone NOT NULL,
+  current_period_end timestamp with time zone NOT NULL,
+  cancel_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT subscriptions_pkey PRIMARY KEY (id),
+  CONSTRAINT subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.transactions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid NOT NULL,
+  type text NOT NULL CHECK (type = ANY (ARRAY['send_phone'::text, 'buy_goods_pochi'::text, 'buy_goods_till'::text, 'paybill'::text, 'withdraw'::text, 'bank_to_mpesa'::text, 'mpesa_to_bank'::text, 'deposit'::text, 'receive'::text])),
+  amount numeric NOT NULL CHECK (amount > 0::numeric AND amount <= 999999::numeric),
+  phone text DEFAULT ''::text,
+  till text DEFAULT ''::text,
+  paybill text DEFAULT ''::text,
+  account text DEFAULT ''::text,
+  agent text DEFAULT ''::text,
+  store text DEFAULT ''::text,
+  bank_code text DEFAULT ''::text,
+  status text DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'processing'::text, 'completed'::text, 'failed'::text, 'cancelled'::text])),
+  voice_verified boolean DEFAULT false,
+  confidence_score integer CHECK (confidence_score >= 0 AND confidence_score <= 100),
+  voice_command_text text,
+  mpesa_transaction_id text DEFAULT ''::text,
+  external_ref text DEFAULT ''::text,
+  error_message text,
+  retry_count integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  completed_at timestamp with time zone,
+  CONSTRAINT transactions_pkey PRIMARY KEY (id),
+  CONSTRAINT transactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.voice_sessions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid NOT NULL,
+  session_id text NOT NULL UNIQUE,
+  agent_id text NOT NULL,
+  signed_url text,
+  status text DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'expired'::text, 'ended'::text])),
+  created_at timestamp with time zone DEFAULT now(),
+  expires_at timestamp with time zone DEFAULT (now() + '00:15:00'::interval),
+  ended_at timestamp with time zone,
+  CONSTRAINT voice_sessions_pkey PRIMARY KEY (id),
+  CONSTRAINT voice_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);

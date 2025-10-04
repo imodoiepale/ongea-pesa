@@ -290,12 +290,12 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
                               </p>
                               {getStatusIcon(tx.status)}
                             </div>
-                            
+{/*                             
                             {tx.voice_command_text && (
                               <p className="text-sm text-gray-600 truncate">
                                 "{tx.voice_command_text}"
                               </p>
-                            )}
+                            )} */}
                             
                             {tx.phone && (
                               <p className="text-xs text-gray-500 mt-1">
