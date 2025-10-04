@@ -1,11 +1,13 @@
 "use client"
 
-import { Mic, Send, Camera, Calendar, BarChart3, Settings, TestTube, Moon, Sun } from "lucide-react"
+import { Mic, Send, Camera, Calendar, BarChart3, Settings, TestTube, Moon, Sun, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
 import WaveAnimation from "./wave-animation"
+import { useAuth } from "@/components/providers/auth-provider"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -15,12 +17,40 @@ interface MainDashboardProps {
 }
 
 export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashboardProps) {
+  const { user, signOut } = useAuth()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const [balance, setBalance] = useState<number>(0)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Fetch user balance
+  useEffect(() => {
+    if (!user) return
+    
+    const fetchBalance = async () => {
+      try {
+        const response = await fetch('/api/balance')
+        if (response.ok) {
+          const data = await response.json()
+          setBalance(data.balance || 0)
+        }
+      } catch (error) {
+        console.error('Failed to fetch balance:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBalance()
+
+    // Refresh balance every 30 seconds
+    const interval = setInterval(fetchBalance, 30000)
+    return () => clearInterval(interval)
+  }, [user])
 
   const handleVoiceActivation = () => {
     onVoiceActivate()
@@ -38,10 +68,10 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
         <WaveAnimation />
       </div>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 pt-8 relative z-10">
+      {/* Header with Navigation */}
+      <div className="flex items-center justify-between mb-6 pt-4 relative z-10">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Ongea Pesa</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 dark:from-[#00FF88] dark:to-[#00D4AA] bg-clip-text text-transparent">Ongea Pesa</h1>
           <p className="text-sm text-gray-600 dark:text-gray-300">Voice-First Financial Companion</p>
         </div>
         <div className="flex items-center space-x-2">
@@ -65,6 +95,28 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
           >
             <Settings className="h-5 w-5" />
           </Button>
+          
+          {/* User Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-blue-500 dark:from-[#00FF88] dark:to-[#00D4AA] flex items-center justify-center text-white font-semibold text-xs">
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium">{user?.email}</p>
+                <p className="text-xs text-muted-foreground">Voice-activated payments</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={signOut} className="text-red-600 focus:text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -73,10 +125,18 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent dark:from-black/40 dark:to-transparent" />
         <CardContent className="p-6 relative z-10">
           <div className="text-center">
-            <p className="text-green-100 dark:text-gray-200 text-sm mb-2">Available Balance</p>
-            <h2 className="text-3xl font-bold mb-4 animate-pulse">KSh 12,450.00</h2>
+            <p className="text-green-100 dark:text-gray-200 text-sm mb-2">Wallet Balance</p>
+            {loading ? (
+              <div className="flex items-center justify-center mb-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+              </div>
+            ) : (
+              <h2 className="text-3xl font-bold mb-4">
+                KSh {balance.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h2>
+            )}
             <p className="text-green-100 dark:text-gray-300 text-xs">
-              Say "Ongea Pesa, check balance" for voice update
+              {user?.email || 'Ongea Pesa Wallet'}
             </p>
           </div>
         </CardContent>

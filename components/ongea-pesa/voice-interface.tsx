@@ -1,12 +1,15 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Mic, MicOff, Volume2, ArrowLeft, AlertCircle } from "lucide-react"
+import { Mic, MicOff, Volume2, ArrowLeft, AlertCircle, BarChart3, LogOut, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import VoiceWaveform from "./voice-waveform"
 import { useConversation } from '@elevenlabs/react';
+import { useAuth } from "@/components/providers/auth-provider"
+import { createClient } from '@/lib/supabase/client'
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -15,8 +18,12 @@ interface VoiceInterfaceProps {
 }
 
 export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
-  const [transcript, setTranscript] = useState("");
-  const [response, setResponse] = useState("");
+  const { user, signOut } = useAuth();
+  const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'speaking'>('idle')
+  const [transcript, setTranscript] = useState('')
+  const [agentResponse, setAgentResponse] = useState('')
+  const [balance, setBalance] = useState<number>(0)
+  const [loadingBalance, setLoadingBalance] = useState(true);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -25,6 +32,25 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const supabase = createClient();
+
+  // Fetch balance from API
+  const fetchBalance = useCallback(async () => {
+    try {
+      const response = await fetch('/api/balance');
+      if (response.ok) {
+        const data = await response.json();
+        setBalance(data.balance || 0);
+        setLoadingBalance(false);
+      } else {
+        console.error('Failed to fetch balance:', response.statusText);
+        setLoadingBalance(false);
+      }
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+      setLoadingBalance(false);
+    }
+  }, []);
 
   const conversation = useConversation({
     onMessage: (message: any) => {
@@ -35,19 +61,19 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
         setTranscript(message.message || message.transcript || '');
         setIsProcessing(true);
       } else if (message.source === 'ai') {
-        setResponse(message.message || message.text || '');
+        setAgentResponse(message.message || message.text || '');
         setIsProcessing(false);
       } else if (message.type === 'user_transcript') {
         setTranscript(message.user_transcript || message.transcript || '');
         setIsProcessing(true);
       } else if (message.type === 'agent_response') {
-        setResponse(message.agent_response || message.text || '');
+        setAgentResponse(message.agent_response || message.text || '');
         setIsProcessing(false);
       } else if (message.transcript) {
         setTranscript(message.transcript);
         setIsProcessing(true);
       } else if (message.text || message.message) {
-        setResponse(message.text || message.message);
+        setAgentResponse(message.text || message.message);
         setIsProcessing(false);
       }
     },
@@ -150,7 +176,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     try {
       await conversation.endSession();
       setTranscript("");
-      setResponse("");
+      setAgentResponse("");
       setRecordingTime(0);
       setIsProcessing(false);
       setIsPushToTalk(false);
@@ -184,6 +210,39 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
       if (autoStartTimer) clearTimeout(autoStartTimer);
     };
   }, []); // Only run once on mount
+
+  // Fetch balance on mount and set up real-time subscription
+  useEffect(() => {
+    // Initial fetch
+    fetchBalance();
+
+    if (!user?.id) return;
+
+    // Set up real-time subscription to profiles table
+    const channel = supabase
+      .channel('profile-balance-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Balance updated in real-time:', payload);
+          if (payload.new && 'wallet_balance' in payload.new) {
+            setBalance(payload.new.wallet_balance || 0);
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, fetchBalance, supabase]);
 
   // Start inactivity timer when connected
   useEffect(() => {
@@ -268,42 +327,59 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
         <div className="absolute top-40 left-40 w-80 h-80 bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Clean Header */}
-      <div className="flex items-center justify-between pt-12 pb-6 px-6 relative z-10">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => {
-            // End session when going back
-            if (isListening) {
-              stopConversation();
-            }
-            onNavigate("dashboard");
-          }}
-          className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-all duration-300"
-        >
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
-        
-        <div className="text-center">
-          <h1 className="text-xl font-semibold text-gray-800">
-            AI Assistant
+      {/* Clean Header with Navigation */}
+      <div className="flex items-center justify-between pt-6 pb-6 px-6 relative z-10">
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+            Ongea Pesa
           </h1>
-          <div className="flex items-center justify-center gap-2 mt-1">
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {/* Status Indicator */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/60 backdrop-blur-sm rounded-full">
             <div className={`w-2 h-2 rounded-full transition-colors ${
-              isListening ? 'bg-green-500' : 
-              isConnecting ? 'bg-yellow-500' : 
+              isListening ? 'bg-green-500 animate-pulse' : 
+              isConnecting ? 'bg-yellow-500 animate-pulse' : 
               error ? 'bg-red-500' : 'bg-gray-400'
             }`}></div>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs font-medium text-gray-700">
               {isListening ? 'Connected' : 
-               isConnecting ? 'Connecting...' : 
-               error ? 'Error' : 'Starting...'}
+               isConnecting ? 'Connecting' : 
+               error ? 'Error' : 'Starting'}
             </p>
           </div>
-        </div>
 
-        <div className="w-10"></div> {/* Spacer for centering */}
+          {/* User Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-sm">
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <span className="hidden md:inline text-sm font-medium text-gray-700">
+                  {user?.email?.split('@')[0] || 'User'}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium">{user?.email}</p>
+                <p className="text-xs text-muted-foreground">Voice-activated payments</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onNavigate("dashboard")}>
+                <BarChart3 className="mr-2 h-4 w-4" />
+                <span>Dashboard & Reports</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={signOut} className="text-red-600 focus:text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div className="px-6 relative z-10 flex flex-col items-center">
@@ -458,19 +534,29 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
         <div className="grid grid-cols-2 gap-4 max-w-md w-full mb-8">
           <Button
             variant="outline"
-            className="h-12 rounded-xl border-green-200 text-green-700 hover:bg-green-50"
-            disabled={!isListening}
+            onClick={() => onNavigate('dashboard')}
+            className="h-12 rounded-xl border-gray-300 text-gray-700 hover:bg-gray-50"
           >
-            <Mic className="h-4 w-4 mr-2" />
-            Voice Mode
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
           </Button>
           <Button
             variant="outline"
-            className="h-12 rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50"
+            onClick={() => {
+              if (conversation.endSession) {
+                conversation.endSession();
+              }
+              setIsListening(false);
+              setIsPushToTalk(false);
+              setTranscript('');
+              setAgentResponse('');
+              onNavigate('dashboard');
+            }}
+            className="h-12 rounded-xl border-red-300 text-red-700 hover:bg-red-50"
             disabled={!isListening}
           >
-            <Volume2 className="h-4 w-4 mr-2" />
-            Listen
+            <MicOff className="h-4 w-4 mr-2" />
+            End Call
           </Button>
         </div>
 
@@ -491,7 +577,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
           </Card>
         )}
 
-        {response && (
+        {agentResponse && (
           <Card className="mb-6 bg-white/80 backdrop-blur-sm border-gray-200 shadow-sm animate-in slide-in-from-right-4 duration-500 max-w-md w-full">
             <CardContent className="p-4">
               <div className="flex items-start space-x-3">
@@ -507,7 +593,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
                       </span>
                     )}
                   </p>
-                  <p className="text-gray-800 text-sm leading-relaxed">{response}</p>
+                  <p className="text-gray-800 text-sm leading-relaxed">{agentResponse}</p>
                 </div>
               </div>
             </CardContent>

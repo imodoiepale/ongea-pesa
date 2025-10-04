@@ -1,6 +1,9 @@
+'use client'
+
 import { LogOut, MoveUpRight, Settings, CreditCard, FileText } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useAuth } from "@/components/providers/auth-provider"
 
 interface MenuItem {
   label: string
@@ -30,6 +33,12 @@ export default function Profile01({
   avatar = defaultProfile.avatar,
   subscription = defaultProfile.subscription,
 }: Partial<Profile01Props> = defaultProfile) {
+  const { user, signOut } = useAuth()
+  
+  // Use authenticated user data if available
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || name
+  const displayRole = user?.user_metadata?.role || role
+  const displayAvatar = user?.user_metadata?.avatar_url || avatar
   const menuItems: MenuItem[] = [
     {
       label: "Subscription",
@@ -58,8 +67,8 @@ export default function Profile01({
           <div className="flex items-center gap-4 mb-8">
             <div className="relative shrink-0">
               <Image
-                src={avatar}
-                alt={name}
+                src={displayAvatar}
+                alt={displayName}
                 width={72}
                 height={72}
                 className="rounded-full ring-4 ring-white dark:ring-zinc-900 object-cover"
@@ -69,8 +78,11 @@ export default function Profile01({
 
             {/* Profile Info */}
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{name}</h2>
-              <p className="text-zinc-600 dark:text-zinc-400">{role}</p>
+              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{displayName}</h2>
+              <p className="text-zinc-600 dark:text-zinc-400">{displayRole}</p>
+              {user?.email && (
+                <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-0.5">{user.email}</p>
+              )}
             </div>
           </div>
           <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-6" />
@@ -96,13 +108,14 @@ export default function Profile01({
 
             <button
               type="button"
+              onClick={signOut}
               className="w-full flex items-center justify-between p-2 
-                                hover:bg-zinc-50 dark:hover:bg-zinc-800/50 
-                                rounded-lg transition-colors duration-200"
+                                hover:bg-red-50 dark:hover:bg-red-900/20 
+                                rounded-lg transition-colors duration-200 group"
             >
               <div className="flex items-center gap-2">
-                <LogOut className="w-4 h-4" />
-                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Logout</span>
+                <LogOut className="w-4 h-4 text-red-600 dark:text-red-400" />
+                <span className="text-sm font-medium text-red-600 dark:text-red-400">Logout</span>
               </div>
             </button>
           </div>

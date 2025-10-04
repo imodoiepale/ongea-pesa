@@ -9,8 +9,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useCamera } from "@/hooks/use-camera"
 import { geminiVision, PaymentScanResult } from "@/lib/gemini-vision"
 
+type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+
 interface PaymentScannerProps {
-  onNavigate: (screen: string) => void
+  onNavigate: (screen: Screen) => void
 }
 
 type ScanMode = "paybill" | "till" | "qr" | "receipt" | "bank" | "pochi"

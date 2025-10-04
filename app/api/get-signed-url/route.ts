@@ -1,7 +1,22 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET() {
   try {
+    // Get authenticated user
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error('User not authenticated:', authError?.message);
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    console.log('Generating signed URL for user:', user.email);
+
     // Validate environment variables
     const agentId = process.env.NEXT_PUBLIC_AGENT_ID;
     const apiKey = process.env.ELEVENLABS_API_KEY;
@@ -24,6 +39,7 @@ export async function GET() {
 
     console.log('Requesting signed URL for agent:', agentId);
 
+    // Add user context as custom metadata in the signed URL request
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${agentId}`,
       {
@@ -69,8 +85,45 @@ export async function GET() {
       );
     }
 
-    console.log('Successfully generated signed URL');
-    return NextResponse.json({ signedUrl: data.signed_url });
+    // Extract session ID from signed URL if available
+    const signedUrl = data.signed_url;
+    let sessionId = 'session-' + Date.now(); // Fallback session ID
+    
+    try {
+      const urlObj = new URL(signedUrl);
+      const pathParts = urlObj.pathname.split('/');
+      sessionId = pathParts[pathParts.length - 1] || sessionId;
+    } catch (e) {
+      console.warn('Could not extract session ID from URL:', e);
+    }
+
+    // Save voice session with user context
+    try {
+      await supabase
+        .from('voice_sessions')
+        .insert({
+          user_id: user.id,
+          session_id: sessionId,
+          agent_id: agentId,
+          signed_url: signedUrl,
+          status: 'active',
+          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
+        });
+      
+      console.log('Saved voice session:', sessionId, 'for user:', user.email);
+    } catch (dbError: any) {
+      console.error('Failed to save voice session:', dbError);
+      // Continue anyway - don't fail the request
+    }
+
+    console.log('Successfully generated signed URL for user:', user.email);
+    
+    // Return signed URL with user context
+    return NextResponse.json({ 
+      signedUrl: data.signed_url,
+      userEmail: user.email,
+      userId: user.id,
+    });
     
   } catch (error: any) {
     console.error('Error generating signed URL:', error);
