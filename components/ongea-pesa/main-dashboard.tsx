@@ -36,17 +36,39 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
     if (!user?.id) return
     
     const fetchBalance = async () => {
+      setLoading(false) // Remove loading immediately
       try {
         const response = await fetch('/api/balance')
         if (response.ok) {
           const data = await response.json()
-          setBalance(data.balance || 0)
-          console.log('💰 Balance fetched:', data.balance)
+          let finalBalance = data.balance || 0
+          
+          // If balance is 0, calculate from transactions as fallback
+          if (finalBalance === 0) {
+            const { data: transactions } = await supabase
+              .from('transactions')
+              .select('type, amount, status')
+              .eq('user_id', user.id)
+              .eq('status', 'completed')
+            
+            if (transactions && transactions.length > 0) {
+              finalBalance = transactions.reduce((total, tx) => {
+                if (tx.type === 'deposit' || tx.type === 'receive') {
+                  return total + parseFloat(String(tx.amount))
+                } else {
+                  return total - parseFloat(String(tx.amount))
+                }
+              }, 0)
+              console.log('📊 Calculated from transactions:', finalBalance)
+            }
+          }
+          
+          setBalance(finalBalance)
+          console.log('💰 Balance loaded:', finalBalance)
         }
       } catch (error) {
         console.error('Failed to fetch balance:', error)
-      } finally {
-        setLoading(false)
+        setBalance(0)
       }
     }
 
@@ -155,15 +177,9 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
         <CardContent className="p-6 relative z-10">
           <div className="text-center">
             <p className="text-green-100 dark:text-gray-200 text-sm mb-2">Wallet Balance</p>
-            {loading ? (
-              <div className="flex items-center justify-center mb-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-              </div>
-            ) : (
-              <h2 className="text-3xl font-bold mb-4">
-                KSh {balance.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </h2>
-            )}
+            <h2 className="text-3xl font-bold mb-4">
+              KSh {balance.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </h2>
             <p className="text-green-100 dark:text-gray-300 text-xs flex items-center justify-center gap-2">
               <Wallet className="h-3 w-3" />
               {user?.email || 'Ongea Pesa Wallet'}

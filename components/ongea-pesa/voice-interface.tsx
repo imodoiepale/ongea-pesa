@@ -39,19 +39,20 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
 
   // Fetch balance from API
   const fetchBalance = useCallback(async () => {
+    setLoadingBalance(false); // Remove loading immediately
     try {
       const response = await fetch('/api/balance');
       if (response.ok) {
         const data = await response.json();
         setBalance(data.balance || 0);
-        setLoadingBalance(false);
+        console.log('⚡ Balance loaded:', data.balance);
       } else {
         console.error('Failed to fetch balance:', response.statusText);
-        setLoadingBalance(false);
+        setBalance(0);
       }
     } catch (error) {
       console.error('Error fetching balance:', error);
-      setLoadingBalance(false);
+      setBalance(0);
     }
   }, []);
 

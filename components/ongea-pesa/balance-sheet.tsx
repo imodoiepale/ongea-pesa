@@ -33,12 +33,35 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
   const [loadingTransactions, setLoadingTransactions] = useState(true)
   const supabase = createClient()
 
-  // Fetch transactions
+  // Fetch transactions and setup real-time subscription
   useEffect(() => {
-    if (isOpen && user?.id) {
-      fetchTransactions()
+    if (!isOpen || !user?.id) return
+
+    fetchTransactions()
+
+    // Real-time subscription to transactions
+    const channel = supabase
+      .channel('balance-sheet-transactions')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'transactions',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('🔔 Transaction changed:', payload)
+          // Refresh transactions list
+          fetchTransactions()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
     }
-  }, [isOpen, user?.id])
+  }, [isOpen, user?.id, supabase])
 
   const fetchTransactions = async () => {
     if (!user?.id) return
@@ -55,6 +78,29 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
         console.error('Error fetching transactions:', error)
       } else {
         setTransactions(data || [])
+        
+        // If balance is 0 but we have transactions, calculate from transactions
+        if (currentBalance === 0 && data && data.length > 0) {
+          // Fetch ALL transactions to calculate accurate balance
+          const { data: allTx } = await supabase
+            .from('transactions')
+            .select('type, amount, status')
+            .eq('user_id', user.id)
+            .eq('status', 'completed')
+          
+          if (allTx && allTx.length > 0) {
+            const calculatedBalance = allTx.reduce((total, tx) => {
+              if (tx.type === 'deposit' || tx.type === 'receive') {
+                return total + parseFloat(String(tx.amount))
+              } else {
+                return total - parseFloat(String(tx.amount))
+              }
+            }, 0)
+            
+            console.log('📊 Calculated balance from transactions:', calculatedBalance)
+            onBalanceUpdate(calculatedBalance)
+          }
+        }
       }
     } catch (error) {
       console.error('Error:', error)
@@ -70,43 +116,38 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
     setIsAdding(true)
 
     try {
-      // Update balance in profiles
-      const newBalance = currentBalance + amount
-      const { error } = await supabase
-        .from('profiles')
-        .update({ wallet_balance: newBalance })
-        .eq('id', user.id)
-
-      if (error) {
-        console.error('Error updating balance:', error)
-        alert('Failed to add balance')
-      } else {
-        // Success! Update parent component immediately
-        console.log('✅ Balance updated successfully to:', newBalance)
-        onBalanceUpdate(newBalance)
-        setAddAmount("")
-        
-        // Create a deposit transaction record
-        const { error: txError } = await supabase.from('transactions').insert({
+      // Create deposit transaction (trigger will update wallet_balance automatically)
+      const { error: txError } = await supabase
+        .from('transactions')
+        .insert({
           user_id: user.id,
           type: 'deposit',
           amount: amount,
           status: 'completed',
-          voice_command_text: `Manual deposit of KSh ${amount.toLocaleString()}`
+          voice_command_text: `Manual deposit of KSh ${amount.toLocaleString()}`,
+          completed_at: new Date().toISOString()
         })
-        
-        if (txError) {
-          console.error('Error creating transaction:', txError)
-        }
-        
-        // Refresh transactions list
-        fetchTransactions()
-        
-        // Show success feedback
-        console.log('💰 Added KSh', amount.toLocaleString(), 'to balance')
+      
+      if (txError) {
+        console.error('❌ Error creating transaction:', txError)
+        alert('Failed to add balance')
+        return
       }
+
+      // Success! Database trigger updates wallet_balance automatically
+      // Real-time subscriptions will notify all components
+      console.log('✅ Deposit transaction created')
+      console.log('💰 Added KSh', amount.toLocaleString())
+      console.log('⚡ Balance will update automatically via trigger + real-time subscription')
+      
+      setAddAmount("")
+      
+      // Real-time subscription will update both:
+      // 1. Transaction list (from transactions table change)
+      // 2. Balance (from profiles table change via trigger)
+      
     } catch (error) {
-      console.error('Error:', error)
+      console.error('❌ Error:', error)
       alert('Failed to add balance')
     } finally {
       setIsAdding(false)
