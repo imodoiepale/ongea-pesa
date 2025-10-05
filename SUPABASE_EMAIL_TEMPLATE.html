@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Your Ongea-Pesa Account</title>
+    <style>
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(200%); }
+        }
+    </style>
+</head>
+<body style="margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif; background:#f3f4f6; min-height:100vh; -webkit-font-smoothing:antialiased;">
+    
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f4f6; padding:40px 20px;">
+        <tr>
+            <td align="center">
+                
+                <!-- Main Email Container -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:#ffffff; border-radius:20px; box-shadow:0 20px 50px rgba(0,0,0,0.2); overflow:hidden;">
+                    
+                    <!-- Hero Section with Image -->
+                    <tr>
+                        <td style="position:relative; padding:0; height:240px; background:url('https://mp.astria.ai/dv21aj7zth30898l03nastiai3g2?auto=compress&cs=tinysrgb&w=1600') no-repeat center center/cover;">
+                            
+                            <!-- Light Gradient Overlay for Visibility -->
+                            <div style="position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(135deg, rgba(16,185,129,0.5) 0%, rgba(5,150,105,0.6) 100%);"></div>
+                            
+                            <!-- Scanning Line Effect -->
+                            <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); animation:scan 3s ease-in-out infinite;"></div>
+                            
+                            <!-- Grid Pattern Overlay -->
+                            <div style="position:absolute; top:0; left:0; right:0; bottom:0; background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size:20px 20px;"></div>
+                            
+                            <!-- Content -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="position:relative; z-index:2; height:240px;">
+                                <tr>
+                                    <td align="center" valign="middle" style="padding:30px;">
+                                        
+                                        <!-- Loading Fragments -->
+                                        <div style="margin-bottom:20px; text-align:center;">
+                                            <div style="display:inline-block; width:6px; height:6px; background:rgba(255,255,255,0.95); border-radius:50%; margin:0 3px; animation:pulse 1.5s ease-in-out infinite;"></div>
+                                            <div style="display:inline-block; width:6px; height:6px; background:rgba(255,255,255,0.95); border-radius:50%; margin:0 3px; animation:pulse 1.5s ease-in-out 0.2s infinite;"></div>
+                                            <div style="display:inline-block; width:6px; height:6px; background:rgba(255,255,255,0.95); border-radius:50%; margin:0 3px; animation:pulse 1.5s ease-in-out 0.4s infinite;"></div>
+                                        </div>
+                                        
+                                        <!-- Brand Name -->
+                                        <h1 style="margin:0; font-size:42px; font-weight:600; color:#ffffff; letter-spacing:-0.02em; text-shadow:0 2px 20px rgba(0,0,0,0.3); animation:float 3s ease-in-out infinite;">Ongea-Pesa</h1>
+                                        
+                                        <!-- Tagline with Shimmer -->
+                                        <div style="margin:12px 0 0; position:relative; display:inline-block;">
+                                            <p style="margin:0; font-size:18px; font-weight:400; color:rgba(255,255,255,0.98); letter-spacing:0.5px;">Voice-Powered Payments</p>
+                                            <div style="position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); background-size:1000px 100%; animation:shimmer 2s infinite;"></div>
+                                        </div>
+                                        
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Main Content Section -->
+                    <tr>
+                        <td style="padding:50px 40px; text-align:center;">
+                            
+                            <!-- Headline -->
+                            <h2 style="margin:0 0 16px; font-size:28px; font-weight:600; color:#1d1d1f; letter-spacing:-0.01em;">Confirm Your Account</h2>
+                            
+                            <!-- Body Text -->
+                            <p style="margin:0 auto 32px; max-width:440px; font-size:16px; font-weight:400; color:#6b7280; line-height:1.7; letter-spacing:0.01em;">Welcome to the future of effortless payments. Confirm your email to activate your account and start transacting by voice.</p>
+                            
+                            <!-- CTA Button -->
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+                                <tr>
+                                    <td style="border-radius:12px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow:0 4px 15px rgba(16,185,129,0.4);">
+                                        <a href="{{ .ConfirmationURL }}" style="display:inline-block; padding:16px 48px; color:#ffffff; font-size:17px; font-weight:500; text-decoration:none; letter-spacing:0.02em; position:relative; overflow:hidden;">
+                                            <span style="position:relative; z-index:2;">Confirm Email Address</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Security Note -->
+                            <div style="margin:32px auto 0; max-width:480px; padding:16px; background:#f0fdf4; border-radius:12px; border-left:3px solid #10b981;">
+                                <p style="margin:0; font-size:13px; color:#6b7280; line-height:1.6; text-align:left;">
+                                    <strong style="color:#1d1d1f;">Security Note:</strong> If you didn't create an account with Ongea-Pesa, you can safely ignore this email.
+                                </p>
+                            </div>
+                            
+                        </td>
+                    </tr>
+                    
+                    <!-- Divider -->
+                    <tr>
+                        <td style="padding:0 40px;">
+                            <div style="height:1px; background:linear-gradient(90deg, transparent, #e5e7eb, transparent);"></div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background:#f9fafb; padding:30px; text-align:center;">
+                            <p style="margin:0 0 12px; font-size:13px; font-weight:400; color:#6b7280; letter-spacing:0.02em;">© 2025 Ongea-Pesa. All rights reserved.</p>
+                            <p style="margin:0; font-size:12px; color:#9ca3af;">
+                                <a href="#" style="color:#10b981; text-decoration:none; margin:0 10px; transition:color 0.3s;">Privacy Policy</a>
+                                <span style="color:#d1d5db;">•</span>
+                                <a href="#" style="color:#10b981; text-decoration:none; margin:0 10px; transition:color 0.3s;">Terms of Service</a>
+                                <span style="color:#d1d5db;">•</span>
+                                <a href="#" style="color:#10b981; text-decoration:none; margin:0 10px; transition:color 0.3s;">Support</a>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                </table>
+                
+            </td>
+        </tr>
+    </table>
+    
+</body>
+</html>

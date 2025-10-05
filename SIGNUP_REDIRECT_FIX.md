@@ -17,11 +17,16 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 - Automatically uses production URL when deployed
 - Falls back to `window.location.origin` if env var not set
 
-### 3. Created Auth Callback Route
-**File: `app/auth/callback/route.ts`**
-- Handles email confirmation redirects
-- Exchanges code for session
+### 3. Created Auth Confirmation Routes
+**File: `app/auth/confirm/page.tsx`**
+- Handles email confirmation redirects (both hash and code-based)
+- Works with both implicit flow and PKCE flow
+- Exchanges code/tokens for session
 - Redirects to dashboard after confirmation
+
+**File: `app/auth/callback/route.ts`**
+- Server-side callback handler for PKCE flow
+- Handles errors gracefully
 
 ---
 
@@ -47,9 +52,12 @@ NEXT_PUBLIC_SITE_URL=https://your-app.vercel.app
 1. Go to [Supabase Dashboard](https://app.supabase.com)
 2. Select your project
 3. Go to **Authentication** → **URL Configuration**
-4. Add your production URL to **Redirect URLs**:
+4. Add these URLs to **Redirect URLs**:
    ```
-   https://your-app.vercel.app/auth/callback
+   https://ongeapesa.vercel.app/auth/confirm
+   https://ongeapesa.vercel.app/auth/callback
+   http://localhost:3000/auth/confirm
+   http://localhost:3000/auth/callback
    ```
 
 #### Step 3: Deploy

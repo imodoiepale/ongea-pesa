@@ -29,7 +29,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${siteUrl}/auth/callback`,
+        emailRedirectTo: `${siteUrl}/auth/confirm`,
       },
     });
 
