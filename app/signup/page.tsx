@@ -23,9 +23,14 @@ export default function SignupPage() {
     setError(null);
     setSuccess(null);
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${siteUrl}/auth/callback`,
+      },
     });
 
     if (error) {

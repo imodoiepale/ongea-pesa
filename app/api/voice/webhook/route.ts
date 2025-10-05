@@ -223,6 +223,101 @@ export async function POST(request: NextRequest) {
     console.log('  user_email:', finalUserEmail)
     console.log('  user_phone:', finalUserPhone)
     
+    // ============================================
+    // REAL-TIME BALANCE CHECK
+    // ============================================
+    // Get current wallet balance
+    let currentBalance = 0
+    if (finalUserId && finalUserId !== 'no-user-found' && finalUserId !== 'test-user-id') {
+      const { data: balanceData, error: balanceError } = await supabase
+        .from('profiles')
+        .select('wallet_balance')
+        .eq('id', finalUserId)
+        .single()
+      
+      if (balanceError) {
+        console.error('❌ Error fetching balance:', balanceError)
+      } else if (balanceData) {
+        currentBalance = parseFloat(String(balanceData.wallet_balance)) || 0
+        console.log('💰 Current wallet balance:', currentBalance)
+      }
+    }
+    
+    // Validate amount
+    const requestedAmount = parseFloat(body.amount)
+    if (isNaN(requestedAmount) || requestedAmount <= 0) {
+      console.error('❌ Invalid amount received:', body.amount)
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Invalid amount',
+          message: `The amount ${body.amount} is not valid. Please provide a positive number.`,
+          current_balance: currentBalance,
+          agent_message: `I'm sorry, but the amount you provided is invalid. Please try again with a valid amount.`
+        },
+        { status: 400 }
+      )
+    }
+    
+    if (requestedAmount > 999999) {
+      console.error('❌ Amount exceeds maximum:', requestedAmount)
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Amount too large',
+          message: `The amount KSh ${requestedAmount.toLocaleString()} exceeds the maximum of KSh 999,999.`,
+          current_balance: currentBalance,
+          agent_message: `I'm sorry, but the amount of ${requestedAmount.toLocaleString()} shillings exceeds our maximum transaction limit of 999,999 shillings. Please try a smaller amount.`
+        },
+        { status: 400 }
+      )
+    }
+    
+    // Check if this is a debit transaction (money going out)
+    const debitTypes = [
+      'send_phone', 'buy_goods_pochi', 'buy_goods_till',
+      'paybill', 'withdraw', 'bank_to_mpesa', 'mpesa_to_bank'
+    ]
+    const isDebitTransaction = debitTypes.includes(body.type)
+    
+    // For debit transactions, check if user has sufficient balance
+    if (isDebitTransaction) {
+      console.log('💳 Debit transaction detected, checking balance...')
+      console.log('  Type:', body.type)
+      console.log('  Amount:', requestedAmount)
+      console.log('  Current Balance:', currentBalance)
+      
+      if (currentBalance < requestedAmount) {
+        const shortfall = requestedAmount - currentBalance
+        console.error('❌ INSUFFICIENT FUNDS')
+        console.error('  Balance:', currentBalance)
+        console.error('  Required:', requestedAmount)
+        console.error('  Shortfall:', shortfall)
+        
+        // Return error to ElevenLabs AI agent with clear message
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Insufficient funds',
+            message: `Your current balance is KSh ${currentBalance.toLocaleString()}, but you're trying to send KSh ${requestedAmount.toLocaleString()}. You need KSh ${shortfall.toLocaleString()} more.`,
+            current_balance: currentBalance,
+            required_amount: requestedAmount,
+            shortfall: shortfall,
+            // Special message for the AI agent to speak
+            agent_message: `I'm sorry, but you don't have enough funds for this transaction. Your current balance is ${currentBalance.toLocaleString()} shillings, but you're trying to send ${requestedAmount.toLocaleString()} shillings. You need ${shortfall.toLocaleString()} shillings more. Would you like to add funds to your wallet first?`
+          },
+          { status: 400 }
+        )
+      }
+      
+      console.log('✅ BALANCE CHECK PASSED')
+      console.log('  Balance after transaction will be:', currentBalance - requestedAmount)
+    } else {
+      console.log('💰 Credit transaction (deposit/receive) - no balance check needed')
+    }
+    
+    console.log('✅ Valid amount:', requestedAmount)
+    
     // Prepare the payload - all fields at top level for n8n
     const n8nPayload = {
       // Voice request
@@ -237,19 +332,7 @@ export async function POST(request: NextRequest) {
       
       // Transaction details from ElevenLabs
       type: body.type,
-      amount: (() => {
-        const amt = parseFloat(body.amount)
-        if (isNaN(amt) || amt <= 0) {
-          console.error('❌ Invalid amount received:', body.amount)
-          throw new Error(`Invalid amount: ${body.amount}. Must be a positive number.`)
-        }
-        if (amt > 999999) {
-          console.error('❌ Amount exceeds maximum:', amt)
-          throw new Error(`Amount ${amt} exceeds maximum of 999,999`)
-        }
-        console.log('✅ Valid amount:', amt)
-        return amt
-      })(),
+      amount: requestedAmount, // Already validated above
       phone: body.phone || '',
       till: body.till || '',
       paybill: body.paybill || '',
