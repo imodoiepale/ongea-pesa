@@ -12,6 +12,7 @@ export interface PaymentScanResult {
     store?: string;           // For withdraw
     bankCode?: string;        // For bank transactions
     amount?: string;          // Optional amount if visible
+    merchant?: string;        // Business/merchant name (optional)
     receiptData?: {
       vendor: string;
       amount: string;
@@ -50,7 +51,7 @@ class GeminiVisionService {
       const prompt = this.getPromptForScanMode(scanMode);
 
       const response = await this.ai.models.generateContent({
-        model: "gemini-2.5-pro",
+        model: "gemini-flash-lite-latest",
         contents: [
           {
             inlineData: {
@@ -125,7 +126,7 @@ class GeminiVisionService {
       const startTime = Date.now();
 
       const response = await this.ai.models.generateContent({
-        model: "gemini-2.5-pro",
+        model: "gemini-flash-lite-latest",
         contents: [
           {
             inlineData: {

@@ -1,123 +1,420 @@
-# Ongea Pesa - Voice-Activated Fintech Platform
+# Ongea Pesa 🗣️💰
 
-A comprehensive voice-activated fintech platform with centralized wallet architecture, featuring real-time AI-powered payment scanning using Google Gemini Vision.
+> **Voice-Activated Mobile Money Platform** | Send money, pay bills, and manage finances using voice commands in English, Swahili, and Sheng.
 
-## Features
+[![Next.js](https://img.shields.io/badge/Next.js-15.2-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[![ElevenLabs](https://img.shields.io/badge/ElevenLabs-AI-purple)](https://elevenlabs.io/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database-green)](https://supabase.com/)
 
-- **Voice-Activated Payments**: Ultra-fast voice commands for money transfers
-- **AI Payment Scanner**: Real-time document scanning with Gemini Vision AI
-- **Multi-Payment Support**: Paybill, Till, QR codes, Bank transfers, Pochi la Biashara
-- **Receipt Processing**: Automatic expense categorization and tracking
-- **M-Pesa Integration**: Direct STK push payments
-- **Real-time Voice Responses**: ElevenLabs TTS integration
+---
 
-## Setup Instructions
+## ✨ Features
 
-### 1. Install Dependencies
-```bash
-npm install
-```
+### 🎙️ Voice Interface
+- **Natural Language Processing**: Speak in English, Swahili, or Sheng
+- **Real-time Conversations**: ElevenLabs AI agent with < 800ms response time
+- **Push-to-Talk**: Hold to speak, automatic session management
+- **Smart Recognition**: Understands context and handles disambiguation
 
-### 2. Environment Variables
-Create a `.env.local` file with:
-```bash
-# Gemini AI Vision
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
-
-# M-Pesa (for backend integration)
-MPESA_CONSUMER_KEY=your_mpesa_consumer_key
-MPESA_CONSUMER_SECRET=your_mpesa_consumer_secret
-
-# Supabase (for data storage)
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# Vapi Voice Agent (optional)
-VAPI_API_KEY=your_vapi_api_key
-ELEVENLABS_API_KEY=your_elevenlabs_api_key
-```
-
-### 3. Get Gemini API Key
-1. Go to [Google AI Studio](https://aistudio.google.com/)
-2. Create a new API key
-3. Add it to your `.env.local` file
-
-### 4. Run Development Server
-```bash
-npm run dev
-```
-
-## Payment Scanner Usage
-
-The payment scanner uses Google Gemini 2.5 Flash for real-time document analysis:
-
-1. **Navigate to Scanner**: Click "Payment Scanner" from dashboard
-2. **Select Scan Mode**: Choose from Paybill, Till, QR, Receipt, Bank, or Pochi
-3. **Camera Permission**: Allow camera access when prompted
-4. **Capture**: Point camera at document and click "Capture & Analyze"
-5. **AI Processing**: Gemini extracts payment details automatically
-6. **Confirm**: Review extracted data and proceed with payment
-
-### Supported Document Types
-
-- **Paybill Numbers**: Utility bills, rent, school fees
-- **Till Numbers**: Shop stickers, restaurant receipts  
-- **QR Codes**: Lipa Na M-Pesa QR payments
-- **Receipts**: Expense tracking with automatic categorization
-- **Bank Details**: Account numbers from bank slips
+### 💸 Payment Operations
+- **Send Money**: Voice-activated M-Pesa transfers
+- **Paybill**: Pay utility bills, rent, school fees
+- **Till Numbers**: Shop payments via voice
+- **Bank Transfers**: Inter-bank transactions
 - **Pochi la Biashara**: Mobile business account payments
+- **Withdrawals**: Agent cash withdrawals
 
-## Voice Commands
+### 📸 AI Document Scanner
+- **Google Gemini Vision**: Real-time document analysis
+- **Multi-Format Support**: Paybill, Till, QR codes, receipts, bank slips
+- **Instant Extraction**: Auto-fills payment details from images
+- **Receipt Categorization**: Automatic expense tracking
 
-- "Piga Paybill" - Scan paybill numbers
-- "Piga Till" - Scan till numbers
-- "Piga QR" - Scan QR codes
-- "Piga risiti" - Capture receipts
-- "Piga bank" - Scan bank details
-- "Piga Pochi" - Scan Pochi la Biashara
+### 💳 Wallet Management
+- **Real-time Balance**: Live updates via Supabase Realtime
+- **Transaction History**: Comprehensive payment tracking
+- **Balance Sheet**: Visual financial overview
+- **Multi-currency**: Support for multiple payment methods
 
-## Architecture
+### 🔐 Security
+- **Supabase Authentication**: Secure user sessions
+- **Row Level Security (RLS)**: Database access control
+- **Session Tracking**: Voice conversation logging
+- **User Isolation**: Per-user data segregation
 
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ and npm
+- Supabase account
+- ElevenLabs account (for voice)
+- n8n instance (for workflows)
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/yourusername/ongea-pesa.git
+cd ongea-pesa
 ```
-User Voice → Vapi Agent → n8n Workflows → M-Pesa → Voice Response
-Camera → Gemini Vision → Payment Details → UI → Payment Flow
+
+### 2. Install Dependencies
+```bash
+npm install
 ```
 
-## Tech Stack
+### 3. Environment Setup
+Create `.env.local` file:
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **UI**: Tailwind CSS, Radix UI, Lucide Icons
-- **AI Vision**: Google Gemini 2.5 Flash
-- **Voice**: Vapi + ElevenLabs TTS
-- **Backend**: n8n workflows
-- **Payments**: M-Pesa STK Push
-- **Database**: Supabase
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
-## Development
+# ElevenLabs
+NEXT_PUBLIC_AGENT_ID=your-agent-id
+ELEVENLABS_API_KEY=your-api-key
+
+# Google Gemini (for document scanner)
+NEXT_PUBLIC_GEMINI_API_KEY=your-gemini-key
+
+# n8n Webhooks
+N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook
+```
+
+### 4. Database Setup
+Run the SQL scripts in Supabase SQL Editor:
 
 ```bash
-# Install dependencies
-npm install
+# 1. Main schema
+docs/schema/database-schema.sql
 
-# Run development server
+# 2. Setup tables
+docs/schema/supabase-schema.sql
+
+# 3. Triggers and automation
+docs/schema/triggers.sql
+```
+
+### 5. Run Development Server
+```bash
 npm run dev
+```
 
-# Build for production
+Open [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 📖 Documentation
+
+### Setup Guides
+- [**Installation**](docs/setup/INSTALLATION.md) - Detailed setup instructions
+- [**Environment Variables**](docs/setup/ENVIRONMENT.md) - All configuration options
+- [**Local Testing**](docs/setup/LOCAL_TESTING.md) - Test with ngrok
+
+### Deployment
+- [**Vercel Deployment**](docs/deployment/VERCEL.md) - Deploy to Vercel
+- [**Production Setup**](docs/deployment/PRODUCTION.md) - Production checklist
+
+### Integrations
+- [**ElevenLabs Setup**](docs/integrations/ELEVENLABS_SETUP.md) - Voice agent configuration
+- [**n8n Integration**](docs/integrations/N8N_INTEGRATION.md) - Workflow automation
+- [**Supabase Setup**](docs/integrations/SUPABASE_SETUP.md) - Database configuration
+- [**User ID Implementation**](docs/integrations/USERID_IMPLEMENTATION.md) - User tracking
+
+### Architecture
+- [**System Design**](docs/architecture/SYSTEM_DESIGN.md) - High-level architecture
+- [**Database Schema**](docs/architecture/DATABASE_SCHEMA.md) - Data models
+- [**API Flow**](docs/architecture/API_FLOW.md) - Request/response flows
+
+---
+
+## 🏗️ Project Structure
+
+```
+ongea-pesa/
+├── app/
+│   ├── api/                    # API routes
+│   │   ├── balance/           # Balance check endpoint
+│   │   ├── get-signed-url/    # ElevenLabs URL generation
+│   │   ├── transactions/      # Transaction operations
+│   │   ├── user/              # User management
+│   │   └── voice/             # Voice webhook handler
+│   ├── login/                 # Login page
+│   ├── signup/                # Signup page
+│   ├── dashboard/             # Dashboard (legacy)
+│   └── page.tsx               # Home page
+├── components/
+│   ├── ongea-pesa/            # Main app components
+│   │   ├── voice-interface.tsx    # Voice conversation UI
+│   │   ├── main-dashboard.tsx     # Dashboard
+│   │   ├── payment-scanner.tsx    # AI document scanner
+│   │   ├── balance-sheet.tsx      # Balance overview
+│   │   ├── send-money.tsx         # Manual send form
+│   │   └── analytics.tsx          # Transaction analytics
+│   ├── ui/                    # Shadcn UI components
+│   └── providers/             # Context providers
+├── contexts/
+│   └── UserContext.tsx        # User authentication context
+├── lib/
+│   ├── supabase/              # Supabase clients
+│   └── utils.ts               # Utility functions
+├── hooks/
+│   ├── use-camera.ts          # Camera access hook
+│   └── use-toast.ts           # Toast notifications
+├── docs/                      # Documentation
+└── public/                    # Static assets
+```
+
+---
+
+## 🎤 Voice Commands
+
+### Send Money
+```
+"Send 500 to 0712345678"
+"Tuma pesa 1000 kwa mama 0798765432"
+"Peleka 250 Bob's number is 0733445566"
+```
+
+### Check Balance
+```
+"Check my balance"
+"Niangalie balance"
+"How much money do I have?"
+```
+
+### Pay Bills
+```
+"Pay paybill 247247 account 123456 amount 5000"
+"Lipa bill ya stima 2500"
+```
+
+### Buy Goods
+```
+"Buy goods till 567890 amount 1500"
+"Lipa till 300"
+```
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **Framework**: Next.js 15 (App Router)
+- **UI**: React 19, TypeScript
+- **Styling**: Tailwind CSS, Shadcn UI
+- **Icons**: Lucide React
+- **State**: React Context + Hooks
+
+### AI & Voice
+- **Conversational AI**: ElevenLabs
+- **Document Vision**: Google Gemini 2.5 Flash
+- **Speech Recognition**: Browser native + ElevenLabs
+- **Text-to-Speech**: ElevenLabs multilingual TTS
+
+### Backend & Database
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Realtime**: Supabase Realtime subscriptions
+- **Workflows**: n8n automation
+- **Storage**: Supabase Storage
+
+### Payments
+- **M-Pesa**: STK Push integration (via n8n)
+- **Webhooks**: Real-time payment notifications
+
+---
+
+## 🔧 Development
+
+### Run Development Server
+```bash
+npm run dev
+```
+
+### Build for Production
+```bash
 npm run build
+```
 
-# Start production server
+### Start Production Server
+```bash
 npm start
 ```
 
-## Camera Permissions
+### Lint Code
+```bash
+npm run lint
+```
 
-The app requires camera access for document scanning. Ensure your browser allows camera permissions for the best experience.
+### Type Check
+```bash
+npx tsc --noEmit
+```
 
-## Browser Support
+---
 
-- Chrome/Edge: Full support
-- Safari: Requires HTTPS for camera access
-- Firefox: Full support
-- Mobile browsers: Optimized for mobile scanning
+## 🧪 Testing
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+### Test Voice Interface
+1. Navigate to http://localhost:3000
+2. Sign in with test account
+3. Voice interface auto-starts
+4. Say: "Send 100 to 0712345678"
+5. Verify agent response
+
+### Test Document Scanner
+1. Click "Payment Scanner" from dashboard
+2. Allow camera access
+3. Point at a paybill or till number
+4. Click "Capture & Analyze"
+5. Verify extracted details
+
+### Test Balance Updates
+1. Send a test transaction
+2. Watch balance update in real-time
+3. Check transaction history
+
+---
+
+## 📊 Database Schema
+
+### Main Tables
+- `profiles` - User profiles and settings
+- `transactions` - Payment transaction records
+- `voice_sessions` - Voice conversation tracking
+- `transaction_limits` - User spending limits
+- `payment_methods` - Linked payment accounts
+
+### Key Features
+- **RLS Policies**: Row-level security on all tables
+- **Triggers**: Auto-create profile, auto-update balance
+- **Realtime**: Subscriptions for live updates
+- **Indexes**: Optimized queries for performance
+
+See [Database Schema](docs/architecture/DATABASE_SCHEMA.md) for full details.
+
+---
+
+## 🌍 Localization
+
+### Supported Languages
+- **English**: Full support
+- **Swahili**: Full support  
+- **Sheng**: Full support (Kenyan slang)
+
+### Dictionary
+Custom ElevenLabs pronunciation dictionary includes:
+- M-Pesa terminology
+- Kenyan slang (Sheng)
+- Common payment phrases
+- Number pronunciations
+
+See `docs/config/kenyan-dictionary.json`
+
+---
+
+## 🔐 Security Best Practices
+
+### Authentication
+- ✅ Server-side session validation
+- ✅ HTTP-only cookies
+- ✅ CSRF protection
+- ✅ Rate limiting on auth endpoints
+
+### Database
+- ✅ Row Level Security (RLS) enabled
+- ✅ User isolation per table
+- ✅ Service role key secured server-side
+- ✅ Prepared statements (SQL injection prevention)
+
+### API
+- ✅ Input validation with Zod
+- ✅ Error handling (no sensitive data leaks)
+- ✅ CORS configured
+- ✅ Request signing for webhooks
+
+---
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+```bash
+vercel
+```
+
+### Environment Variables (Production)
+Set these in Vercel dashboard:
+- All variables from `.env.local`
+- Add production webhook URLs
+- Update CORS origins
+
+See [Deployment Guide](docs/deployment/VERCEL.md)
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
+
+### Development Workflow
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **ElevenLabs** - Conversational AI platform
+- **Supabase** - Backend infrastructure
+- **Vercel** - Hosting and deployment
+- **Google** - Gemini Vision AI
+- **Shadcn** - UI component library
+
+---
+
+## 📞 Support
+
+- **Documentation**: [docs/](docs/)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/ongea-pesa/issues)
+- **Email**: support@ongeapesa.com
+
+---
+
+## 🗺️ Roadmap
+
+### Q1 2025
+- [ ] Multi-currency support
+- [ ] Recurring payments
+- [ ] Budget tracking
+- [ ] Expense analytics
+
+### Q2 2025
+- [ ] WhatsApp integration
+- [ ] USSD fallback
+- [ ] Offline mode
+- [ ] Bill reminders
+
+### Q3 2025
+- [ ] Savings accounts
+- [ ] Loan products
+- [ ] Investment options
+- [ ] Insurance integration
+
+---
+
+**Made with ❤️ in Kenya** 🇰🇪
+
+**Ongea Pesa** - Speak your money into action!

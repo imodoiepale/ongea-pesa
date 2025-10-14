@@ -7,7 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useCamera } from "@/hooks/use-camera"
+import { useVoiceActivation } from "@/hooks/use-voice-activation"
+import { useElevenLabs } from '@/contexts/ElevenLabsContext'
 import { geminiVision, PaymentScanResult } from "@/lib/gemini-vision"
+import { calculateTransactionFees, formatFeesMessage, hasSufficientBalance } from "@/lib/transaction-fees"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -29,6 +32,9 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
   const [lastScanTime, setLastScanTime] = useState(0)
   const [isAudioEnabled, setIsAudioEnabled] = useState(true)
   const [currentlySpeaking, setCurrentlySpeaking] = useState(false)
+  const [balance, setBalance] = useState<number>(0)
+  const [loadingBalance, setLoadingBalance] = useState(true)
+  const [voiceActivated, setVoiceActivated] = useState(false)
 
   const { 
     videoRef, 
@@ -39,6 +45,78 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     stopCamera, 
     captureImage 
   } = useCamera()
+
+  // Use global ElevenLabs context (no duplicate connection!)
+  const { isConnected: elevenLabsConnected, isSpeaking } = useElevenLabs()
+
+  // Voice activation hook
+  const voice = useVoiceActivation({
+    wakeWord: 'hey ongea',
+    continuous: true,
+    onActivate: () => {
+      setVoiceActivated(true)
+      speakText('Yes? How can I help you?')
+    },
+    onDeactivate: () => {
+      setVoiceActivated(false)
+    },
+    onCommand: (command) => {
+      console.log('Voice command:', command)
+      handleVoiceCommand(command)
+    },
+    onError: (error) => {
+      console.error('Voice error:', error)
+    }
+  })
+
+  // Handle voice commands
+  const handleVoiceCommand = (command: string) => {
+    const lower = command.toLowerCase()
+    
+    if (lower.includes('scan') || lower.includes('piga')) {
+      if (lower.includes('paybill')) {
+        handleScan('paybill')
+        speakText('Starting paybill scan')
+      } else if (lower.includes('till')) {
+        handleScan('till')
+        speakText('Starting till scan')
+      } else if (lower.includes('pochi')) {
+        handleScan('pochi')
+        speakText('Starting Pochi la Biashara scan')
+      } else if (lower.includes('receipt') || lower.includes('risiti')) {
+        handleScan('receipt')
+        speakText('Starting receipt scan')
+      } else {
+        // Auto-detect mode
+        handleScan(null)
+        speakText('Starting auto-scan mode')
+      }
+    } else if (lower.includes('stop') || lower.includes('cancel')) {
+      handleCancel()
+      speakText('Scan cancelled')
+    } else if (lower.includes('balance')) {
+      speakText(`Your balance is ${balance} shillings`)
+    }
+  }
+
+  // Fetch user balance on mount
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const response = await fetch('/api/balance')
+        if (response.ok) {
+          const data = await response.json()
+          setBalance(data.balance || 0)
+          console.log('Balance loaded:', data.balance)
+        }
+      } catch (error) {
+        console.error('Failed to load balance:', error)
+      } finally {
+        setLoadingBalance(false)
+      }
+    }
+    fetchBalance()
+  }, [])
 
   const scanModes = [
     {
@@ -114,6 +192,52 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     }
   };
 
+  // Send scan data to voice AI with balance
+  const sendScanDataToVoice = async (result: PaymentScanResult) => {
+    try {
+      console.log('📡 Sending scan data to voice AI with balance:', balance);
+      
+      const response = await fetch('/api/voice/send-scan-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scanResult: result,
+          balance: balance
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Voice AI notified:', data.message);
+        
+        // ElevenLabs is active and listening in background
+        // It will respond to context automatically through the agent
+        // For immediate feedback, use browser TTS, then ElevenLabs can elaborate
+        if (elevenLabsConnected) {
+          console.log('🎙️ ElevenLabs is active and will respond');
+          // Browser TTS for immediate feedback
+          speakText(data.message);
+          console.log('✅ Scan data available for ElevenLabs agent context');
+        } else {
+          console.log('🔊 Speaking via browser TTS (ElevenLabs not connected)');
+          speakText(data.message);
+        }
+      } else {
+        console.error('Failed to send scan data to voice AI');
+        // Fallback to basic audio feedback
+        const basicMessage = generateAudioMessage(result);
+        speakText(basicMessage);
+      }
+    } catch (error) {
+      console.error('Error sending scan data to voice:', error);
+      // Fallback to basic audio feedback
+      const basicMessage = generateAudioMessage(result);
+      speakText(basicMessage);
+    }
+  };
+
   // Text-to-speech function for live audio feedback
   const speakText = (text: string) => {
     if (!isAudioEnabled || currentlySpeaking) return
@@ -179,9 +303,8 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
         if (result && result.confidence > 70) {
           console.log('Payment detected with confidence:', result.confidence);
           
-          // Live audio feedback for detected payment
-          const audioMessage = generateAudioMessage(result);
-          speakText(audioMessage);
+          // Send scan data to voice AI
+          await sendScanDataToVoice(result);
           
           setScanResult(result)
           setIsScanning(false)
@@ -350,7 +473,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
             </div>
           )}
 
-          {type === "till" && (
+          {type === "buy_goods_till" && (
             <div className="space-y-3">
               <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <p className="text-sm font-medium text-green-700 dark:text-green-300">Till Number Detected</p>
@@ -375,7 +498,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
             </div>
           )}
 
-          {type === "pochi" && (
+          {type === "buy_goods_pochi" && (
             <div className="space-y-3">
               <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                 <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Pochi la Biashara</p>
@@ -424,7 +547,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
             </div>
           )}
 
-          {type === "bank" && (
+          {(type === "bank_to_mpesa" || type === "bank_to_bank") && (
             <div className="space-y-3">
               <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
                 <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Bank Account Detected</p>
@@ -646,25 +769,55 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
         </div>
       </div>
 
-      {/* Voice Command */}
-      <Card className="mb-6">
+      {/* Voice Activation */}
+      <Card className={`mb-6 ${voiceActivated ? 'border-2 border-green-500 bg-green-50 dark:bg-green-900/20' : ''}`}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-sm">Voice Scanning</h3>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Say: "Piga Paybill" or "Piga risiti ya mafuta"</p>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-sm">🎙️ Voice Control</h3>
+                {voice.isListening && (
+                  <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                    Listening
+                  </Badge>
+                )}
+                {voiceActivated && (
+                  <Badge variant="outline" className="text-xs bg-green-500 text-white animate-pulse">
+                    Active
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                Say: <strong>"Hey Ongea"</strong> then <strong>"Scan till"</strong> or <strong>"Check balance"</strong>
+              </p>
             </div>
             <Button
-              onClick={handleVoiceScan}
-              disabled={isVoiceMode}
-              className={`rounded-full ${isVoiceMode ? "bg-red-500 animate-pulse" : "bg-green-500"}`}
+              onClick={() => {
+                if (voice.isListening) {
+                  voice.stopListening()
+                } else {
+                  voice.startListening()
+                }
+              }}
+              className={`rounded-full ${voice.isListening ? "bg-red-500 animate-pulse" : "bg-green-500"}`}
             >
               <Mic className="h-4 w-4" />
             </Button>
           </div>
-          {voiceCommand && (
-            <div className="mt-3 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <p className="text-sm text-green-700 dark:text-green-300">Heard: "{voiceCommand}"</p>
+          {voiceActivated && voice.interimTranscript && (
+            <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-700 dark:text-blue-300">Hearing: "{voice.interimTranscript}"</p>
+            </div>
+          )}
+          {voiceActivated && voice.transcript && (
+            <div className="mt-3 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200">
+              <p className="text-sm text-green-700 dark:text-green-300">✓ Command: "{voice.transcript}"</p>
+            </div>
+          )}
+          {elevenLabsConnected && (
+            <div className="mt-3 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+              <p className="text-xs text-purple-700 dark:text-purple-300">ElevenLabs AI Active</p>
             </div>
           )}
         </CardContent>

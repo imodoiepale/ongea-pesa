@@ -12,6 +12,7 @@ import { useConversation } from '@elevenlabs/react';
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from '@/lib/supabase/client'
 import BalanceSheet from "./balance-sheet"
+import { useUser } from '@/contexts/UserContext';
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -21,6 +22,7 @@ interface VoiceInterfaceProps {
 
 export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   const { user, signOut } = useAuth();
+  const { userId, user: userContext, isLoading: userContextLoading } = useUser();
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'speaking'>('idle')
   const [transcript, setTranscript] = useState('')
   const [agentResponse, setAgentResponse] = useState('')
@@ -123,18 +125,30 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
 
   const getSignedUrl = async (): Promise<string> => {
     try {
-      const response = await fetch("/api/get-signed-url");
+      console.log('🔑 Requesting signed URL for authenticated user...');
+      
+      const response = await fetch("/api/get-signed-url", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to get signed url: ${response.status} ${response.statusText} - ${errorText}`);
       }
-      const { signedUrl } = await response.json();
+      
+      const { signedUrl, userId: returnedUserId, userEmail } = await response.json();
+      
       if (!signedUrl) {
         throw new Error('No signed URL received from server');
       }
+      
+      console.log('✅ Signed URL received for userId:', returnedUserId, 'email:', userEmail);
       return signedUrl;
     } catch (error) {
-      console.error('Error getting signed URL:', error);
+      console.error('❌ Error getting signed URL:', error);
       throw error;
     }
   };
@@ -160,13 +174,15 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
       stream.getTracks().forEach(track => track.stop());
       
       const signedUrl = await getSignedUrl();
-      console.log('Starting conversation with signed URL');
+      
+      // Append userId to the signed URL as query parameter for n8n
+      const urlWithUserId = `${signedUrl}&user_id=${encodeURIComponent(userId || '')}&user_name=${encodeURIComponent(user?.name || userContext?.name || 'User')}`;
+      
+      console.log('🎙️ Starting conversation with signed URL for userId:', userId);
+      console.log('📡 URL includes userId parameter for n8n workflows');
       
       await conversation.startSession({ 
-        signedUrl,
-        // Add session configuration to maintain connection
-        timeoutMs: 300000, // 5 minutes timeout
-        maxDuration: 600000, // 10 minutes max duration
+        signedUrl: urlWithUserId
       });
       
     } catch (error: any) {
@@ -189,20 +205,20 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     }
   }, [conversation]);
 
-  // Auto-start conversation when component mounts
+  // Auto-start conversation when component mounts and userId is available
   useEffect(() => {
     let mounted = true;
     let autoStartTimer: NodeJS.Timeout;
     
     const autoStart = async () => {
-      if (!mounted) return;
+      if (!mounted || !userId || userContextLoading) return;
       
-      console.log('🚀 Auto-starting voice conversation in 2 seconds...');
+      console.log('🚀 Auto-starting voice conversation in 2 seconds for userId:', userId);
       
       autoStartTimer = setTimeout(async () => {
         if (!mounted || isListening || isConnecting || error) return;
         
-        console.log('🎤 Starting voice conversation...');
+        console.log('🎤 Starting voice conversation for user:', user?.name || userContext?.name || userId);
         await startConversation();
       }, 2000);
     };
@@ -213,7 +229,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
       mounted = false;
       if (autoStartTimer) clearTimeout(autoStartTimer);
     };
-  }, []); // Only run once on mount
+  }, [userId, userContextLoading]); // Wait for userId to be available
 
   // Fetch balance on mount and set up real-time subscription
   useEffect(() => {
@@ -321,6 +337,19 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
+
+  // Show loading state while userId is being fetched
+  if (userContextLoading || !userId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-700 text-lg font-medium">Authenticating user...</p>
+          <p className="text-gray-500 text-sm mt-2">Please wait</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 relative overflow-hidden">

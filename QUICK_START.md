@@ -1,200 +1,216 @@
-# ⚡ Quick Start - Test Locally RIGHT NOW
+# ⚡ Quick Start Guide
 
-## 🎯 Goal
-Get your voice-activated payment system running locally in 5 minutes.
+Get Ongea Pesa running locally in **5 minutes**.
 
 ---
 
-## Step 1: Install Dependencies (1 min)
+## 📋 Prerequisites
+
+- Node.js 18+ installed
+- Git installed
+- Supabase account (free tier OK)
+- ElevenLabs account (free tier OK)
+
+---
+
+## 🚀 Step 1: Clone & Install (2 min)
 
 ```bash
-cd c:\Users\ADMIN\Documents\GitHub\ongea-pesa
+# Clone repository
+git clone https://github.com/yourusername/ongea-pesa.git
+cd ongea-pesa
+
+# Install dependencies
 npm install
 ```
 
 ---
 
-## Step 2: Install ngrok (1 min)
+## 🔑 Step 2: Get API Keys (2 min)
 
-**Using Chocolatey (if installed):**
-```bash
-choco install ngrok
-```
+### Supabase
+1. Go to [supabase.com](https://supabase.com) → Create project
+2. Go to **Settings** → **API**
+3. Copy:
+   - `Project URL`
+   - `anon public` key
 
-**OR Download manually:**
-1. Visit https://ngrok.com/download
-2. Download Windows version
-3. Extract `ngrok.exe` anywhere
-4. Remember the path
+### ElevenLabs
+1. Go to [elevenlabs.io](https://elevenlabs.io)
+2. Create conversational AI agent
+3. Copy:
+   - `Agent ID` (from agent settings)
+   - `API Key` (from profile settings)
 
----
-
-## Step 3: Set Environment Variables (1 min)
-
-Create `.env.local` in your project root:
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
-NEXT_PUBLIC_ELEVENLABS_AGENT_ID=your-agent-id-here
-```
-
-Get these from:
-- Supabase: Project Settings → API
-- ElevenLabs: Agent Settings → Agent ID
+### Google Gemini (Optional - for scanner)
+1. Go to [aistudio.google.com](https://aistudio.google.com)
+2. Create API key
+3. Copy the key
 
 ---
 
-## Step 4: Start Everything (2 mins)
+## ⚙️ Step 3: Configure Environment (1 min)
 
-### Terminal 1 - Start Next.js
+Create `.env.local` file in project root:
+
+```env
+# Required
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+NEXT_PUBLIC_AGENT_ID=your-elevenlabs-agent-id
+ELEVENLABS_API_KEY=your-elevenlabs-api-key
+
+# Optional
+NEXT_PUBLIC_GEMINI_API_KEY=your-gemini-key
+N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook
+```
+
+---
+
+## 🗄️ Step 4: Setup Database (2 min)
+
+1. Go to your Supabase project
+2. Click **SQL Editor** → **New Query**
+3. Run these scripts **in order**:
+
+### Script 1: Main Schema
+Copy from: `docs/schema/database-schema.sql`
+
+### Script 2: Setup Tables
+Copy from: `docs/schema/supabase-schema.sql`
+
+### Script 3: Triggers
+Copy from: `docs/schema/triggers.sql`
+
+Click **Run** after pasting each script.
+
+---
+
+## 🎬 Step 5: Start Development Server
+
 ```bash
 npm run dev
 ```
 
-Wait for: `✓ Ready on http://localhost:3000`
+Open browser: **http://localhost:3000**
 
-### Terminal 2 - Start ngrok
+---
+
+## ✅ Step 6: Test It Out!
+
+### First Time Setup
+1. You'll be redirected to `/login`
+2. Click "Sign Up"
+3. Enter email and password
+4. Check email for verification link
+5. After verification, login
+
+### Test Voice Interface
+1. Voice interface should auto-start
+2. Wait for "Connected" status (green dot)
+3. Click and hold the microphone button
+4. Say: **"Check my balance"**
+5. Release button
+6. AI should respond with your balance!
+
+### Test Document Scanner
+1. Click "Payment Scanner" from dashboard
+2. Allow camera access
+3. Take a photo of any document
+4. AI will analyze it instantly
+
+---
+
+## 🐛 Troubleshooting
+
+### "Connection failed"
+- Check `NEXT_PUBLIC_AGENT_ID` is correct
+- Verify ElevenLabs agent is active
+- Check browser console for errors
+
+### "Authentication required"
+- Make sure you signed up and verified email
+- Clear cookies and try again
+- Check Supabase Auth settings
+
+### "Database error"
+- Verify all SQL scripts ran successfully
+- Check Supabase logs in dashboard
+- Ensure RLS policies are created
+
+### Voice not connecting
+- Check `ELEVENLABS_API_KEY` is set
+- Verify agent ID matches your ElevenLabs agent
+- Check browser mic permissions
+
+---
+
+## 📱 Local Testing with n8n (Optional)
+
+### Using ngrok
 ```bash
-ngrok http 3000
+# Terminal 1: Start app
+npm run dev
+
+# Terminal 2: Expose to internet
+npx ngrok http 3000
 ```
 
-You'll see:
+Copy the ngrok URL (e.g., `https://abc123.ngrok-free.app`)
+
+Update ElevenLabs webhook:
+- Go to agent tools configuration
+- Set webhook URL: `https://abc123.ngrok-free.app/api/voice/webhook`
+
+Now you can test the full flow with n8n integration!
+
+---
+
+## 🎯 What to Test
+
+### Basic Commands
 ```
-Forwarding  https://abc123.ngrok-free.app -> http://localhost:3000
-```
-
-**Copy that URL!** → `https://abc123.ngrok-free.app`
-
----
-
-## Step 5: Update ElevenLabs Webhook (1 min)
-
-1. Go to [ElevenLabs Dashboard](https://elevenlabs.io/app/conversational-ai)
-2. Click your agent → **Edit**
-3. Go to **Tools** section
-4. Find `send_money` tool (or create it using `elevenlabs-config.json`)
-5. Update webhook URL to:
-   ```
-   https://abc123.ngrok-free.app/api/voice/webhook
-   ```
-   *(Replace with YOUR ngrok URL)*
-6. Click **Save**
-
----
-
-## Step 6: Test! 🎤
-
-1. Open browser: `http://localhost:3000`
-2. You'll be redirected to `/login`
-3. Sign up or sign in
-4. Voice interface appears automatically
-5. Wait for "Connected" status
-6. Speak: **"Send 100 to 0712345678"**
-7. Agent should respond!
-
----
-
-## 🐛 If It's Not Working
-
-### Check This First:
-```bash
-# Is Next.js running?
-# Terminal 1 should show: ✓ Ready on http://localhost:3000
-
-# Is ngrok running?
-# Terminal 2 should show: Forwarding https://...
-
-# Can you access the app?
-# Browser: http://localhost:3000 should load
-
-# Is ElevenLabs webhook updated?
-# Should be: https://YOUR-NGROK-URL/api/voice/webhook
+✅ "Check my balance"
+✅ "Send 500 to 0712345678"
+✅ "What's my transaction history?"
+✅ "Pay paybill 247247 account 123 amount 1000"
 ```
 
-### Common Issues:
-
-**"Module not found: @/components/protected-route"**
-- ✅ FIXED - File is now created
-
-**"Can't connect to voice agent"**
-- Check `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` in `.env.local`
-- Verify agent ID from ElevenLabs dashboard
-
-**"Webhook not receiving data"**
-- Verify ngrok URL in ElevenLabs matches ngrok terminal
-- Check ngrok dashboard: `http://127.0.0.1:4040`
-- Make sure webhook URL ends with `/api/voice/webhook`
-
-**"User not authenticated"**
-- Make sure you signed in at `localhost:3000`
-- Check browser DevTools → Application → Cookies
+### Sheng Commands
+```
+✅ "Niangalie balance"
+✅ "Tuma pesa 1000 kwa mama"
+✅ "Lipa bill ya stima"
+```
 
 ---
 
-## 📊 Monitor Everything
+## 📚 Next Steps
 
-### ngrok Dashboard
-Open: `http://127.0.0.1:4040`
-- See all incoming webhook requests
-- Inspect payloads
-- Debug issues
-
-### Browser DevTools (F12)
-- **Console tab**: See logs
-- **Network tab**: See API calls
-- **Application → Cookies**: Verify auth session
-
-### Next.js Terminal
-- See API logs
-- See authentication status
-- See n8n forwarding
+- Read [docs/setup/LOCAL_TESTING.md](docs/setup/LOCAL_TESTING.md) for detailed testing
+- See [docs/integrations/N8N_INTEGRATION.md](docs/integrations/N8N_INTEGRATION.md) for workflow setup
+- Check [docs/deployment/VERCEL.md](docs/deployment/VERCEL.md) to deploy to production
 
 ---
 
-## ✅ Success Looks Like:
+## 💡 Tips
 
-1. ✅ Next.js running on `localhost:3000`
-2. ✅ ngrok forwarding to public URL
-3. ✅ Can sign in successfully
-4. ✅ Voice interface loads
-5. ✅ Connection status: "Connected"
-6. ✅ Agent responds to voice commands
-7. ✅ ngrok shows incoming webhook calls
-8. ✅ Data forwarded to n8n
+1. **Balance starts at KES 10,000** - Test balance is auto-created
+2. **Transactions are simulated** - Set up n8n for real M-Pesa
+3. **Voice sessions timeout after 5 seconds** of inactivity
+4. **Camera only works on HTTPS** or localhost
 
 ---
 
-## 🚀 When Ready for Production
+## 🆘 Need Help?
 
-1. Deploy to Vercel:
-   ```bash
-   vercel
-   ```
-
-2. Add environment variables in Vercel dashboard
-
-3. Update ElevenLabs webhook to:
-   ```
-   https://ongeapesa.vercel.app/api/voice/webhook
-   ```
-
-4. Test on production URL!
+- Check [docs/](docs/) folder for detailed guides
+- Open an [issue on GitHub](https://github.com/yourusername/ongea-pesa/issues)
+- Review browser console for errors
+- Check Supabase logs
 
 ---
 
-## 🎉 That's It!
+**That's it! You're ready to use Ongea Pesa** 🎉
 
-You should now have:
-- ✅ Voice interface running locally
-- ✅ ElevenLabs agent connected
-- ✅ Webhook forwarding to n8n
-- ✅ Authentication working
-- ✅ Full voice-to-payment flow
-
-**Test command**: "Send 500 to 0712345678" or "Tuma pesa 1000 kwa mama 0798765432"
-
-Need help? Check:
-- `LOCAL_TESTING_GUIDE.md` - Detailed local testing guide
-- `SETUP_GUIDE.md` - Complete setup instructions
-- `ELEVENLABS_TOOL_CONFIG.md` - Tool configuration reference
+Speak your money into action! 🗣️💰
