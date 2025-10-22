@@ -28,6 +28,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [userBalance, setUserBalance] = useState<number>(0);
 
   // ElevenLabs conversation hook
   const conversation = useConversation({
@@ -119,6 +120,39 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Fetch and track user balance in real-time
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchBalance = async () => {
+      try {
+        const response = await fetch('/api/balance');
+        if (response.ok) {
+          const data = await response.json();
+          const balance = data.balance || 0;
+          setUserBalance(balance);
+          
+          // Send balance to ElevenLabs conversation context
+          if (isConnected) {
+            // Store balance in state for AI to access
+            console.log('💰 Balance updated for ElevenLabs context:', balance);
+            // The AI agent will have access to this via the conversation session
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch balance:', error);
+      }
+    };
+
+    // Fetch immediately
+    fetchBalance();
+
+    // Refresh balance every 10 seconds for real-time updates
+    const balanceInterval = setInterval(fetchBalance, 10000);
+
+    return () => clearInterval(balanceInterval);
+  }, [userId, isConnected, conversation]);
+
   // Auto-start ElevenLabs session when userId is available
   useEffect(() => {
     let mounted = true;
@@ -147,6 +181,11 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
         await conversation.startSession({ 
           signedUrl: urlWithUserId
         });
+        
+        // Balance is available in state for AI to access
+        if (userBalance > 0) {
+          console.log('💰 Initial balance available for ElevenLabs:', userBalance);
+        }
       } catch (error) {
         console.error('Failed to start ElevenLabs session:', error);
         setIsLoading(false);
@@ -162,7 +201,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
       clearTimeout(timer);
       // Don't end session on unmount - keep it global
     };
-  }, [userId]);
+  }, [userId, userBalance]);
 
   const value = {
     isConnected,

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { ThemeProvider } from "next-themes"
 import { UserProvider } from "@/contexts/UserContext"
 import { ElevenLabsProvider } from "@/contexts/ElevenLabsContext"
+import { Toaster } from "@/components/ui/toaster"
 import GlobalVoiceWidget from "./global-voice-widget"
 import MainDashboard from "./main-dashboard"
 import VoiceInterface from "./voice-interface"
@@ -64,6 +65,7 @@ export default function OngeaPesaApp() {
           <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-[#0A1A2A] dark:via-[#0F2027] dark:to-[#203A43] transition-all duration-500">
             {renderScreen()}
             <GlobalVoiceWidget />
+            <Toaster />
           </div>
         </ThemeProvider>
       </ElevenLabsProvider>

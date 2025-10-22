@@ -75,7 +75,10 @@ export async function POST(request: NextRequest) {
     // Format the message for the AI based on scan type
     const message = formatScanMessage(scanResult, userBalance, fees);
 
-    // Return structured data for the voice AI
+    console.log('✅ Scan data formatted for real-time voice context');
+    console.log('📤 Message:', message);
+
+    // Return structured data for real-time voice context
     return NextResponse.json({
       success: true,
       message,
@@ -86,7 +89,9 @@ export async function POST(request: NextRequest) {
         balance: userBalance,
         userId: user.id,
         fees
-      }
+      },
+      // Formatted for ElevenLabs conversation context
+      contextMessage: `PAYMENT SCANNED: ${message}`
     });
 
   } catch (error: any) {
@@ -104,15 +109,27 @@ function formatScanMessage(scanResult: any, balance: number, fees: any = null): 
   
   // Build fee message if fees are calculated
   let feeMessage = '';
+  let insufficientFundsWarning = '';
+  
   if (fees) {
     feeMessage = ` M-Pesa fee: KSh ${fees.mpesaFee}. Ongea Pesa platform fee: KSh ${fees.platformFee}. Total cost: KSh ${fees.totalDebit.toLocaleString()}.`;
+    
+    // Check if balance is insufficient
+    if (balance < fees.totalDebit) {
+      const shortfall = fees.totalDebit - balance;
+      insufficientFundsWarning = ` WARNING: Your balance is insufficient. You need KSh ${shortfall.toLocaleString()} more. Would you like to add funds to your wallet first?`;
+    } else if (balance - fees.totalDebit < 100) {
+      // Low balance warning (less than 100 remaining)
+      const remaining = balance - fees.totalDebit;
+      insufficientFundsWarning = ` Note: After this payment, you'll only have KSh ${remaining.toLocaleString()} remaining. Consider adding funds soon.`;
+    }
   }
 
   switch (type) {
     case 'paybill':
       return `Paybill detected! Number ${data.paybill}, Account ${data.account || 'not specified'}. ${
-        data.amount ? `Amount ${data.amount}.${feeMessage}` : 'No amount specified.'
-      } Your current balance is ${balanceFormatted}. Confidence ${confidence}%. Would you like to proceed with this payment?`;
+        data.amount ? `Amount ${data.amount}.${feeMessage}${insufficientFundsWarning}` : 'No amount specified.'
+      } Your current balance is ${balanceFormatted}. Confidence ${confidence}%. ${insufficientFundsWarning ? 'Please add funds before proceeding.' : 'Would you like to proceed with this payment?'}`;
 
     case 'buy_goods_till':
       return `Till number detected! ${data.till}${data.merchant ? ` for ${data.merchant}` : ''}. ${
