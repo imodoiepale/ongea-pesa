@@ -942,7 +942,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
                             variant="ghost" 
                             size="sm" 
                             onClick={() => {
-                              const amountNum = data.amount.replace(/[^0-9.]/g, '')
+                              const amountNum = data.amount?.replace(/[^0-9.]/g, '') || ''
                               setEnteredAmount(amountNum)
                               setShowAmountInput(false)
                             }}
