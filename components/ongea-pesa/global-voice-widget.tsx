@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, MessageCircle, X, Send, Minimize2, Maximize2 } from 'lucide-react';
+import { Mic, MicOff, MessageCircle, X, Send, Minimize2, Maximize2, PhoneOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useElevenLabs } from '@/contexts/ElevenLabsContext';
 
 export default function GlobalVoiceWidget() {
-  const { isConnected, isLoading, messages, sendMessage, clearMessages, isSpeaking } = useElevenLabs();
+  const { isConnected, isLoading, messages, sendMessage, clearMessages, isSpeaking, conversation, startSession } = useElevenLabs();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [textInput, setTextInput] = useState('');
@@ -20,6 +20,14 @@ export default function GlobalVoiceWidget() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Start session when widget opens
+  useEffect(() => {
+    if (isOpen && !isConnected && !isLoading) {
+      console.log('🎙️ Starting ElevenLabs session from global widget');
+      startSession();
+    }
+  }, [isOpen, isConnected, isLoading, startSession]);
 
   const handleSendText = () => {
     if (textInput.trim()) {
@@ -32,6 +40,18 @@ export default function GlobalVoiceWidget() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendText();
+    }
+  };
+
+  const handleEndCall = async () => {
+    try {
+      if (conversation?.endSession) {
+        await conversation.endSession();
+        clearMessages();
+        console.log('Voice session ended');
+      }
+    } catch (error) {
+      console.error('Error ending session:', error);
     }
   };
 
@@ -185,16 +205,27 @@ export default function GlobalVoiceWidget() {
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-            <span>Press Enter to send</span>
-            {messages.length > 0 && (
-              <button
-                onClick={clearMessages}
-                className="text-red-500 hover:text-red-700"
-              >
-                Clear chat
-              </button>
-            )}
+          <div className="mt-2 flex items-center justify-between text-xs">
+            <span className="text-gray-500">Press Enter to send</span>
+            <div className="flex gap-2">
+              {messages.length > 0 && (
+                <button
+                  onClick={clearMessages}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  Clear chat
+                </button>
+              )}
+              {isConnected && (
+                <button
+                  onClick={handleEndCall}
+                  className="text-red-600 hover:text-red-800 font-medium flex items-center gap-1"
+                >
+                  <PhoneOff className="h-3 w-3" />
+                  End Call
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </Card>

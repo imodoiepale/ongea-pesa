@@ -21,10 +21,12 @@ export async function POST(request: NextRequest) {
     const fullRequest = queryParams.get('request')
     const userEmail = queryParams.get('user_email') || body.user_email
     const userId = queryParams.get('user_id') || body.user_id
+    const conversationId = body.conversation_id || body.session_id // ElevenLabs sends this
     
     console.log('Query Param - request:', fullRequest)
     console.log('Query Param - user_email:', userEmail)
     console.log('Query Param - user_id:', userId)
+    console.log('Conversation ID:', conversationId)
     
     // Initialize Supabase with service role for user lookup
     const supabase = await createClient()
@@ -143,38 +145,67 @@ export async function POST(request: NextRequest) {
     let finalUserPhone = userContext?.phone
     let finalUserName = userContext?.full_name
     
-    // If we still don't have user, try to find from saved voice sessions
+    // If we still don't have user, try to find from saved voice sessions using conversation_id
     if (!user) {
-      console.log('⚠️ No user context found, checking ALL voice_sessions (no filters)...')
+      console.log('⚠️ No user context found, checking voice_sessions...')
+      console.log('  Looking for conversation_id:', conversationId)
+      
       try {
-        // Query voice_sessions without RLS - just get the data
-        const { data: allSessions, error: sessionsError } = await supabase
-          .from('voice_sessions')
-          .select(`
-            user_id,
-            session_id,
-            created_at,
-            status,
-            expires_at
-          `)
-          .order('created_at', { ascending: false })
-          .limit(10)
+        let recentSession = null
         
-        console.log('Voice sessions query:')
-        console.log('  Error:', sessionsError)
-        console.log('  Sessions found:', allSessions?.length || 0)
-        
-        if (sessionsError) {
-          console.error('❌ Error fetching sessions:', sessionsError)
+        // FIRST: Try to match by conversation_id if available
+        if (conversationId) {
+          console.log('🔍 Looking up session by conversation_id:', conversationId)
+          const { data: matchedSession, error: matchError } = await supabase
+            .from('voice_sessions')
+            .select('user_id, session_id, created_at, status, expires_at')
+            .eq('session_id', conversationId)
+            .maybeSingle()
+          
+          if (matchError) {
+            console.error('❌ Error matching session by conversation_id:', matchError)
+          } else if (matchedSession) {
+            console.log('✅ Found matching session for conversation_id:', conversationId)
+            recentSession = matchedSession
+          } else {
+            console.warn('⚠️ No session found for conversation_id:', conversationId)
+          }
         }
         
-        if (allSessions && allSessions.length > 0) {
-          console.log('✅ Found', allSessions.length, 'voice sessions')
-          console.log('Sessions:', JSON.stringify(allSessions.slice(0, 3), null, 2))
+        // FALLBACK: If no conversation_id match, get recent ACTIVE sessions
+        if (!recentSession) {
+          console.log('🔍 Fallback: Looking for recent active sessions')
+          const { data: allSessions, error: sessionsError } = await supabase
+            .from('voice_sessions')
+            .select('user_id, session_id, created_at, status, expires_at')
+            .eq('status', 'active')
+            .gte('expires_at', new Date().toISOString())
+            .order('created_at', { ascending: false })
+            .limit(5)
           
-          // Get the most recent session
-          const recentSession = allSessions[0]
-          console.log('✅ Most recent session:', recentSession.session_id, 'user_id:', recentSession.user_id)
+          console.log('Voice sessions query:')
+          console.log('  Error:', sessionsError)
+          console.log('  Active sessions found:', allSessions?.length || 0)
+          
+          if (sessionsError) {
+            console.error('❌ Error fetching sessions:', sessionsError)
+          }
+          
+          if (allSessions && allSessions.length > 0) {
+            console.log('✅ Found', allSessions.length, 'active voice sessions')
+            console.log('Sessions:', JSON.stringify(allSessions, null, 2))
+            
+            // ⚠️ WARNING: This is a fallback and may not be accurate in multi-user scenarios
+            recentSession = allSessions[0]
+            console.warn('⚠️ Using most recent active session as fallback - this may be inaccurate!')
+          } else {
+            console.error('❌ No active voice sessions found')
+          }
+        }
+        
+        // If we found a session, get the user profile
+        if (recentSession) {
+          console.log('✅ Using session:', recentSession.session_id, 'user_id:', recentSession.user_id)
           
           // Now get user's profile using the user_id
           const { data: userProfile, error: profileError } = await supabase
@@ -222,6 +253,7 @@ export async function POST(request: NextRequest) {
     console.log('  user_id:', finalUserId)
     console.log('  user_email:', finalUserEmail)
     console.log('  user_phone:', finalUserPhone)
+    console.log('  user_name:', finalUserName)
     
     // ============================================
     // REAL-TIME BALANCE CHECK
@@ -329,6 +361,8 @@ export async function POST(request: NextRequest) {
       user_email: finalUserEmail || 'no-email@ongeapesa.com',
       user_phone: finalUserPhone || '',
       user_name: finalUserName || 'User',
+      current_balance: currentBalance, // Send current wallet balance to AI
+      wallet_balance: currentBalance, // Alternative field name for compatibility
       
       // Transaction details from ElevenLabs
       type: body.type,

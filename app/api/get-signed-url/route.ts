@@ -17,6 +17,26 @@ export async function POST(request: NextRequest) {
 
     console.log('Generating signed URL for user:', user.email);
 
+    // Fetch user balance from profiles table
+    let userBalance = 0;
+    let userName = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+    
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('wallet_balance, name')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile && !profileError) {
+        userBalance = profile.wallet_balance || 0;
+        userName = profile.name || userName;
+        console.log('Fetched user balance:', userBalance, 'for user:', userName);
+      }
+    } catch (balanceError) {
+      console.error('Failed to fetch balance, using default 0:', balanceError);
+    }
+
     // Validate environment variables
     const agentId = process.env.NEXT_PUBLIC_AGENT_ID;
     const apiKey = process.env.ELEVENLABS_API_KEY;
@@ -118,11 +138,13 @@ export async function POST(request: NextRequest) {
 
     console.log('Successfully generated signed URL for user:', user.email);
     
-    // Return signed URL with user context
+    // Return signed URL with user context including balance
     return NextResponse.json({ 
       signedUrl: data.signed_url,
       userEmail: user.email,
       userId: user.id,
+      userName: userName,
+      balance: userBalance,
     });
     
   } catch (error: any) {

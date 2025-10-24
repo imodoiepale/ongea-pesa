@@ -8,11 +8,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import VoiceWaveform from "./voice-waveform"
-import { useConversation } from '@elevenlabs/react';
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from '@/lib/supabase/client'
 import BalanceSheet from "./balance-sheet"
 import { useUser } from '@/contexts/UserContext';
+import { useElevenLabs } from '@/contexts/ElevenLabsContext';
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -23,14 +23,13 @@ interface VoiceInterfaceProps {
 export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   const { user, signOut } = useAuth();
   const { userId, user: userContext, isLoading: userContextLoading } = useUser();
+  const { isConnected, isLoading, messages, conversation, isSpeaking, startSession } = useElevenLabs();
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'speaking'>('idle')
   const [transcript, setTranscript] = useState('')
   const [agentResponse, setAgentResponse] = useState('')
   const [balance, setBalance] = useState<number>(0)
   const [loadingBalance, setLoadingBalance] = useState(true);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [isListening, setIsListening] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPushToTalk, setIsPushToTalk] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -58,51 +57,19 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     }
   }, []);
 
-  const conversation = useConversation({
-    onMessage: (message: any) => {
-      console.log('Received message:', message);
-      
-      // Handle different message formats from ElevenLabs
-      if (message.source === 'user') {
-        setTranscript(message.message || message.transcript || '');
+  // Use messages from global context for transcript/response
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.source === 'user') {
+        setTranscript(lastMessage.text);
         setIsProcessing(true);
-      } else if (message.source === 'ai') {
-        setAgentResponse(message.message || message.text || '');
-        setIsProcessing(false);
-      } else if (message.type === 'user_transcript') {
-        setTranscript(message.user_transcript || message.transcript || '');
-        setIsProcessing(true);
-      } else if (message.type === 'agent_response') {
-        setAgentResponse(message.agent_response || message.text || '');
-        setIsProcessing(false);
-      } else if (message.transcript) {
-        setTranscript(message.transcript);
-        setIsProcessing(true);
-      } else if (message.text || message.message) {
-        setAgentResponse(message.text || message.message);
+      } else if (lastMessage.source === 'ai') {
+        setAgentResponse(lastMessage.text);
         setIsProcessing(false);
       }
-    },
-    onConnect: () => {
-      setIsListening(true);
-      setIsConnecting(false);
-      setError(null);
-      console.log('Connected to ElevenLabs');
-    },
-    onDisconnect: () => {
-      console.log('Disconnected from ElevenLabs');
-      setIsListening(false);
-      setIsConnecting(false);
-      setIsPushToTalk(false);
-      // Don't auto-reconnect anymore
-    },
-    onError: (error: any) => {
-      console.error('ElevenLabs error:', error);
-      setError(error.message || 'Connection failed');
-      setIsConnecting(false);
-      setIsListening(false);
     }
-  });
+  }, [messages]);
 
   // Inactivity timer function
   const resetInactivityTimer = useCallback(() => {
@@ -123,75 +90,6 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     }, 5000);
   }, [conversation, onNavigate]);
 
-  const getSignedUrl = async (): Promise<string> => {
-    try {
-      console.log('🔑 Requesting signed URL for authenticated user...');
-      
-      const response = await fetch("/api/get-signed-url", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to get signed url: ${response.status} ${response.statusText} - ${errorText}`);
-      }
-      
-      const { signedUrl, userId: returnedUserId, userEmail } = await response.json();
-      
-      if (!signedUrl) {
-        throw new Error('No signed URL received from server');
-      }
-      
-      console.log('✅ Signed URL received for userId:', returnedUserId, 'email:', userEmail);
-      return signedUrl;
-    } catch (error) {
-      console.error('❌ Error getting signed URL:', error);
-      throw error;
-    }
-  };
-
-  const startConversation = useCallback(async () => {
-    if (isConnecting || isListening) return;
-    
-    setIsConnecting(true);
-    setError(null);
-    
-    try {
-      // Request microphone permission
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 44100
-        } 
-      });
-      
-      // Stop the stream immediately as ElevenLabs will handle audio
-      stream.getTracks().forEach(track => track.stop());
-      
-      const signedUrl = await getSignedUrl();
-      
-      // Append userId to the signed URL as query parameter for n8n
-      const urlWithUserId = `${signedUrl}&user_id=${encodeURIComponent(userId || '')}&user_name=${encodeURIComponent(user?.name || userContext?.name || 'User')}`;
-      
-      console.log('🎙️ Starting conversation with signed URL for userId:', userId);
-      console.log('📡 URL includes userId parameter for n8n workflows');
-      
-      await conversation.startSession({ 
-        signedUrl: urlWithUserId
-      });
-      
-    } catch (error: any) {
-      console.error('Failed to start conversation:', error);
-      setError(error.message || 'Failed to start voice conversation');
-      setIsConnecting(false);
-    }
-  }, [conversation, isConnecting, isListening]);
-
   const stopConversation = useCallback(async () => {
     try {
       await conversation.endSession();
@@ -205,31 +103,13 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     }
   }, [conversation]);
 
-  // Auto-start conversation when component mounts and userId is available
-  useEffect(() => {
-    let mounted = true;
-    let autoStartTimer: NodeJS.Timeout;
-    
-    const autoStart = async () => {
-      if (!mounted || !userId || userContextLoading) return;
-      
-      console.log('🚀 Auto-starting voice conversation in 2 seconds for userId:', userId);
-      
-      autoStartTimer = setTimeout(async () => {
-        if (!mounted || isListening || isConnecting || error) return;
-        
-        console.log('🎤 Starting voice conversation for user:', user?.name || userContext?.name || userId);
-        await startConversation();
-      }, 2000);
-    };
-    
-    autoStart();
-    
-    return () => {
-      mounted = false;
-      if (autoStartTimer) clearTimeout(autoStartTimer);
-    };
-  }, [userId, userContextLoading]); // Wait for userId to be available
+  // Start session on first interaction (when user presses push-to-talk)
+  const handleFirstInteraction = useCallback(() => {
+    if (!isConnected && !isLoading && userId) {
+      console.log('🎤 Starting voice session on user interaction');
+      startSession();
+    }
+  }, [isConnected, isLoading, userId, startSession]);
 
   // Fetch balance on mount and set up real-time subscription
   useEffect(() => {
@@ -266,7 +146,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
 
   // Start inactivity timer when connected
   useEffect(() => {
-    if (isListening) {
+    if (isConnected) {
       resetInactivityTimer();
     }
     
@@ -276,16 +156,16 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
         clearTimeout(inactivityTimerRef.current);
       }
     };
-  }, [isListening, resetInactivityTimer]);
+  }, [isConnected, resetInactivityTimer]);
 
   // Push-to-talk functionality
   const handleMouseDown = useCallback(() => {
-    if (!isListening) return;
+    if (!isConnected) return;
     setIsPushToTalk(true);
     // Reset inactivity timer when user starts talking
     resetInactivityTimer();
     console.log('Started push-to-talk');
-  }, [isListening, resetInactivityTimer]);
+  }, [isConnected, resetInactivityTimer]);
 
   const handleMouseUp = useCallback(() => {
     if (!isPushToTalk) return;
@@ -298,7 +178,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   // Handle keyboard events for push-to-talk
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && !isPushToTalk && isListening) {
+      if (e.code === 'Space' && !isPushToTalk && isConnected) {
         e.preventDefault();
         handleMouseDown();
       }
@@ -318,11 +198,11 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isPushToTalk, isListening, handleMouseDown, handleMouseUp]);
+  }, [isPushToTalk, isConnected, handleMouseDown, handleMouseUp]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isListening) {
+    if (isConnected) {
       interval = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
@@ -330,7 +210,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
       setRecordingTime(0);
     }
     return () => clearInterval(interval);
-  }, [isListening]);
+  }, [isConnected]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -387,13 +267,13 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
           {/* Status Indicator */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/60 backdrop-blur-sm rounded-full">
             <div className={`w-2 h-2 rounded-full transition-colors ${
-              isListening ? 'bg-green-500 animate-pulse' : 
-              isConnecting ? 'bg-yellow-500 animate-pulse' : 
+              isConnected ? 'bg-green-500 animate-pulse' : 
+              isLoading ? 'bg-yellow-500 animate-pulse' : 
               error ? 'bg-red-500' : 'bg-gray-400'
             }`}></div>
             <p className="text-xs font-medium text-gray-700">
-              {isListening ? 'Connected' : 
-               isConnecting ? 'Connecting' : 
+              {isConnected ? 'Connected' : 
+               isLoading ? 'Connecting' : 
                error ? 'Error' : 'Starting'}
             </p>
           </div>
@@ -449,7 +329,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
               ? 'bg-gradient-to-br from-red-200 via-pink-100 to-red-200 shadow-2xl shadow-red-200/50' 
               : isProcessing
               ? 'bg-gradient-to-br from-blue-200 via-purple-100 to-blue-200 shadow-2xl shadow-blue-200/50 animate-pulse'
-              : isListening
+              : isConnected
               ? 'bg-gradient-to-br from-green-200 via-emerald-100 to-green-200 shadow-2xl shadow-green-200/50'
               : 'bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 shadow-xl shadow-gray-200/30'
           }`}>
@@ -459,7 +339,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
                 ? 'bg-gradient-to-br from-red-300/50 to-pink-300/50 animate-pulse'
                 : isProcessing
                 ? 'bg-gradient-to-br from-blue-300/50 to-purple-300/50 animate-pulse'
-                : isListening
+                : isConnected
                 ? 'bg-gradient-to-br from-green-300/50 to-emerald-300/50'
                 : 'bg-gradient-to-br from-gray-300/30 to-gray-300/30'
             }`}></div>
@@ -481,13 +361,13 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
 
             {/* Center icon */}
             <div className="absolute inset-0 flex items-center justify-center">
-              {isConnecting ? (
+              {isLoading ? (
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
               ) : isPushToTalk ? (
                 <Mic className="h-16 w-16 text-red-600 animate-pulse" />
               ) : isProcessing ? (
                 <Volume2 className="h-16 w-16 text-blue-600 animate-pulse" />
-              ) : isListening ? (
+              ) : isConnected ? (
                 <Mic className="h-16 w-16 text-green-600" />
               ) : (
                 <MicOff className="h-16 w-16 text-gray-500" />
@@ -515,9 +395,9 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
           ) : (
             <div className="space-y-3">
               <h2 className="text-2xl font-semibold text-gray-800">
-                {isConnecting ? (
+                {isLoading ? (
                   "Connecting to AI..."
-                ) : isListening ? (
+                ) : isConnected ? (
                   isPushToTalk ? (
                     "Listening..."
                   ) : (
@@ -528,11 +408,11 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
                 )}
               </h2>
               <p className="text-gray-600">
-                {isListening && !isPushToTalk ? (
+                {isConnected && !isPushToTalk ? (
                   "How may I assist you today?"
                 ) : isPushToTalk ? (
                   "Speak now..."
-                ) : isConnecting ? (
+                ) : isLoading ? (
                   "Please wait..."
                 ) : (
                   "Initializing..."
@@ -551,11 +431,11 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
             onMouseLeave={handleMouseUp}
             onTouchStart={handleMouseDown}
             onTouchEnd={handleMouseUp}
-            disabled={!isListening}
+            disabled={!isConnected}
             className={`w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${
               isPushToTalk
                 ? "bg-red-500 hover:bg-red-600 scale-110 shadow-red-200"
-                : isListening
+                : isConnected
                 ? "bg-green-500 hover:bg-green-600 shadow-green-200"
                 : "bg-gray-400 cursor-not-allowed shadow-gray-200"
             }`}
@@ -574,7 +454,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
           
           {/* Instructions */}
           <p className="text-center text-gray-600 mt-4 text-sm">
-            {isListening ? "Hold to speak" : "Connecting..."}
+            {isConnected ? "Hold to speak" : "Connecting..."}
           </p>
         </div>
 
@@ -601,7 +481,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
               onNavigate('dashboard');
             }}
             className="h-12 rounded-xl border-red-300 text-red-700 hover:bg-red-50"
-            disabled={!isListening}
+            disabled={!isConnected}
           >
             <MicOff className="h-4 w-4 mr-2" />
             End Call

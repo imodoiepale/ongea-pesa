@@ -64,7 +64,8 @@ export default function OngeaPesaApp() {
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-[#0A1A2A] dark:via-[#0F2027] dark:to-[#203A43] transition-all duration-500">
             {renderScreen()}
-            <GlobalVoiceWidget />
+            {/* Hide global widget when on voice interface page to prevent overlap */}
+            {currentScreen !== "voice" && <GlobalVoiceWidget />}
             <Toaster />
           </div>
         </ThemeProvider>

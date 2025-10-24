@@ -1,0 +1,710 @@
+{
+  "olPejetaConservancy": {
+    "overviewAndMission": {
+      "purposeStatement": "Guardians of nature for the benefit of all",
+      "mission": "To conserve biodiversity for future generations through nature-based solutions",
+      "vision": "To be a role model for integrated conservation",
+      "strategicObjectives": [
+        "Manage a healthy habitat for wildlife and livestock",
+        "Support sustainable community development and engagement in conservation",
+        "Achieve operational excellence and financial sustainability",
+        "Engage and support a high performing team"
+      ],
+      "locationAndSize": {
+        "location": "Laikipia County, Central Kenya",
+        "sizeAcres": 90000,
+        "sizeHectares": 36422,
+        "address": "Private Bag, 10400 Nanyuki, Kenya",
+        "landscape": "Prime wildlife habitat and ranching land",
+        "view": "Overlooked by snow-capped peaks of Mount Kenya"
+      }
+    },
+    "historyAndBackground": {
+      "timeline": [
+        {
+          "era": "The Ranch Era (1940s)",
+          "events": [
+            "Purchased by prominent British settler Lord Delamere",
+            "Operated as successful cattle ranch",
+            "Later owned by arms dealer Adnan Khashoggi"
+          ]
+        },
+        {
+          "era": "Conservation Crisis (Late 1960s)",
+          "events": [
+            "Kenya suffered serious poaching crisis",
+            "Drastic decline in wildlife populations (elephants and rhinos)"
+          ]
+        },
+        {
+          "era": "Birth of Conservation (1988)",
+          "events": [
+            "Owner Lonrho Africa recognized urgency",
+            "Established Sweetwaters Game Reserve adjacent to ranch"
+          ]
+        },
+        {
+          "era": "Chimpanzee Sanctuary (1992)",
+          "events": [
+            "Famous Sweetwaters Chimpanzee Sanctuary built",
+            "Dedicated to chimpanzees rescued from illegal wildlife trade"
+          ]
+        },
+        {
+          "era": "Transformation to Conservancy (2003)",
+          "events": [
+            "Flora and Fauna International and partners acquired the land",
+            "Secured future as Ol Pejeta Conservancy",
+            "Prevented agricultural development"
+          ]
+        },
+        {
+          "era": "Community Development (Late 2000s)",
+          "events": [
+            "Community development programme launched",
+            "Education scholarships initiated",
+            "Livelihoods support programs established"
+          ]
+        },
+        {
+          "era": "Northern White Rhinos (2009)",
+          "events": [
+            "Received last four northern white rhinos",
+            "Goal: Natural environment might stimulate reproduction"
+          ]
+        },
+        {
+          "era": "IUCN Green List (2014)",
+          "events": [
+            "Achieved IUCN Green List status",
+            "One of only five conservancies in Africa with this recognition",
+            "Acknowledged importance of landscape in Kenya and Africa"
+          ]
+        },
+        {
+          "era": "20th Anniversary (2024)",
+          "events": [
+            "Celebrated 20 years as conservancy",
+            "Looking toward sustainable future for wildlife and people"
+          ]
+        }
+      ],
+      "organizationalStructure": {
+        "olPejetaRanchingLtd": {
+          "type": "Commercial entity",
+          "function": "Generates income from tourism and agriculture"
+        },
+        "olPejetaConservancyLtd": {
+          "type": "Non-profit organization",
+          "management": "Managed by voluntary board",
+          "revenueModel": "Revenue reinvested into wildlife management, habitat conservation, and community development"
+        },
+        "olPejetaUK": {
+          "type": "Registered Charity",
+          "charityNumber": "1185926",
+          "function": "Raises philanthropic and grants-based funding globally",
+          "address": "Countryside House, 23 West Bar Street, Banbury, Oxfordshire OX16 9SA",
+          "email": "give@olpejeta.org"
+        }
+      }
+    },
+    "governanceAndLeadership": {
+      "boardOfDirectors": [
+        {"name": "Philip Coulson", "role": "Chairman of the Board"},
+        {"name": "Hon. Francis Ole Kaparo", "role": "Board Member"},
+        {"name": "Dr. Helen Gichohi", "role": "Board Member"},
+        {"name": "Annette Lanjouw", "role": "Board Member"},
+        {"name": "Vijay Gidoomal", "role": "Board Member"},
+        {"name": "Joanna Elliott", "role": "Board Member"},
+        {"name": "Major General (Rtd) Michael Gichangi EGH, CBS, DCO", "role": "Board Member"},
+        {"name": "Tim Hobbs", "role": "Board Member"},
+        {"name": "Dan Karuga", "role": "Board Member"},
+        {"name": "Alison Ngibuini", "role": "Board Member"}
+      ],
+      "managementTeam": [
+        {"name": "Justin Heath", "role": "Chief Executive Officer"},
+        {"name": "Prof. Geoffrey Wahungu", "role": "Chief Programs Officer"},
+        {"name": "Ken Kimani", "role": "Chief Commercial Officer"},
+        {"name": "Dr. Kirstin R Johnson", "role": "Development Specialist"},
+        {"name": "William Njoroge", "role": "Head of Shared Services"},
+        {"name": "Adil Butt", "role": "Head of Livestock & Agriculture"},
+        {"name": "Esther Chege", "role": "Head of Accounting"},
+        {"name": "Ian Muiruri", "role": "Head of Community Development Programs"},
+        {"name": "Enid Nkatha", "role": "Head of Tourism"}
+      ],
+      "ukBoardOfTrustees": [
+        {"name": "Justin Heath", "role": "Trustee"},
+        {"name": "Joanna Elliott", "role": "Trustee"},
+        {"name": "Annette Lanjouw", "role": "Trustee"},
+        {"name": "Joe Palombo", "role": "Trustee"},
+        {"name": "Dougal Freeman", "role": "Trustee"},
+        {"name": "Charles Graham", "role": "Trustee"}
+      ]
+    },
+    "wildlifeConservation": {
+      "rhinoConservation": {
+        "blackRhinos": {
+          "population": "Holds largest single population of eastern black rhinos in Kenya",
+          "status": "Critically Endangered",
+          "populationTrend": "Positive growth"
+        },
+        "northernWhiteRhinos": {
+          "population": "Home to the last two northern white rhinos on Earth",
+          "individuals": [
+            {
+              "name": "Najin",
+              "age": 36,
+              "dateOfBirth": "1989-07-11",
+              "location": "Morani's"
+            },
+            {
+              "name": "Fatu",
+              "age": 25,
+              "dateOfBirth": "2000-06-29",
+              "location": "Morani's"
+            }
+          ],
+          "conservationEfforts": "Working with partners to save species from extinction with round-the-clock care."
+        },
+        "southernWhiteRhinos": {
+          "status": "Near Threatened",
+          "opportunities": "Available for naming opportunities"
+        },
+        "iconicRhinos": {
+          "sudan": {
+            "status": "Deceased",
+            "role": "Last male northern white rhino",
+            "dateOfDeath": "2018-03-19",
+            "adoption": "Can be adopted 'In Memory of Sudan'"
+          },
+          "baraka": {
+            "species": "Black Rhino",
+            "age": 30,
+            "dateOfBirth": "1994-11-20",
+            "location": "Morani's",
+            "viewingHours": "7:30am - 6:00pm",
+            "visitorInteraction": "Visitors can take selfies, feed, and touch Baraka",
+            "adoption": "Available for adoption"
+          }
+        },
+        "rhinoNamingProgram": {
+          "investment": {
+            "initial": "USD 5000 or more",
+            "annualContribution": "Minimum USD 1000"
+          },
+          "benefits": [
+            "Choose rhino's permanent name",
+            "Name formally entered into Kenyan Wildlife Service (KWS) rhino database",
+            "Name certified and recorded in history forever",
+            "Welcome brochure with rhino's life story",
+            "Rhino naming certificate",
+            "Protection and support for rhino's survival",
+            "Regular updates and photos",
+            "Birthday cards",
+            "Ability to visit rhino with dedicated ranger",
+            "Membership in historic conservation movement"
+          ],
+          "supportProvided": [
+            "Investment in rhino conservation and protection",
+            "Ranger salaries",
+            "Veterinary services",
+            "K9 unit care"
+          ],
+          "annualCostPerRhino": "Over USD 11,000"
+        }
+      },
+      "chimpanzeeConservation": {
+        "sanctuary": {
+          "name": "Sweetwaters Chimpanzee Sanctuary",
+          "background": "Chimpanzees are not indigenous to Kenya; sanctuary houses individuals rescued from the illegal wildlife trade.",
+          "threats": ["Habitat loss", "Commercial hunting for bush meat"]
+        },
+        "notableChimpanzeesForAdoption": [
+          {
+            "name": "Max",
+            "age": 37,
+            "dateOfBirth": "1988",
+            "location": "Sweetwaters Chimpanzee Sanctuary"
+          },
+          {
+            "name": "Manno",
+            "age": 13,
+            "dateOfBirth": "2012",
+            "location": "Sweetwaters Chimpanzee Sanctuary"
+          },
+          {
+            "name": "Poco",
+            "age": 45,
+            "dateOfBirth": "1980",
+            "location": "Sweetwaters Chimpanzee Sanctuary"
+          },
+          {
+            "name": "Bo",
+            "age": 11,
+            "dateOfBirth": "2014",
+            "location": "Sweetwaters Chimpanzee Sanctuary"
+          },
+          {
+            "name": "Judy",
+            "age": 42,
+            "dateOfBirth": "1983",
+            "location": "Sweetwaters Chimpanzee Sanctuary"
+          }
+        ],
+        "viewingHours": {
+          "morning": "8:30am - 12:30pm",
+          "afternoon": "2:00pm - 4:30pm"
+        }
+      },
+      "otherWildlife": [
+        "Elephants",
+        "Lions (vulnerable species)",
+        "Waterbuck",
+        "Various antelope species",
+        "Rich variety of bird species",
+        "Hippos",
+        "Buffalo (Mbogo)",
+        "Diverse aquatic species"
+      ],
+      "k9Unit": {
+        "adoption": "Available for adoption",
+        "ageRange": "2-10 years",
+        "dateOfBirth": "Varied",
+        "location": "Morani's",
+        "description": "Famous bloodhounds with exceptional scent-tracking skills",
+        "experience": "Dog tracking experiences available"
+      },
+      "rangerSponsorship": {
+        "numberOfRangers": 171,
+        "sponsorship": "Available for sponsorship"
+      }
+    },
+    "visitorInformation": {
+      "entryFees": {
+        "eaCitizens": {
+          "adult": 2000,
+          "child": 1000,
+          "student": 500,
+          "currency": "Ksh"
+        },
+        "eaResidents": {
+          "adult": 3500,
+          "child": 1750,
+          "student": 500,
+          "currency": "Ksh"
+        },
+        "nonResidents": {
+          "adult": 110,
+          "child": 55,
+          "student": 32,
+          "currency": "USD"
+        },
+        "notes": "Children are 3-11 years old. Children below 3 are free."
+      },
+      "vehicleEntryFees": {
+        "upTo6Seats": { "fee": 1000, "currency": "Ksh" },
+        "seats7to14": { "fee": 5000, "currency": "Ksh" },
+        "seats15plus": { "fee": 12000, "currency": "Ksh" }
+      },
+      "policies": {
+        "onlineBooking": "First wildlife conservancy in Kenya with online entry fee booking. Activities and campsites can also be booked online.",
+        "singleEntry": "Ticket is valid for one entry only. Re-entry requires a new fee.",
+        "studentEntry": {
+          "booking": "Must pre-book to receive concession rate.",
+          "groupSize": "Minimum 10 students per group.",
+          "requirements": "Must be accompanied by a teacher and/or letter from a recognised learning institution.",
+          "teacherEntry": "Two teachers per group enter for free.",
+          "guide": "Available for a fee of Ksh 2,500."
+        }
+      },
+      "entryFeeInclusions": [
+        {
+          "activity": "Meet the Chimpanzees",
+          "hours": "8:30am-12:30pm and 2:00pm-4:30pm",
+          "description": "Meet our closest living relatives and learn about their incredible stories, personalities and behaviours."
+        },
+        {
+          "activity": "Meet Baraka",
+          "hours": "7:30am to 6:00pm",
+          "description": "Take unbelievable selfies as you feed and touch a real live black rhino and learn about Baraka."
+        },
+        {
+          "activity": "All Day Game Drive",
+          "hours": "7:00am - 7:00pm",
+          "description": "Make unforgettable memories as you roam the Ol Pejeta landscapes and see wild animals."
+        }
+      ],
+      "codeOfConduct": [
+        {"rule": "Speed & Driving", "details": ["Strict speed limit of 40 kph.", "Off-road driving strictly prohibited unless approved.", "Keep to designated roads.", "No driving after 7pm."]},
+        {"rule": "Wildlife Interaction", "details": ["Beware of dangerous wildlife.", "Do not exit vehicle unless in a designated area.", "Wildlife always has right of way.", "Do not chase, follow, harass, or feed animals.", "Do not sit or stand on vehicle's roof."]},
+        {"rule": "Environmental Protection", "details": ["Do not discard litter or cigarette butts.", "Collection of firewood is prohibited.", "Do not damage or remove any flora or fauna, including bones.", "Conservancy is plastic-free."]},
+        {"rule": "Safety & Compliance", "details": ["No firearms, spears, bows, or arrows.", "Obtain an official receipt for all transactions.", "No use of private drones unless authorized."]}
+      ],
+      "safariTips": [
+        {"tip": "Sun Protection", "items": ["Hat", "Sunglasses", "Sunscreen"]},
+        {"tip": "Hydration", "details": "Always carry water in an eco-friendly bottle. Ol Pejeta is plastic-free."},
+        {"tip": "Photography", "items": ["Fully charged phone/camera", "Binoculars"]},
+        {"tip": "Medications", "details": "Carry prescription medications and bug spray if allergic."},
+        {"tip": "Clothing", "recommendation": "Tan, green, or brown (khaki) clothing is advisable. Avoid bright colors."},
+        {"tip": "Footwear", "recommendation": "Closed-toe shoes are essential for protection."},
+        {"tip": "Layering", "recommendation": "Bring a kikoi or scarf for warmth, protection, or comfort."},
+        {"tip": "Eco-Friendly Policy", "details": "Plastic is banned. Use eco-friendly bags and bottles."}
+      ]
+    },
+    "experiencesAndActivities": {
+      "popularExperiences": [
+        {
+          "name": "Meet the Last Two Northern White Rhinos",
+          "description": "A rare chance to encounter Najin and Fatu and learn their story from their keepers. All proceeds support the species rescue efforts.",
+          "booking": "Required in advance."
+        },
+        {
+          "name": "Lion Tracking",
+          "description": "Follow a skilled tracker to find radio-collared lions and learn fascinating insights about them.",
+          "booking": "Required in advance."
+        },
+        {
+          "name": "All Day Game Drive",
+          "hours": "7:00am-7:00pm",
+          "description": "Explore the vast landscapes and encounter a rich array of wildlife in their natural habitat.",
+          "booking": "Required in advance."
+        },
+        {
+          "name": "Night Game Drive",
+          "hours": "7:00pm-9:00pm and 9:00pm-11:00pm",
+          "description": "Experience the African savannah after dark and see nocturnal creatures emerge.",
+          "booking": "Required in advance."
+        },
+        {
+          "name": "Behind the Scenes with the Chimpanzees",
+          "description": "A unique opportunity to view chimpanzees behind the scenes and learn about their day-to-day care.",
+          "booking": "Required in advance."
+        },
+        {
+          "name": "Dog Tracking",
+          "description": "An interactive experience with the K9 unit's bloodhounds. Run and hide, and let the dogs find you.",
+          "booking": "Required in advance."
+        },
+        {
+          "name": "Livestock-Wildlife Integration",
+          "description": "Learn about the unique model of managing 7,000 Boran cattle alongside wildlife to improve grasslands.",
+          "booking": "Required in advance."
+        },
+        {
+          "name": "Virtual Classroom",
+          "feeUSD": 250,
+          "duration": "1 hour live session",
+          "audience": "Schools, families, and groups worldwide.",
+          "activities": [
+            "Meet the last northern white rhinos",
+            "Wildlife quizzes",
+            "Meet Baraka the black rhino",
+            "Virtual tour of Sweetwaters Chimpanzee Sanctuary"
+          ],
+          "booking": "Required in advance."
+        },
+        {
+          "name": "Guided Bush/Bird Walk",
+          "description": "Join rangers on a walk to learn the routes, see wildlife, and gain information about different species.",
+          "booking": "Required in advance."
+        },
+        {
+          "name": "Rhino Monitoring and Identification",
+          "description": "An educational adventure with the Rhino Monitoring team to get up close with the conservancy's signature species.",
+          "booking": "Required in advance."
+        },
+        {
+          "name": "Conservation Talks",
+          "description": "Engage one-on-one with Ol Pejeta’s experts on wildlife, community development, and conservation tech.",
+          "booking": "3-day advance booking required."
+        }
+      ],
+      "moranisRestaurant": {
+        "menuHighlights": [
+          "Famous Morani burger (grass-fed beef, cheese, bacon, homemade fries)",
+          "Salads and wraps",
+          "Kids menu"
+        ],
+        "sourcing": "Homemade from fresh, locally sourced ingredients whenever possible.",
+        "operatingHours": "8:00am - 4:30pm daily",
+        "specialPackages": "Morani’s Sundowner Package available upon request."
+      }
+    },
+    "accommodation": {
+      "onSite": {
+        "pelicanHouse": {
+          "type": "Private Accommodation",
+          "status": "Available for booking"
+        },
+        "theStables": {
+          "type": "Budget Accommodation",
+          "description": "Basic but comfortable accommodation, converted from former horse stables.",
+          "pricingFullBoardUSD": {
+            "singleRoom": 70,
+            "doubleRoom": 140,
+            "childSharing": 35
+          },
+          "amenities": ["Single bed with mosquito net", "Power socket", "Shared bathrooms", "Boiled drinking water", "Guest fridge"],
+          "services": {"laundry": "Ksh 500 per bucket (Wed & Fri)"},
+          "mealTimes": {
+            "breakfast": "7:00am - 8:00am",
+            "lunch": "1:00pm - 2:00pm",
+            "dinner": "6:00pm - 7:00pm"
+          },
+          "powerSchedule": "Runs on generator power with a specific schedule for weekdays and weekends.",
+          "importantNotes": [
+            "Cashless operation (Credit Cards, Mpesa, Paypal).",
+            "Conservancy entrance fees are not included.",
+            "Guests must have their own vehicle."
+          ]
+        },
+        "campsites": {
+          "totalSites": 7,
+          "mandatoryRequirement": "An armed ranger must accompany campers for a fee of Ksh 5,000 per ranger per night.",
+          "sites": [
+            {
+              "name": "Ewaso",
+              "location": "On the banks of the Ewaso Nyiro River.",
+              "features": "Hidden behind bushy vegetation, perfect for wildlife watching. A favorite spot for elephants and antelopes."
+            },
+            {
+              "name": "Hippo Hide",
+              "location": "On the banks of the Ewaso Nyiro River, close to the Hippo Hide walkway.",
+              "features": "Offers chances to see hippos wallowing in shallow waters."
+            },
+            {
+              "name": "Mbogo",
+              "location": "East of the conservancy.",
+              "features": "'Campers castle on a hill' with views of a lush marsh and plains. Perfect for sundowners."
+            },
+            {
+              "name": "Murera Donga",
+              "location": "Secluded, next to the marsh area.",
+              "features": "Surrounded by acacia trees, attracts wildlife year-round due to lush vegetation."
+            },
+            {
+              "name": "Ol Lerai",
+              "location": "Nestled on a riverbank.",
+              "features": "Features a secret island for fishing. Elephants are frequent visitors."
+            },
+            {
+              "name": "Spoonbill",
+              "location": "Overlooking the Spoonbill dam.",
+              "features": "Public campsite. Frequently visited by wildlife and spoonbill birds. Exclusive use available for groups of 20+."
+            },
+            {
+              "name": "Scott's Hide",
+              "location": "Next to a hide overlooking a waterhole on Scott's Plain.",
+              "features": "Offers close encounters with wildlife who are unaware of human presence."
+            }
+          ]
+        }
+      },
+      "partnerLodges": [
+        {
+          "name": "Kicheche Laikipia Camp",
+          "description": "Intimate camp with six tents in the wilderness zone, overlooking a waterhole with views of Mt. Kenya."
+        },
+        {
+          "name": "Mutara Camp",
+          "description": "The only accommodation in the 20,000-acre Mutara Conservancy, bordering Ol Pejeta. High on a cliff-top with panoramic views."
+        },
+        {
+          "name": "Ol Pejeta Bush Camp",
+          "description": "Located in central Laikipia, overlooked by Mt. Kenya, and home to the remaining northern white rhinos."
+        },
+        {
+          "name": "Ol Pejeta Safari Cottages",
+          "description": "Eco-friendly luxury cottages tucked along a river line in the exclusive wilderness area, offering superior service and guiding."
+        }
+      ]
+    },
+    "membershipScheme": {
+      "overview": "An annual fee for unlimited entry for one year, available to Kenyan citizens and residents.",
+      "currentFees": {
+        "validUntil": "2025-05-31",
+        "citizens": {
+          "individual": {"fee": 12500, "details": "1 adult, 1 vehicle"},
+          "couple": {"fee": 20000, "details": "2 adults, 1 vehicle"},
+          "family": {"fee": 27000, "details": "2 adults, 2 children, 1 vehicle"},
+          "additionalChild": 2400
+        },
+        "residents": {
+          "individual": {"fee": 17000, "details": "1 adult, 1 vehicle"},
+          "couple": {"fee": 30000, "details": "2 adults, 1 vehicle"},
+          "family": {"fee": 42000, "details": "2 adults, 2 children, 1 vehicle"},
+          "additionalChild": 4800
+        }
+      },
+      "newFees": {
+        "effectiveFrom": "2025-06-01",
+        "citizens": {
+          "individual": {"fee": 25000, "details": "1 adult, 1 vehicle"},
+          "couple": {"fee": 35000, "details": "2 adults, 1 vehicle"},
+          "family1Child": {"fee": 44000, "details": "2 adults, 1 child, 1 vehicle"},
+          "family2Children": {"fee": 54000, "details": "2 adults, 2 children, 1 vehicle"},
+          "additionalChild": 4800
+        },
+        "residents": {
+          "individual": {"fee": 30000, "details": "1 adult, 1 vehicle"},
+          "couple": {"fee": 45000, "details": "2 adults, 1 vehicle"},
+          "family1Child": {"fee": 64000, "details": "2 adults, 1 child, 1 vehicle"},
+          "family2Children": {"fee": 84000, "details": "2 adults, 2 children, 1 vehicle"},
+          "additionalChild": 9600
+        }
+      },
+      "terms": [
+        "Restricted to Kenyan citizens and residents.",
+        "Activities and accommodation are subject to availability.",
+        "Members cannot use promotional discounts.",
+        "Proof of identity required for application.",
+        "Membership is non-refundable and non-transferable.",
+        "Members must abide by the code of conduct."
+      ]
+    },
+    "communityDevelopmentPrograms": {
+      "overview": "The community department works with approx. 45,000 people in 21 designated communities, partnering with government and NGOs to promote improved livelihoods, education, and governance.",
+      "programs": {
+        "education": {
+          "scholarshipProgram": "Over 400 students have benefited from full scholarships and bursaries; 277 currently on 4-year scholarships.",
+          "digitalLiteracy": "ARES program in 35 schools, with over 400 teachers trained.",
+          "conservationEducation": "Free entry for local school children, school visits, and training.",
+          "mentorshipPrograms": "Bi-annual mentorship weeks for scholarship students."
+        },
+        "foodSecurity": {
+          "targetCommunities": "Pastoralists in the north and mixed farmers in the south, east, and west.",
+          "approaches": [
+            "Breed and seed improvement (artificial insemination, certified seeds).",
+            "Climate-smart agriculture (reforestation, agroforestry).",
+            "Livestock vaccination services.",
+            "Water harvesting (water pans, dams, tanks)."
+          ]
+        },
+        "enterpriseDevelopment": {
+          "marketForProduce": "Ol Pejeta purchases over KES 8,000,000 worth of produce annually from community farmer groups.",
+          "jewelryMaking": "Support for community women by creating a direct market for tourists.",
+          "financialSupport": "Revolving funds and microfinance for initiatives like water tanks and poultry distribution."
+        },
+        "water": {
+          "focus": "Addressing water access in Laikipia's drylands through drought resilience and sustainable resource management.",
+          "projects": ["Conservation agriculture", "Rainwater harvesting", "Greenhouse farming", "Drip irrigation"],
+          "partners": ["NEPcon", "Zeitz Foundation", "Gorta-Ireland", "Rotary International", "LWF", "Ministry of Agriculture", "Caritas-Nyeri", "KENDAT", "KARI", "Lengetia Farm", "Serena Hotels"]
+        },
+        "energy": {
+          "vision": "Create access to affordable, clean energy.",
+          "solutions": [
+            {"type": "Solar Power", "details": "Systems installed in two schools and over 200 households."},
+            {"type": "Biogas", "details": "Stations in four schools, with over 50 households adopting the technology."},
+            {"type": "Energy-Saving Stoves", "details": "Partnership with Die Ofenmacher has rolled out stoves in over 350 households, reducing firewood consumption by 50%."}
+          ]
+        }
+      }
+    },
+    "adoptionAndSupportPrograms": {
+      "animalAdoption": {
+        "startingPriceKsh": 6000,
+        "purpose": "Support wildlife protection, conservation, and community development.",
+        "animalsAvailable": [
+          "Najin and Fatu (Northern White Rhinos)",
+          "Max (Chimpanzee)",
+          "Manno (Chimpanzee)",
+          "Baraka (Black Rhino)",
+          "Poco (Chimpanzee)",
+          "In Memory of Sudan (Northern White Rhino)",
+          "K9 Unit (Dogs)",
+          "Bo (Chimpanzee)",
+          "Judy (Chimpanzee)"
+        ]
+      },
+      "programSupport": {
+        "rhinoScholarships": {
+          "goal": "Sponsor education for vulnerable children.",
+          "needed": 40
+        },
+        "rangerSponsorship": {
+          "goal": "Support the rangers protecting wildlife.",
+          "totalRangers": 171
+        }
+      }
+    },
+    "impactStatistics": {
+      "communityImpact": "Significant number of lives impacted and bursaries granted (data on website).",
+      "conservationImpact": "Positive percentage growth in the black rhino population (data on website)."
+    },
+    "contactInformation": {
+      "kenyaOffice": {
+        "address": "Ol Pejeta Conservancy Private Bag, 10400 Nanyuki, Kenya",
+        "bookingsAndReservations": {
+          "mobile1": "+254 (0) 707 187 141",
+          "mobile2": "+254 (0) 705 911 021"
+        },
+        "tourismHelplineAndEmergencies": {
+          "mobile": "+254 (0) 713 912 324",
+          "whatsapp": "0110 094 457"
+        },
+        "emails": {
+          "general": "info@olpejetaconservancy.org",
+          "donations": "donate@olpejetaconservancy.org",
+          "reservations": "reservations@olpejetaconservancy.org"
+        }
+      },
+      "ukOffice": {
+        "charityNumber": "1185926",
+        "address": "c/o Ellacotts Llp, Countryside House, 23 West Bar Street, BANBURY, Oxfordshire, OX16 9SA",
+        "note": "Administrative office only - No booking enquiries",
+        "email": "give@olpejeta.org"
+      },
+      "socialMedia": [
+        "Facebook", "X-twitter", "Youtube", "Flickr", "Instagram", "Linkedin"
+      ]
+    },
+    "additionalServices": {
+      "newsletterSignUp": "Available on the website for tips, information, and support opportunities.",
+      "supplierOpportunities": "A contact form is available on the website for potential suppliers.",
+      "onlineShop": "Available for merchandise and support items."
+    },
+    "policiesAndDocumentation": {
+      "availableDocuments": [
+        "Copyright & Credits",
+        "Privacy Policy",
+        "Cookie Policy",
+        "Cancellation Policy",
+        "Experience Handbook Factsheet",
+        "Various activity factsheets",
+        "Camping factsheet",
+        "The Stables factsheet"
+      ],
+      "strategicPlanning": "The 2030 Strategy document is available for reading online."
+    },
+    "specialFeaturesAndRecognitions": {
+      "achievements": [
+        "First wildlife conservancy in Kenya with online booking for entry fees.",
+        "Achieved IUCN Green List status in 2014, one of only five in Africa.",
+        "Considered a role model for integrated conservation.",
+        "Demonstrated resilience through challenges like COVID-19."
+      ],
+      "uniqueModels": {
+        "livestockWildlifeIntegration": "A model using a 7,000-strong herd of Boran cattle to manage grasslands and create biodiversity hotspots."
+      },
+      "conservationInnovation": [
+        "Expertise in wildlife and habitat management.",
+        "Advanced security systems and conservation technology.",
+        "Commitment to knowledge sharing with other conservancies."
+      ]
+    },
+    "visitorGuidelinesAndSafety": {
+      "bestPractices": [
+        "Follow ranger instructions.",
+        "Respect wildlife viewing distances.",
+        "Stay in vehicle unless in designated areas.",
+        "Adhere strictly to speed limits."
+      ],
+      "ecoFriendlyPractices": [
+        "Adhere to the plastic-free policy.",
+        "Use eco-friendly bags and bottles.",
+        "Do not remove any natural materials."
+      ],
+      "photography": "Capture memories responsibly, respecting animal welfare."
+    }
+  }
+}

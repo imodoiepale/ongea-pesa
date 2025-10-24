@@ -19,6 +19,7 @@ interface ElevenLabsContextType {
   clearMessages: () => void;
   isSpeaking: boolean;
   conversation: any;
+  startSession: () => Promise<void>;
 }
 
 const ElevenLabsContext = createContext<ElevenLabsContextType | undefined>(undefined);
@@ -98,7 +99,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   };
 
   // Get signed URL for ElevenLabs
-  const getSignedUrl = async (): Promise<string> => {
+  const getSignedUrl = async (): Promise<{ signedUrl: string; balance: number; userName: string }> => {
     try {
       const response = await fetch('/api/get-signed-url', {
         method: 'POST',
@@ -111,9 +112,9 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
         throw new Error('Failed to get signed URL');
       }
       
-      const { signedUrl, userId: returnedUserId } = await response.json();
-      console.log('✅ Got signed URL for userId:', returnedUserId);
-      return signedUrl;
+      const { signedUrl, userId: returnedUserId, balance, userName } = await response.json();
+      console.log('✅ Got signed URL for userId:', returnedUserId, 'balance:', balance, 'name:', userName);
+      return { signedUrl, balance, userName };
     } catch (error) {
       console.error('❌ Error getting signed URL:', error);
       throw error;
@@ -153,55 +154,42 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(balanceInterval);
   }, [userId, isConnected, conversation]);
 
-  // Auto-start ElevenLabs session when userId is available
-  useEffect(() => {
-    let mounted = true;
-    let sessionStarted = false;
+  // Manual start function exposed for components to use
+  const startElevenLabsSession = async () => {
+    if (!userId || isConnected || isLoading) {
+      console.log('⚠️ Cannot start session: userId=', userId, 'isConnected=', isConnected, 'isLoading=', isLoading);
+      return;
+    }
 
-    const startSession = async () => {
-      if (!mounted || !userId || isConnected || isLoading || sessionStarted) return;
+    // Check if already connected to prevent duplicate sessions
+    if (conversation.status === 'connected') {
+      console.log('⚠️ Session already active, skipping duplicate start');
+      setIsConnected(true);
+      return;
+    }
 
-      // Check if already connected to prevent duplicate sessions
-      if (conversation.status === 'connected') {
-        console.log('⚠️ Session already active, skipping duplicate start');
-        setIsConnected(true);
-        return;
-      }
-
-      try {
-        sessionStarted = true;
-        setIsLoading(true);
-        console.log('🚀 Starting global ElevenLabs session for userId:', userId);
-        
-        const signedUrl = await getSignedUrl();
-        
-        // Append userId to URL
-        const urlWithUserId = `${signedUrl}&user_id=${encodeURIComponent(userId)}`;
-        
-        await conversation.startSession({ 
-          signedUrl: urlWithUserId
-        });
-        
-        // Balance is available in state for AI to access
-        if (userBalance > 0) {
-          console.log('💰 Initial balance available for ElevenLabs:', userBalance);
-        }
-      } catch (error) {
-        console.error('Failed to start ElevenLabs session:', error);
-        setIsLoading(false);
-        sessionStarted = false;
-      }
-    };
-
-    // Delay start by 2 seconds to ensure everything is ready
-    const timer = setTimeout(startSession, 2000);
-
-    return () => {
-      mounted = false;
-      clearTimeout(timer);
-      // Don't end session on unmount - keep it global
-    };
-  }, [userId, userBalance]);
+    try {
+      setIsLoading(true);
+      console.log('🚀 Starting global ElevenLabs session for userId:', userId);
+      
+      const { signedUrl, balance, userName } = await getSignedUrl();
+      
+      // Append userId, balance, and userName to URL for 11labs agent
+      const urlWithContext = `${signedUrl}&user_id=${encodeURIComponent(userId)}&balance=${encodeURIComponent(balance)}&user_name=${encodeURIComponent(userName)}`;
+      
+      console.log('💰 Sending balance to 11labs:', balance, 'for user:', userName);
+      
+      await conversation.startSession({ 
+        signedUrl: urlWithContext
+      });
+      
+      // Update local balance state
+      setUserBalance(balance);
+    } catch (error) {
+      console.error('Failed to start ElevenLabs session:', error);
+      setIsLoading(false);
+    }
+  };
 
   const value = {
     isConnected,
@@ -210,7 +198,8 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     sendMessage,
     clearMessages,
     isSpeaking: conversation.isSpeaking || false,
-    conversation
+    conversation,
+    startSession: startElevenLabsSession
   };
 
   return (
