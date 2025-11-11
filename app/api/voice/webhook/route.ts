@@ -256,14 +256,18 @@ export async function POST(request: NextRequest) {
     console.log('  user_name:', finalUserName)
     
     // ============================================
-    // REAL-TIME BALANCE CHECK
+    // REAL-TIME BALANCE & SUBSCRIPTION CHECK
     // ============================================
-    // Get current wallet balance
+    // Get current wallet balance and subscription status
     let currentBalance = 0
+    let subscriptionStatus = 'inactive'
+    let freeTxRemaining = 0
+    let subscriptionEndDate = null
+    
     if (finalUserId && finalUserId !== 'no-user-found' && finalUserId !== 'test-user-id') {
       const { data: balanceData, error: balanceError } = await supabase
         .from('profiles')
-        .select('wallet_balance')
+        .select('wallet_balance, subscription_status, subscription_end_date, free_transactions_remaining')
         .eq('id', finalUserId)
         .single()
       
@@ -271,7 +275,13 @@ export async function POST(request: NextRequest) {
         console.error('❌ Error fetching balance:', balanceError)
       } else if (balanceData) {
         currentBalance = parseFloat(String(balanceData.wallet_balance)) || 0
+        subscriptionStatus = balanceData.subscription_status || 'inactive'
+        subscriptionEndDate = balanceData.subscription_end_date
+        freeTxRemaining = balanceData.free_transactions_remaining || 0
+        
         console.log('💰 Current wallet balance:', currentBalance)
+        console.log('📅 Subscription status:', subscriptionStatus)
+        console.log('🎁 Free transactions remaining:', freeTxRemaining)
       }
     }
     
@@ -305,6 +315,12 @@ export async function POST(request: NextRequest) {
       )
     }
     
+    // ============================================
+    // CHECK FREE TRANSACTION ELIGIBILITY
+    // ============================================
+    let isFreeTransaction = false
+    let platformFeeAmount = 0
+    
     // Check if this is a debit transaction (money going out)
     const debitTypes = [
       'send_phone', 'buy_goods_pochi', 'buy_goods_till',
@@ -312,18 +328,53 @@ export async function POST(request: NextRequest) {
     ]
     const isDebitTransaction = debitTypes.includes(body.type)
     
+    if (isDebitTransaction) {
+      console.log('\n=== CHECKING FREE TRANSACTION ELIGIBILITY ===')
+      
+      // Check if user qualifies for free transaction
+      if (subscriptionStatus === 'active' && 
+          subscriptionEndDate && 
+          new Date(subscriptionEndDate) >= new Date() &&
+          requestedAmount >= 1000 && 
+          freeTxRemaining > 0) {
+        isFreeTransaction = true
+        platformFeeAmount = 0
+        console.log('✅ FREE TRANSACTION QUALIFIED!')
+        console.log('  Amount:', requestedAmount, '(>= KES 1,000)')
+        console.log('  Free transactions remaining:', freeTxRemaining)
+      } else {
+        // Calculate 0.5% platform fee
+        platformFeeAmount = Math.round(requestedAmount * 0.005 * 100) / 100
+        console.log('💰 REGULAR TRANSACTION (0.5% fee)')
+        console.log('  Platform fee:', platformFeeAmount)
+        
+        if (subscriptionStatus !== 'active') {
+          console.log('  Reason: No active subscription')
+        } else if (requestedAmount < 1000) {
+          console.log('  Reason: Amount below KES 1,000 minimum')
+        } else if (freeTxRemaining <= 0) {
+          console.log('  Reason: No free transactions remaining this month')
+        }
+      }
+    }
+    
     // For debit transactions, check if user has sufficient balance
     if (isDebitTransaction) {
-      console.log('💳 Debit transaction detected, checking balance...')
+      console.log('\n=== BALANCE VALIDATION ===')
+      console.log('💳 Debit transaction detected')
       console.log('  Type:', body.type)
       console.log('  Amount:', requestedAmount)
+      console.log('  Platform Fee:', platformFeeAmount)
+      console.log('  Total Required:', requestedAmount + platformFeeAmount)
       console.log('  Current Balance:', currentBalance)
       
-      if (currentBalance < requestedAmount) {
-        const shortfall = requestedAmount - currentBalance
+      const totalRequired = requestedAmount + platformFeeAmount
+      
+      if (currentBalance < totalRequired) {
+        const shortfall = totalRequired - currentBalance
         console.error('❌ INSUFFICIENT FUNDS')
         console.error('  Balance:', currentBalance)
-        console.error('  Required:', requestedAmount)
+        console.error('  Required:', totalRequired)
         console.error('  Shortfall:', shortfall)
         
         // Return error to ElevenLabs AI agent with clear message
@@ -331,24 +382,33 @@ export async function POST(request: NextRequest) {
           { 
             success: false,
             error: 'Insufficient funds',
-            message: `Your current balance is KSh ${currentBalance.toLocaleString()}, but you're trying to send KSh ${requestedAmount.toLocaleString()}. You need KSh ${shortfall.toLocaleString()} more.`,
+            message: `Your current balance is KSh ${currentBalance.toLocaleString()}, but you need KSh ${totalRequired.toLocaleString()} (including fees). You need KSh ${shortfall.toLocaleString()} more.`,
             current_balance: currentBalance,
-            required_amount: requestedAmount,
+            required_amount: totalRequired,
             shortfall: shortfall,
-            // Special message for the AI agent to speak
-            agent_message: `I'm sorry, but you don't have enough funds for this transaction. Your current balance is ${currentBalance.toLocaleString()} shillings, but you're trying to send ${requestedAmount.toLocaleString()} shillings. You need ${shortfall.toLocaleString()} shillings more. Would you like to add funds to your wallet first?`
+            platform_fee: platformFeeAmount,
+            agent_message: `I'm sorry, but you don't have enough funds for this transaction. Your current balance is ${currentBalance.toLocaleString()} shillings, but you need ${totalRequired.toLocaleString()} shillings including fees. You need ${shortfall.toLocaleString()} shillings more. Would you like to add funds to your wallet first?`
           },
           { status: 400 }
         )
       }
       
       console.log('✅ BALANCE CHECK PASSED')
-      console.log('  Balance after transaction will be:', currentBalance - requestedAmount)
+      console.log('  Balance after transaction:', currentBalance - totalRequired)
     } else {
       console.log('💰 Credit transaction (deposit/receive) - no balance check needed')
     }
     
     console.log('✅ Valid amount:', requestedAmount)
+    
+    // ============================================
+    // TRUST AI EXTRACTION - NO RE-CONFIRMATION
+    // ============================================
+    // The ElevenLabs AI already confirmed with user:
+    // "I'm sending KSh X to Y" means user already said YES
+    // We just validate and execute immediately
+    console.log('🤖 AI already confirmed transaction with user')
+    console.log('⚡ Executing immediately - no re-confirmation needed')
     
     // Prepare the payload - all fields at top level for n8n
     const n8nPayload = {
@@ -363,6 +423,13 @@ export async function POST(request: NextRequest) {
       user_name: finalUserName || 'User',
       current_balance: currentBalance, // Send current wallet balance to AI
       wallet_balance: currentBalance, // Alternative field name for compatibility
+      
+      // Subscription & Free Transaction Info
+      subscription_status: subscriptionStatus,
+      subscription_end_date: subscriptionEndDate,
+      free_transactions_remaining: freeTxRemaining,
+      is_free_transaction: isFreeTransaction,
+      platform_fee: platformFeeAmount,
       
       // Transaction details from ElevenLabs
       type: body.type,

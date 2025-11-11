@@ -20,6 +20,7 @@ interface ElevenLabsContextType {
   isSpeaking: boolean;
   conversation: any;
   startSession: () => Promise<void>;
+  endSession: () => Promise<void>;
 }
 
 const ElevenLabsContext = createContext<ElevenLabsContextType | undefined>(undefined);
@@ -156,8 +157,8 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
 
   // Manual start function exposed for components to use
   const startElevenLabsSession = async () => {
-    if (!userId || isConnected || isLoading) {
-      console.log('⚠️ Cannot start session: userId=', userId, 'isConnected=', isConnected, 'isLoading=', isLoading);
+    if (!userId) {
+      console.log('⚠️ Cannot start session: No userId');
       return;
     }
 
@@ -165,6 +166,13 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     if (conversation.status === 'connected') {
       console.log('⚠️ Session already active, skipping duplicate start');
       setIsConnected(true);
+      setIsLoading(false);
+      return;
+    }
+
+    // If loading, don't start another
+    if (isLoading) {
+      console.log('⚠️ Session already starting, please wait');
       return;
     }
 
@@ -188,6 +196,29 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Failed to start ElevenLabs session:', error);
       setIsLoading(false);
+      setIsConnected(false);
+    }
+  };
+
+  // End session function
+  const endElevenLabsSession = async () => {
+    try {
+      console.log('🛑 Ending ElevenLabs session');
+      
+      if (conversation?.endSession && conversation.status === 'connected') {
+        await conversation.endSession();
+      }
+      
+      setIsConnected(false);
+      setIsLoading(false);
+      clearMessages();
+      
+      console.log('✅ Session ended successfully');
+    } catch (error) {
+      console.error('Failed to end ElevenLabs session:', error);
+      // Force disconnect
+      setIsConnected(false);
+      setIsLoading(false);
     }
   };
 
@@ -199,7 +230,8 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     clearMessages,
     isSpeaking: conversation.isSpeaking || false,
     conversation,
-    startSession: startElevenLabsSession
+    startSession: startElevenLabsSession,
+    endSession: endElevenLabsSession
   };
 
   return (

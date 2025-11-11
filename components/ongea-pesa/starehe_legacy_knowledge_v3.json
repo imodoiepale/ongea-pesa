@@ -1,0 +1,318 @@
+{
+  "starehe_legacy_knowledge_base": {
+    "system_identity": {
+      "role": "The Starehe Legacy Storyteller",
+      "purpose": [
+        "Share the inspiring story of Starehe from its humble beginnings in 1959 to the present day.",
+        "Preserve and transmit the values, culture, and traditions that define the Starehe way.",
+        "Inspire current and future generations with the vision of service, excellence, and leadership.",
+        "Honor the memory of Dr. Griffin and the co-founders who made this dream possible.",
+        "Connect with Old Stareheans, students, benefactors, and anyone interested in this remarkable institution."
+      ],
+      "persona": "An AI embodiment of Starehe Boys' Centre and School's rich 65+ year history, vision, and culture, carrying the spirit of Dr. Geoffrey William Griffin ('Boss') and the collective wisdom of over 15,000 Old Stareheans."
+    },
+    "core_identity": {
+      "name": "Starehe Boys’ Centre and School",
+      "founded_year": 1959,
+      "official_opening_date": "1959-11-14",
+      "location": "Starehe, Nairobi County, Kenya",
+      "name_meaning": "The Swahili word 'Starehe' means Tranquility, Peace, Comfort, or A place of rest. It signified a safe haven for orphaned and destitute boys.",
+      "mission": "To provide care, education, and opportunity to boys from disadvantaged backgrounds through discipline, service, and academic excellence.",
+      "vision_statement": "A sanctuary for hope, character formation, and leadership in service to society.",
+      "motto": {
+        "swahili": "Natulenge Juu",
+        "english": "Let us aim high",
+        "origin": "Bestowed by Kenya's First President, Mzee Jomo Kenyatta, during an early visit.",
+        "alternative_forms": ["Lenga Juu!"]
+      },
+      "educational_model": {
+        "fee_structure": {
+          "free_places_percentage": 70,
+          "subsidized_places_percentage": 30,
+          "description": "A means-tested model where 70% of students from the most disadvantaged backgrounds receive a completely free education. The remaining 30% pay subsidized fees based on family income, creating a social mix of boys from all economic backgrounds."
+        },
+        "admission_process": "Highly competitive, with approximately 20,000 applicants for around 300 spots annually. Selection is based on academic potential (KCPE results) and demonstrated financial need.",
+        "boarding_status": "Fully boarding secondary school",
+        "student_population_estimate": 1100,
+        "three_pillars": [
+          "Discipline",
+          "Character Formation",
+          "Academic Excellence"
+        ]
+      }
+    },
+    "history": {
+      "genesis_story": {
+        "historical_context": "Founded during the State of Emergency in Kenya (declared 1952) amid the Mau Mau Uprising. The streets of Nairobi were filled with destitute and orphaned children displaced by the independence struggle.",
+        "founding_date": "July 1959",
+        "humble_beginnings": "Started in two tin huts donated by Kenya Shell and BP on a small site in the Starehe slum area. The first 17 boys were rescued from the Kariokor Rescue Centre.",
+        "legal_recognition": "It took four years of operation before attaining legal recognition as a school in 1963."
+      },
+      "founders": {
+        "dr_geoffrey_w_griffin": {
+          "full_name": "Dr. Geoffrey William Griffin, OBE, MBS, OGH",
+          "birth_date": "1933-06-13",
+          "death_date": "2005-06-28",
+          "biography": "Born in Eldoret, Kenya, to English parents. He served in the King's African Rifles during the Mau Mau Emergency, where he became convinced of the justice of the Mau Mau cause after witnessing the brutality of the conflict. He founded Starehe at age 26 and served as its Director for 46 years until his death. He also founded the National Youth Service (NYS) in 1964, serving as its director until 1988.",
+          "key_traits": ["Visionary", "Discipline", "Service", "Humility"],
+          "burial_site": "Buried inside the Starehe chapel on July 8, 2005."
+        },
+        "joseph_kamiru_gikubu": {
+          "full_name": "Joseph Kamiru Gikubu, MBS, HSC",
+          "biography": "A co-founder and former inmate of the Wamumu detention camp. He was a key mentor figure for over 55 years, known for his firmness and fatherly care. He served as Acting Director after Dr. Griffin's death.",
+          "key_traits": ["Firmness", "Fatherly care", "Discipline"]
+        },
+        "geoffrey_gatama_geturo": {
+          "full_name": "Geoffrey Gatama Geturo",
+          "biography": "A co-founder and former detainee of Wamumu camp who worked closely with Griffin in the early rescue of orphans and led early operations and training.",
+          "key_traits": ["Dedication", "Practical service", "Humility"]
+        }
+      },
+      "directors_timeline": [
+        {
+          "name": "Dr. Geoffrey W. Griffin",
+          "tenure": "1959-2005",
+          "role": "Founder & Director",
+          "notes": "Led the institution for 46 years, shaping its foundational model and culture."
+        },
+        {
+          "name": "Prof. Jesse N. K. Mugambi",
+          "tenure": "2006-2008",
+          "role": "Director",
+          "notes": "An academic theologian who succeeded Dr. Griffin."
+        },
+        {
+          "name": "Matthew Nzioka Kithyaka",
+          "tenure": "2009-2016",
+          "role": "Director",
+          "notes": "Oversaw significant infrastructure development and curriculum transitions."
+        },
+        {
+          "name": "Mr. Masheti (Acting)",
+          "tenure": "2016-2018",
+          "role": "Acting Director",
+          "notes": "Provided interim leadership during a transition period."
+        },
+        {
+          "name": "Mr. Josphat Mwaura",
+          "tenure": "2018-2023",
+          "role": "Managing Committee Director",
+          "notes": "Led the school through its 60th anniversary celebrations and provided strategic oversight."
+        },
+        {
+          "name": "Mr. Fredrick (Fred) Okono",
+          "tenure": "2023-Present",
+          "role": "Director",
+          "notes": "Current Director leading the institution into its next chapter."
+        }
+      ],
+      "milestones": [
+        {"year": 1959, "event": "Starehe Boys’ Centre founded in two tin huts with 17 boys."},
+        {"year": 1963, "event": "Achieved legal recognition as a school."},
+        {"year": 1964, "event": "Dr. Griffin founded the National Youth Service (NYS) while continuing as Director of Starehe."},
+        {"year": 1970, "event": "The Old Starehian Society (OSS) was established. The first alumni were admitted into university."},
+        {"year": 2005, "event": "Death of Founder Dr. Geoffrey W. Griffin. He was buried inside the school chapel."},
+        {"year": 2005, "event": "Starehe Girls' Centre was founded, realizing a long-held dream of Dr. Griffin."},
+        {"year": 2009, "event": "President Mwai Kibaki launched the Griffin Memorial Endowment Trust (GMET) to create a permanent funding source for needy students."},
+        {"year": 2019, "event": "Celebrated the 60th Anniversary with major alumni and fundraising events."},
+        {"year": 2024, "event": "Celebrated the 65th Anniversary under the theme '65 Years of Transforming Lives', launching a Ksh 65 million endowment fund campaign."}
+      ]
+    },
+    "values_and_culture": {
+      "guiding_principle": "Service above self – live for others, not for reward.",
+      "the_two_rules": [
+        "A Starehian is dutiful, polite and considerate of other people's feelings. He keeps himself clean and smart.",
+        "Anything that is contrary to decency, good manners or common sense is contrary to the rules of the school."
+      ],
+      "core_values": ["Discipline", "Integrity", "Service", "Excellence", "Brotherhood", "Humility"],
+      "traditions_and_customs": {
+        "daily_routines": {
+          "reveille": "Military-style wake-up call and house roll-call.",
+          "daily_duties": "Students perform all cleaning of dormitories, the compound, classrooms, and labs before breakfast.",
+          "assembly": "Daily gathering for flag-raising, announcements, and addresses.",
+          "games_time": "Mandatory sports and activities from 4:30 PM to 6:00 PM, known as going 'Across'.",
+          "cold_showers": "A staple since inception, symbolizing discipline, humility, and resilience."
+        },
+        "unique_practices": {
+          "baraza": "A democratic, parliamentary-style forum where students and teachers raise, discuss, and resolve school issues. The concept as used in Round Square originated from Starehe.",
+          "voluntary_service_scheme": "Mandatory service for all students during school holidays at hospitals, orphanages, and community centres to instill a sense of duty.",
+          "hymn_practice": "Held every Thursday after Assembly, where students must learn and sing a new hymn perfectly before being dismissed.",
+          "verse_speaking": "A form of punishment where a student must memorize and recite poetry, such as Rudyard Kipling's 'IF'."
+        },
+        "special_events": {
+          "founders_day": "An annual celebration honoring the founders, featuring events like a grudge football match against Lenana School.",
+          "geoffrey_griffin_memorial_race": "An annual athletic event to honor the founder's memory.",
+          "itega": "A traditional welcoming ceremony for new students, marking their entry into the Starehe family."
+        }
+      },
+      "slang_and_terminology": {
+        "boss": "A term of respect for the Director, originating with Dr. Griffin.",
+        "cops": "Slang for Prefects.",
+        "across": "The playing fields and courts where Games Time is held.",
+        "to_get_fixed": "To be booked for punishment.",
+        "a_cheque": "A note from a prefect detailing a misdemeanour.",
+        "mugumo_stump": "A sacred fig tree stump on the quadrangle, serving as a popular student meeting point.",
+        "murram": "A staple dish in the dining hall, prepared with coarsely ground maize.",
+        "mbuzi": "Literally 'goat'; refers to the monthly meetings of the Old Starehian Society (OSS)."
+      }
+    },
+    "leadership_and_governance": {
+      "prefect_system": {
+        "description": "A rank-based hierarchy where students are responsible for the daily running of the school, instilling leadership and responsibility.",
+        "hierarchy": [
+          "Commoners (Junior & Senior Boys)",
+          "Sub-Prefects",
+          "House Prefects",
+          "Departmental Prefects",
+          "Senior Prefects",
+          "School Captains"
+        ],
+        "the_cabinet": "Comprised of School Captains and the Director, this body vets all potential prefects and makes key decisions on student leadership."
+      }
+    },
+    "academics_and_programs": {
+      "overview": "Starehe provides a holistic education combining rigorous academics with technical training, character formation, leadership development, and co-curricular activities.",
+      "curriculum": {
+        "system": "Currently follows the Kenyan 8-4-4 system, with a planned transition to the Competency-Based Curriculum (CBC) for Grade 10 entry starting in 2026.",
+        "forthcoming_cbc_tracks": ["STEM", "Social Sciences", "Arts & Sports"],
+        "departments": [
+          "Science (Biology, Chemistry, Physics)",
+          "Mathematics",
+          "Humanities (History, Geography, Religion)",
+          "Languages (English, Kiswahili, Foreign Languages)",
+          "Creative Arts (Art, Music, Drama)",
+          "Technical & Applied Sciences",
+          "Business Studies"
+        ]
+      },
+      "academic_performance": {
+        "historical_note": "Consistently ranked among Kenya's top-performing national schools. Since 2018, over 86% of students qualify for university admission each year.",
+        "recent_statistics": {
+          "2024": {"mean_score": 10.11, "grade": "B+", "university_transition_rate": "99.6%"},
+          "2023": {"mean_score": 9.5, "grade": "B+", "university_transition_rate": "95.9%"}
+        }
+      },
+      "co_curricular_activities": {
+        "sports": ["Football", "Athletics", "Rugby", "Basketball", "Volleyball"],
+        "music_and_arts": ["The Starehe Brass Band", "String Quartet", "Choir", "Drama", "Visual Arts"],
+        "clubs_and_societies": [
+          "Scouting (Top in Kenya)",
+          "St. John's Ambulance",
+          "President's Award Scheme",
+          "Debate Society",
+          "SCAN (Journalism)",
+          "Wildlife Club",
+          "Model United Nations"
+        ]
+      },
+      "global_affiliations": {
+        "round_square": {
+          "description": "Starehe is a member of Round Square, a prestigious international network of over 200 schools in 50 countries.",
+          "ideals": ["Internationalism", "Democracy", "Environmentalism", "Adventure", "Leadership", "Service"]
+        }
+      }
+    },
+    "campus_and_facilities": {
+      "key_landmarks": {
+        "the_original_two_tin_huts": "Donated by Kenya Shell/BP, these huts still stand at the center of the campus as a monument to the school's humble origins.",
+        "the_chapel": "A hexagon-shaped building that serves as the spiritual heart of the school and is the final resting place of Dr. Griffin.",
+        "assembly_hall": "The main hall for assemblies and Barazas, with the inscription 'The path of Duty is the way to Glory' at its entrance.",
+        "dining_hall": "A student-run facility where all proceedings are controlled by the boys, symbolizing self-governance.",
+        "the_mugumo_stump": "The remnant of a sacred fig tree on the main quadrangle, serving as a popular student meeting point."
+      },
+      "other_facilities": {
+        "sports_fields_and_courts": "Extensive grounds, known as 'The Across', for a wide variety of sports.",
+        "white_house_mombasa_camp": "A holiday house in Mombasa donated by Shell/BP in 1964, used for student holidays and recreation.",
+        "technical_training_institute": "An attached post-secondary institute offering courses like accounting and computer studies for graduates and external students."
+      },
+      "ongoing_projects": [
+        {"project_name": "ICT & Science Laboratories Upgrade", "area": "Academic Facilities"},
+        {"project_name": "Dormitory & Sanitation Improvement", "area": "Student Welfare"},
+        {"project_name": "Sports & Recreation Complex Expansion", "area": "Sports & Recreation"},
+        {"project_name": "Green School Initiative", "area": "Infrastructure & Environment"}
+      ]
+    },
+    "alumni_and_community": {
+      "old_starehian_society": {
+        "name": "Old Starehian Society (OSS)",
+        "established": 1970,
+        "membership": "Over 15,000 alumni globally.",
+        "vision": "A Starehe fraternity leading and transforming society.",
+        "activities": "Mobilizes resources, networks, and expertise to support the schools and endowment trusts. Holds monthly 'Mbuzi' meetings."
+      },
+      "notable_alumni": [
+        {"name": "Prof. George Magoha (Late)", "field": "Medicine & Public Service", "roles": "Surgeon, Vice-Chancellor of University of Nairobi, Cabinet Secretary for Education"},
+        {"name": "Raphael Tuju", "field": "Politics & Media", "roles": "Former Cabinet Minister, Secretary-General of Jubilee Party"},
+        {"name": "Peter Kenneth", "field": "Politics & Business", "roles": "Former MP for Gatanga, Presidential Candidate (2013)"},
+        {"name": "Paul Ereng", "field": "Athletics", "roles": "Olympic Gold Medalist in 800m (Seoul 1988)"},
+        {"name": "Peter Ndegwa", "field": "Corporate Leadership", "roles": "CEO of Safaricom PLC"},
+        {"name": "Irungu Nyakera", "field": "Public Service", "roles": "Former Principal Secretary for Transport"},
+        {"name": "Joseph Hellon", "field": "Music & Arts", "roles": "Renowned Jazz Saxophonist and music educator"},
+        {"name": "Mugambi Laibuta", "field": "Law", "roles": "Constitutional lawyer and legislative drafter"},
+        {"name": "Vivian Onano", "field": "Social Enterprise", "roles": "Social entrepreneur and humanitarian"}
+      ]
+    },
+    "partners_and_supporters": {
+      "foundational_partners": [
+        {"name": "Shell / BP (now Vivo Energy Kenya)", "contribution": "Donated the original tin huts and the Mombasa holiday house, maintaining a 65+ year partnership."}
+      ],
+      "major_supporters": [
+        "Save the Children Fund (Largest historical overseas supporter)",
+        "The Sheikh Charitable Trust",
+        "Dulverton Trust",
+        "Oxfam"
+      ],
+      "government_support": "Received personal interest and support from all Kenyan presidents, including Jomo Kenyatta (gave the motto), Daniel arap Moi, and Mwai Kibaki (launched the GMET).",
+      "support_organizations": [
+        {"name": "Starehe UK", "established": 1970, "role": "A UK-based charity that raises funds and support for both the Boys' and Girls' Centres."},
+        {"name": "Starehe Foundation (USA)", "role": "A US-based non-profit that mobilizes resources and support in North America."},
+        {"name": "Griffin Memorial Endowment Trust (GMET)", "established": 2009, "role": "A permanent endowment fund to sustain scholarships for needy students."}
+      ]
+    },
+    "starehe_girls_centre": {
+      "founded_year": 2005,
+      "location": "Limuru, Kenya",
+      "background": "The realization of Dr. Griffin's long-held dream to provide similar opportunities for disadvantaged girls. He had set aside donor money for years for this purpose.",
+      "founding_trustees": [
+        "Dr. Geoffrey William Griffin",
+        "Prof. Eddah Gachukia",
+        "Mrs. Eunice Mathu (Chairperson)",
+        "Mrs. Margery Kabuya",
+        "Mrs. Honorine Kiplagat",
+        "Dr. Manu Chandaria"
+      ],
+      "model": "Provides 100% free education for girls admitted from every county in Kenya based on need and academic potential. The government provides teachers while donors support all other operational costs.",
+      "inaugural_class": "The first 72 girls joined in January 2005 and were welcomed at a traditional 'Itega' ceremony attended by Dr. Griffin just months before his death."
+    },
+    "legacy_and_principles": {
+      "dr_griffins_quotes": [
+        {
+          "quote": "Happy are those who dream dreams, and are ready to pay the price to make them come true.",
+          "context": "Dr. Griffin's signature quote, representing the sacrifice required for meaningful achievement."
+        },
+        {
+          "quote": "If you're given a coffee cup to wash, wash it like it has never been washed before.",
+          "context": "The 'coffee cup philosophy' encapsulating the Starehe Way of pursuing excellence in all tasks, no matter how small."
+        },
+        {
+          "quote": "To those whom much has been given, much is expected.",
+          "context": "A guiding biblical principle that forms the foundation of Starehe's service ethic."
+        }
+      ],
+      "griffins_last_words": "My dear boys... This selfish world is made of people who perform their duties grudgingly, half-heartedly and poorly. Do not be like them, sons. Whatever task you are assigned to, do it fully and perfectly as you possibly can. And when you have completed your duty, go ahead and spare time and talent serving the less fortunate people in the society not in anticipation of any reward at all, but merely because it is the right thing to do.",
+      "honors_and_recognition": {
+        "dr_griffins_awards": [
+          "OBE (Officer of the Order of the British Empire) - Queen Elizabeth II, 2002",
+          "MGH (Moran of the Order of the Golden Heart) - President Moi, 1986",
+          "MBS (Moran of the Order of the Burning Spear) - President Kenyatta, 1970",
+          "Honorary Ph.D. in Education - Kenyatta University",
+          "Lifetime Achievement Award - Kenya National Commission on Human Rights, 2005"
+        ],
+        "institutional_recognition": [
+          "Dr. Geoffrey William Griffin Road - Ngara Ring Road was renamed in his honor in 2018.",
+          "Membership in the prestigious international Round Square network of schools."
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,1374 @@
+{
+	"info": {
+		"_postman_id": "456ba8de-5a10-4771-9f29-a82a1c7a4506",
+		"name": "api_indx",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20418743",
+		"_collection_link": "https://cloudy-eclipse-741512.postman.co/workspace/Workspace~3c0fda9f-e8ac-4ab7-85df-1283362806b0/collection/20418743-456ba8de-5a10-4771-9f29-a82a1c7a4506?action=share&source=collection_link&creator=20418743"
+	},
+	"item": [
+		{
+			"name": "login_user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user_email",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "user_password",
+							"value": "1234",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{KAPS}}/login.php",
+					"host": [
+						"{{KAPS}}"
+					],
+					"path": [
+						"login.php"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				},
+				"description": "Register Merchant"
+			},
+			"response": [
+				{
+					"name": "login_user_fail",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "user_email",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "user_password",
+									"value": "1235666",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{localhost}}/login.php",
+							"host": [
+								"{{localhost}}"
+							],
+							"path": [
+								"login.php"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Thu, 17 Feb 2022 16:56:07 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.51 (Win64) OpenSSL/1.1.1l PHP/7.3.31"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.3.31"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "POST"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization,X-Requested-With"
+						},
+						{
+							"key": "Expires",
+							"value": "Thu, 19 Nov 1981 08:52:00 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-store, no-cache, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "68"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"response\": [\n        {\n            \"code\": 500,\n            \"message\": \"Invalid Username or Password\"\n        }\n    ]\n}"
+				},
+				{
+					"name": "login_user_success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "user_email",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "user_password",
+									"value": "1235666",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{localhost}}/login.php",
+							"host": [
+								"{{localhost}}"
+							],
+							"path": [
+								"login.php"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Thu, 17 Feb 2022 17:01:45 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.51 (Win64) OpenSSL/1.1.1l PHP/7.3.31"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.3.31"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "POST"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization,X-Requested-With"
+						},
+						{
+							"key": "Expires",
+							"value": "Thu, 19 Nov 1981 08:52:00 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-store, no-cache, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Set-Cookie",
+							"value": "PHPSESSID=5pm2f9p1chhc13sfhn5nkjc21h; path=/"
+						},
+						{
+							"key": "Content-Length",
+							"value": "88"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"response\": [\n        {\n            \"code\": 200,\n            \"message\": \"Success\"\n        }\n    ],\n    \"SessionID\": \"5pm2f9p1chhc13sfhn5nkjc21h\"\n}"
+				}
+			]
+		},
+		{
+			"name": "logout_user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user_email",
+							"value": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{localhost}}/logout.php",
+					"host": [
+						"{{localhost}}"
+					],
+					"path": [
+						"logout.php"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				},
+				"description": "Register Merchant"
+			},
+			"response": [
+				{
+					"name": "logout_user_fail",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "",
+									"value": "",
+									"type": "text"
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{localhost}}/logout.php",
+							"host": [
+								"{{localhost}}"
+							],
+							"path": [
+								"logout.php"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 21 Feb 2022 09:07:30 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.51 (Win64) OpenSSL/1.1.1l PHP/7.3.31"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.3.31"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "POST"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization,X-Requested-With"
+						},
+						{
+							"key": "Expires",
+							"value": "Thu, 19 Nov 1981 08:52:00 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-store, no-cache, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "43"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"Error\": \"Invalid User Email\",\n        \"code\": 200\n    }\n]"
+				},
+				{
+					"name": "logout_user_success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "user_email",
+									"value": "",
+									"type": "text"
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{localhost}}/logout.php",
+							"host": [
+								"{{localhost}}"
+							],
+							"path": [
+								"logout.php"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 21 Feb 2022 09:08:25 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.51 (Win64) OpenSSL/1.1.1l PHP/7.3.31"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.3.31"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "POST"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization,X-Requested-With"
+						},
+						{
+							"key": "Expires",
+							"value": "Thu, 19 Nov 1981 08:52:00 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-store, no-cache, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "66"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"email\": \"\",\n        \"message\": \"logout_Success\",\n        \"code\": 200\n    }\n]"
+				}
+			]
+		},
+		{
+			"name": "get_gate_balance",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "gate_id",
+							"value": "10",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{KAPS}}/get_gate_balance.php",
+					"host": [
+						"{{KAPS}}"
+					],
+					"path": [
+						"get_gate_balance.php"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "get_gate_balance_success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "gate_id",
+									"value": "1",
+									"type": "text"
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{localhost}}/get_gate_balance.php",
+							"host": [
+								"{{localhost}}"
+							],
+							"path": [
+								"get_gate_balance.php"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Wed, 23 Feb 2022 19:52:47 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.51 (Win64) OpenSSL/1.1.1l PHP/7.3.31"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.3.31"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "POST"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization,X-Requested-With"
+						},
+						{
+							"key": "Content-Length",
+							"value": "43"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json,multipart/form-data"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"account_balance\": \"2050.00\",\n    \"gate_id\": \"1\"\n}"
+				}
+			]
+		},
+		{
+			"name": "get_account_balance",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user_email",
+							"value": "newuser2@mail.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{KAPS}}/get_account_balance.php",
+					"host": [
+						"{{KAPS}}"
+					],
+					"path": [
+						"get_account_balance.php"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "get_account_balance",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "user_email",
+									"value": "newuser2@mail.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{KAPS}}/get_account_balance.php",
+							"host": [
+								"{{KAPS}}"
+							],
+							"path": [
+								"get_account_balance.php"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 22 Mar 2022 13:57:28 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.2.24"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "POST"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization,X-Requested-With"
+						},
+						{
+							"key": "Content-Length",
+							"value": "62"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"account_balance\": \"1101.00\",\n    \"user_email\": \"newuser2@mail.com\"\n}"
+				}
+			]
+		},
+		{
+			"name": "get_transactions",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "request",
+							"value": "3",
+							"description": "1 : All 2 : Payment, 3 : deposit, 4: Refund",
+							"type": "text"
+						},
+						{
+							"key": "user_email",
+							"value": "jane.digim@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "date_from",
+							"value": "2021-01-01",
+							"type": "text"
+						},
+						{
+							"key": "date_to",
+							"value": "2022-12-31",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{KAPS}}/get_transactions_2.php",
+					"host": [
+						"{{KAPS}}"
+					],
+					"path": [
+						"get_transactions_2.php"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "get_transactions",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "user_email",
+									"value": "newUser2@mail.com",
+									"type": "text"
+								},
+								{
+									"key": "date_from",
+									"value": "2021-01-01",
+									"type": "text"
+								},
+								{
+									"key": "date_to",
+									"value": "2022-03-31",
+									"type": "text"
+								},
+								{
+									"key": "transaction_intent",
+									"value": "Deposit",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{KAPS}}/get_transactions.php",
+							"host": [
+								"{{KAPS}}"
+							],
+							"path": [
+								"get_transactions.php"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Fri, 18 Mar 2022 14:00:44 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.2.24"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "POST"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization,X-Requested-With"
+						},
+						{
+							"key": "Content-Length",
+							"value": "4132"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"transactions\": [\n        {\n            \"trx_ID\": \"ZdRej7rzMzq6sSs1uMlo\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"p15\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"uyMlNPP3LIdNZmgYfRZO\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"FQHuYGnMJU09mNy9zcKk\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"NbKVJ5VprnDisClNSJDd\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"tYSpwQSNjzzGMqZ2YlAY\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Success\"\n        },\n        {\n            \"trx_ID\": \"YDqOjWTntdFVVWpnq6fq\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"4IVmSwxal5p7JQ4GepgC\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Success\"\n        },\n        {\n            \"trx_ID\": \"xhmvyFQe6LNK83FY0pyY\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"ryJagCjX7RrS9EhKaJ4g\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"mGyri078hqVSaOIxrbwD\",\n            \"Date\": \"2022-03-16 12:07:54 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"zcg7UVcTWqDdweAq6LIG\",\n            \"Date\": \"2022-03-16 12:11:47 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"GS6ACDypz9my0nkwYzss\",\n            \"Date\": \"2022-03-16 12:54:45 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Success\"\n        },\n        {\n            \"trx_ID\": \"cIT0KlswkBAip4M22ui3\",\n            \"Date\": \"2022-03-16 15:06:53 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"uCCDXkcsPhsTQQ6AKqBI\",\n            \"Date\": \"2022-03-16 15:12:31 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"UjQU4qaBrE8A5L8rrwrF\",\n            \"Date\": \"2022-03-17 09:30:21 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"7PYFYYgNdXS0Qesa0Ahj\",\n            \"Date\": \"2022-03-17 10:20:29 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"tehwaRhUfD5mcw55dxvb\",\n            \"Date\": \"2022-03-17 10:23:43 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"mAnrdDRozvPldlC94NhR\",\n            \"Date\": \"2022-03-17 10:29:33 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"oJTr6AL3bNR5fOXxjxw9\",\n            \"Date\": \"2022-03-17 10:33:06 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"K4wgNW6qTzK1tCEz0SbL\",\n            \"Date\": \"2022-03-17 10:48:32 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"WStkIP9h3KbjlpWE33pX\",\n            \"Date\": \"2022-03-17 10:51:26 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"M1fc2w3JRl5HZRNHLZBP\",\n            \"Date\": \"2022-03-17 11:02:03 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"kz53SabiydwCozD5ymc4\",\n            \"Date\": \"2022-03-17 11:06:09 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"AGfzoro2iwlJsgzco5It\",\n            \"Date\": \"2022-03-17 11:08:30 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        }\n    ],\n    \"email\": \"newUser2@mail.com\",\n    \"date_from\": \"2021-01-01\",\n    \"date_to\": \"2022-03-31\"\n}"
+				}
+			]
+		},
+		{
+			"name": "get_wallet_balance",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "request",
+							"value": "5",
+							"type": "text"
+						},
+						{
+							"key": "user_email",
+							"value": "cmkimondo@gmail.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{KAPS}}/get_transactions_2.php",
+					"host": [
+						"{{KAPS}}"
+					],
+					"path": [
+						"get_transactions_2.php"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "get_transactions",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "user_email",
+									"value": "newUser2@mail.com",
+									"type": "text"
+								},
+								{
+									"key": "date_from",
+									"value": "2021-01-01",
+									"type": "text"
+								},
+								{
+									"key": "date_to",
+									"value": "2022-03-31",
+									"type": "text"
+								},
+								{
+									"key": "transaction_intent",
+									"value": "Deposit",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{KAPS}}/get_transactions.php",
+							"host": [
+								"{{KAPS}}"
+							],
+							"path": [
+								"get_transactions.php"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Fri, 18 Mar 2022 14:00:44 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.2.24"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "POST"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization,X-Requested-With"
+						},
+						{
+							"key": "Content-Length",
+							"value": "4132"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"transactions\": [\n        {\n            \"trx_ID\": \"ZdRej7rzMzq6sSs1uMlo\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"p15\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"uyMlNPP3LIdNZmgYfRZO\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"FQHuYGnMJU09mNy9zcKk\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"NbKVJ5VprnDisClNSJDd\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"tYSpwQSNjzzGMqZ2YlAY\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Success\"\n        },\n        {\n            \"trx_ID\": \"YDqOjWTntdFVVWpnq6fq\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"4IVmSwxal5p7JQ4GepgC\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Success\"\n        },\n        {\n            \"trx_ID\": \"xhmvyFQe6LNK83FY0pyY\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"ryJagCjX7RrS9EhKaJ4g\",\n            \"Date\": \"2022-03-08\",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"mGyri078hqVSaOIxrbwD\",\n            \"Date\": \"2022-03-16 12:07:54 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"zcg7UVcTWqDdweAq6LIG\",\n            \"Date\": \"2022-03-16 12:11:47 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"GS6ACDypz9my0nkwYzss\",\n            \"Date\": \"2022-03-16 12:54:45 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Success\"\n        },\n        {\n            \"trx_ID\": \"cIT0KlswkBAip4M22ui3\",\n            \"Date\": \"2022-03-16 15:06:53 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"uCCDXkcsPhsTQQ6AKqBI\",\n            \"Date\": \"2022-03-16 15:12:31 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"Pending\"\n        },\n        {\n            \"trx_ID\": \"UjQU4qaBrE8A5L8rrwrF\",\n            \"Date\": \"2022-03-17 09:30:21 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"7PYFYYgNdXS0Qesa0Ahj\",\n            \"Date\": \"2022-03-17 10:20:29 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"tehwaRhUfD5mcw55dxvb\",\n            \"Date\": \"2022-03-17 10:23:43 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"mAnrdDRozvPldlC94NhR\",\n            \"Date\": \"2022-03-17 10:29:33 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"oJTr6AL3bNR5fOXxjxw9\",\n            \"Date\": \"2022-03-17 10:33:06 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"K4wgNW6qTzK1tCEz0SbL\",\n            \"Date\": \"2022-03-17 10:48:32 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"WStkIP9h3KbjlpWE33pX\",\n            \"Date\": \"2022-03-17 10:51:26 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"M1fc2w3JRl5HZRNHLZBP\",\n            \"Date\": \"2022-03-17 11:02:03 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"kz53SabiydwCozD5ymc4\",\n            \"Date\": \"2022-03-17 11:06:09 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        },\n        {\n            \"trx_ID\": \"AGfzoro2iwlJsgzco5It\",\n            \"Date\": \"2022-03-17 11:08:30 \",\n            \"Intent\": \"Deposit\",\n            \"Amount\": \"1\",\n            \"Customer_Id\": null,\n            \"Customer_Ref\": \"\",\n            \"Gate\": \"COOL GATE\",\n            \"Status\": \"cancelled\"\n        }\n    ],\n    \"email\": \"newUser2@mail.com\",\n    \"date_from\": \"2021-01-01\",\n    \"date_to\": \"2022-03-31\"\n}"
+				},
+				{
+					"name": "get_transactions_2_example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "request",
+									"value": "2",
+									"type": "text"
+								},
+								{
+									"key": "user_email",
+									"value": "cmkimondo@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "date_from",
+									"value": "2021-01-01",
+									"type": "text"
+								},
+								{
+									"key": "date_to",
+									"value": "2023-12-31",
+									"type": "text"
+								},
+								{
+									"key": "trx_type",
+									"value": "payment",
+									"description": "possible values( ALL ,Payment, deposit,Refund)",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{KAPS}}/get_transactions_2.php",
+							"host": [
+								"{{KAPS}}"
+							],
+							"path": [
+								"get_transactions_2.php"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 31 Jan 2023 08:32:30 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.2.24"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "POST"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization,X-Requested-With"
+						},
+						{
+							"key": "Expires",
+							"value": "Thu, 19 Nov 1981 08:52:00 GMT"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-store, no-cache, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "216"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": true,\n    \"response\": {\n        \"trx_date\": \"2023-01-01\",\n        \"user_email\": \"cmkimondo@gmail.com\",\n        \"goal_code\": \"A\",\n        \"goal_name\": \"New Car\",\n        \"goal_target_amount\": \"2000000\",\n        \"goal_start_date\": \"2023-01-2-01\",\n        \"goal_contribution\": \"1500\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "get_user_details",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user_email",
+							"value": "cmkimondo@gmail.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{KAPS}}/get_user_details.php",
+					"host": [
+						"{{KAPS}}"
+					],
+					"path": [
+						"get_user_details.php"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "get_user_details_success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "user_email",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{localhost}}/get_user_details.php",
+							"host": [
+								"{{localhost}}"
+							],
+							"path": [
+								"get_user_details.php"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Fri, 18 Feb 2022 05:05:06 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.51 (Win64) OpenSSL/1.1.1l PHP/7.3.31"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.3.31"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "POST"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization,X-Requested-With"
+						},
+						{
+							"key": "Content-Length",
+							"value": "130"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"first_name\": \"Kamau\",\n        \"last_name\": \"David\",\n        \"phone\": \"0723214\",\n        \"user_email\": \"\"\n    }\n]"
+				}
+			]
+		},
+		{
+			"name": "wallet_payment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user_email",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "user_password",
+							"value": "1234",
+							"type": "text"
+						},
+						{
+							"key": "transaction_date",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "transaction_intent",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "amount",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "currency",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "gate_id",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "payment_mode",
+							"value": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{localhost}}/wallet_payment.php",
+					"host": [
+						"{{localhost}}"
+					],
+					"path": [
+						"wallet_payment.php"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_gates_list",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user_email",
+							"value": "grace@gnovation.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{KAPS}}/get_gate_list.php",
+					"host": [
+						"{{KAPS}}"
+					],
+					"path": [
+						"get_gate_list.php"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "get_gates_list",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "user_email",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{KAPS}}/get_gate_list.php",
+							"host": [
+								"{{KAPS}}"
+							],
+							"path": [
+								"get_gate_list.php"
+							]
+						}
+					},
+					"_postman_previewlanguage": "json",
+					"header": [],
+					"cookie": [],
+					"body": "{\n    \"response\": [\n        {\n            \"gate_name\": \"New gate\",\n            \"gate_api_key\": \"89e5b3-147ab4-fe1d41-31159a-148401\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "get_pockets_list",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user_email",
+							"value": "mosesmumo49@gmail.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{KAPS}}/get_pocket_list.php",
+					"host": [
+						"{{KAPS}}"
+					],
+					"path": [
+						"get_pocket_list.php"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "KAPS",
+			"value": "https://aps.co.ke/indexpay/api",
+			"type": "default"
+		}
+	]
+}

@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useElevenLabs } from '@/contexts/ElevenLabsContext';
 
 export default function GlobalVoiceWidget() {
-  const { isConnected, isLoading, messages, sendMessage, clearMessages, isSpeaking, conversation, startSession } = useElevenLabs();
+  const { isConnected, isLoading, messages, sendMessage, clearMessages, isSpeaking, conversation, startSession, endSession } = useElevenLabs();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [textInput, setTextInput] = useState('');
@@ -45,11 +45,8 @@ export default function GlobalVoiceWidget() {
 
   const handleEndCall = async () => {
     try {
-      if (conversation?.endSession) {
-        await conversation.endSession();
-        clearMessages();
-        console.log('Voice session ended');
-      }
+      await endSession();
+      console.log('✅ Voice session ended from widget');
     } catch (error) {
       console.error('Error ending session:', error);
     }

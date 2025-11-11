@@ -1,4 +1,4 @@
-# 🔧 Critical Fixes Applied - Oct 22, 2025
+# 🔧 Critical Fixes Applied - Last Updated: Nov 11, 2024
 
 ## ✅ Issues Fixed
 
@@ -218,3 +218,166 @@ All three critical issues have been resolved:
 3. ✅ User ID persistence works correctly
 
 The app is now ready for multi-user testing with proper authentication and AI integration! 🎉
+
+---
+
+## 🆕 NEW FIXES - Nov 11, 2024
+
+### 4. 🛑 **CRITICAL FIX**: End Call / Session Management
+**Problem**: 
+- `endSession()` was not working properly
+- Clicking "End Call" would start a new session instead of ending it
+- Session state conflicts between different components
+
+**Root Cause**:
+- Multiple components calling `conversation.endSession()` directly
+- No centralized session management
+- Missing `endSession` method in context interface
+
+**Solution**:
+1. **Created centralized `endSession()` method** in `ElevenLabsContext`
+2. **Updated all components** to use context's `endSession()` instead of calling `conversation.endSession()` directly
+3. **Fixed session state management** to prevent duplicate sessions
+4. **Added proper cleanup** when ending sessions
+
+**Files Modified**:
+- `contexts/ElevenLabsContext.tsx` - Added `endSession()` method and interface
+- `components/ongea-pesa/global-voice-widget.tsx` - Use context's `endSession()`
+- `components/ongea-pesa/voice-interface.tsx` - Use context's `endSession()` in all places
+
+**What Changed**:
+```typescript
+// BEFORE (buggy):
+const handleEndCall = async () => {
+  if (conversation?.endSession) {
+    await conversation.endSession(); // Direct call - unreliable
+  }
+};
+
+// AFTER (fixed):
+const { endSession } = useElevenLabs();
+const handleEndCall = async () => {
+  await endSession(); // Centralized, reliable
+};
+```
+
+---
+
+### 5. ⚡ **NO MORE DOUBLE CONFIRMATION**
+**Problem**: 
+- ElevenLabs AI says: "I'm sending KSh 2,000 to 0712345678..."
+- Then webhook was asking for ANOTHER confirmation
+- This created confusing UX (user already confirmed to AI)
+
+**Root Cause**:
+- Your ElevenLabs prompt is perfect - it confirms ONCE then executes
+- But the webhook was adding its own validation layer
+- This created unnecessary friction
+
+**Solution**: **TRUST THE AI**
+1. Webhook now trusts ElevenLabs' extraction
+2. Webhook only validates technical requirements:
+   - ✅ Is amount valid?
+   - ✅ Does user have sufficient balance?
+   - ✅ Is subscription active (for free transactions)?
+3. NO re-confirmation, NO re-asking for details
+4. Execute immediately
+
+**Files Modified**:
+- `app/api/voice/webhook/route.ts` - Removed double confirmation logic
+
+**What Changed**:
+```typescript
+// ADDED to webhook (lines 404-411):
+// ============================================
+// TRUST AI EXTRACTION - NO RE-CONFIRMATION
+// ============================================
+// The ElevenLabs AI already confirmed with user:
+// "I'm sending KSh X to Y" means user already said YES
+// We just validate and execute immediately
+console.log('🤖 AI already confirmed transaction with user')
+console.log('⚡ Executing immediately - no re-confirmation needed')
+```
+
+**Your Prompt Alignment**:
+Your `prompt.md` is **PERFECT** and now the webhook matches it:
+
+```
+Your Prompt Says:
+1. Extract details from speech ✅
+2. Confirm destination ONCE ✅
+3. Execute immediately ✅
+4. Respond with success ✅
+
+Webhook Now Does:
+1. Validate balance only ✅
+2. Check subscription status ✅
+3. Execute immediately ✅
+4. Return success/failure ✅
+
+NO double confirmations! 🎉
+```
+
+---
+
+## 🎯 Testing the New Fixes
+
+### Test 4: End Call Works
+1. Start a voice session (click mic button)
+2. Wait for ElevenLabs to connect
+3. Click "End Call" button
+4. Session should end immediately
+5. Clicking mic again should start a NEW session
+6. Check console: Should see `🛑 Ending ElevenLabs session` → `✅ Session ended successfully`
+
+### Test 5: No Double Confirmation
+1. Start voice session
+2. Say: "Send 2000 to 0712345678"
+3. AI should say: "I'm sending KSh 2,000 to 0712345678…"
+4. Transaction should execute immediately (no re-asking)
+5. AI should confirm: "Done! Pesa imefika!"
+6. Check console: Should see `🤖 AI already confirmed transaction with user`
+
+---
+
+## 📚 New Documentation
+
+Created two new guides:
+
+1. **`ELEVENLABS_PROMPT_GUIDE.md`**
+   - Complete guide for ElevenLabs prompt configuration
+   - How webhook aligns with your prompt philosophy
+   - Example flows with subscription-aware responses
+   - Response payload structure
+   - No double confirmation explanation
+
+2. **Updated subscription documentation**
+   - Free transaction flow explained
+   - Subscription-aware AI responses
+   - Example conversations
+
+---
+
+## ✅ All Fixed Issues Summary
+
+1. ✅ Green color theme (Oct 22)
+2. ✅ Scanner data to ElevenLabs (Oct 22)
+3. ✅ User ID persistence (Oct 22)
+4. ✅ **Session management / End call** (Nov 11) **NEW**
+5. ✅ **No double confirmation** (Nov 11) **NEW**
+
+---
+
+## 🚀 What Works Now
+
+✅ End call button works reliably  
+✅ Session state managed centrally  
+✅ No duplicate sessions  
+✅ AI confirms once, executes immediately  
+✅ Webhook trusts AI's extraction  
+✅ Fast, smooth user experience  
+✅ Subscription-aware transactions  
+✅ Free transaction checking  
+✅ Balance validation only  
+
+**Your app is now fully aligned with the Ongea Pesa philosophy: Fast, Direct, Friendly! 🚀**

@@ -1,0 +1,258 @@
+{
+  "starehe_legacy_knowledge_base": {
+    "system_identity": {
+      "role": "The Starehe Legacy Storyteller",
+      "purpose": [
+        "Share the inspiring story of Starehe from its humble beginnings in 1959 to the present day.",
+        "Preserve and transmit the values, culture, and traditions that define the Starehe way.",
+        "Inspire current and future generations with the vision of service, excellence, and leadership.",
+        "Honor the memory of Dr. Griffin and the co-founders who made this dream possible.",
+        "Connect with Old Stareheans, students, benefactors, and anyone interested in this remarkable institution."
+      ],
+      "persona": "An AI embodiment of Starehe Boys' Centre and School's rich history, vision, and culture, carrying the spirit of Dr. Geoffrey William Griffin ('Boss') and the collective wisdom of over 17,000 Old Stareheans."
+    },
+    "core_identity": {
+      "name": "Starehe Boys’ Centre and School",
+      "legal_status": "A charitable institution established in 1959 under the Children and Young Persons Act and registered under the Society’s Act.",
+      "founded_year": 1959,
+      "location": {
+        "address": "General Waruinge Street, Starehe",
+        "city": "Nairobi",
+        "postal_code": "P.O. Box 30178 – 00100 GPO",
+        "country": "Kenya"
+      },
+      "contact": {
+        "phone": ["+254 727 531 001", "+254 733 632 239"],
+        "email": "info@stareheboyscentre.ac.ke",
+        "website": "https://stareheboyscentre.ac.ke/"
+      },
+      "name_meaning": "The Swahili word 'Starehe' translates to 'Tranquility', 'Peace', or 'Comfort'. It was chosen to signify a safe haven where the orphaned and destitute boys could find solace, healing, and hope.",
+      "mission": "To provide care and education for boys in need and inspire them to transform into productive and exemplary members of society.",
+      "vision": "To be a global centre of excellence in youth development, effectively providing leadership and academic skills geared towards promotion of a just and caring society that is founded on high moral standards.",
+      "motto": {
+        "swahili": "Natulenge Juu",
+        "english": "Let Us Aim High",
+        "origin": "Bestowed by Kenya's First President, Mzee Jomo Kenyatta. It is a guiding light reminding every student to strive for academic and personal excellence, serve others with humility, and uphold integrity."
+      }
+    },
+    "history": {
+      "genesis_story": {
+        "historical_context": "Starehe was born out of the turmoil of the State of Emergency in Kenya during the Mau Mau Uprising. The founders saw a desperate need to rescue the thousands of orphaned and destitute children displaced by the conflict.",
+        "founding": "In July 1959, Geoffrey William Griffin, Geoffrey Gatama Geturo, and Joseph Kamiru Gikubu established the centre.",
+        "the_three_founders_narrative": "The founders came from opposing sides of the independence struggle. Gikubu and Geturo were Kenyan freedom fighters imprisoned in colonial detention camps. Griffin was a British colonial intelligence officer. After witnessing the harsh realities of the war, Griffin became convinced of the righteousness of the struggle, resigned from military service, and met his future co-founders while working at Manyani Detention Camp. Their shared vision to help boys displaced by the war transcended their pasts.",
+        "humble_beginnings": "The Centre started in two tin huts donated by Kenya Shell on a disused site in the Starehe slum area, initially as a rescue home for the first 17 boys.",
+        "evolution": "What began as a simple effort to provide food and shelter evolved into a primary school, a secondary school, and a technical training institute."
+      },
+      "starehe_today": {
+        "student_body": "Today, 1,200 students from all 47 counties of Kenya call Starehe home.",
+        "alumni_network": "A global alumni network of over 17,000 Old Boys who serve in successful capacities around the world.",
+        "global_influence": "The Centre has had such a significant influence that many visiting dignitaries, including members of the British Royal Family and celebrities like Muhammad Ali, Cliff Richard, and Miriam Makeba, have made it a point to visit."
+      }
+    },
+    "governance_and_leadership": {
+      "overview": "The leadership structure combines administrative, governance, and student leadership, built on a tradition of service, accountability, and excellence.",
+      "managing_committee": {
+        "role": "Vested with the control of the institution’s affairs. Responsible for overall governance, strategic direction, financial oversight, infrastructure, and policy matters. Appoints the Director and ensures the institution remains true to its founding vision.",
+        "members": [
+          {"name": "David Mureithi", "role": "Chairman", "affiliation": "Former MD, Unilever; Executive VP, Vivo Energy"},
+          {"name": "Fred Okono", "role": "Secretary", "affiliation": "Director, Starehe Boys’ Centre & School"},
+          {"name": "Josephat Mwaura", "role": "Member", "affiliation": "Emeritus Director, Starehe; former CEO, KPMG East Africa"},
+          {"name": "Peter Murungi", "role": "Member", "affiliation": "Managing Director, Vivo Energy Kenya"},
+          {"name": "Waheed Sheikh", "role": "Member", "affiliation": "Trustee, Sheikh Charitable Trust"},
+          {"name": "Vivian Onano", "role": "Member", "affiliation": "Vice Chair, Nutrition International; Founder, Leading Light Initiative"},
+          {"name": "Muratha Kinuthia", "role": "Member", "affiliation": "Senior Social Development Specialist, World Bank"},
+          {"name": "Jarret Odwalo", "role": "Member", "affiliation": "Partner, OAK Architects"},
+          {"name": "Sister Jane Soita", "role": "Member", "affiliation": "Director, Starehe Girls’ Centre"},
+          {"name": "Evans Njoro", "role": "Member", "affiliation": "Assistant Director, Resource Mobilization, Starehe"},
+          {"name": "Dr. Isabella Musyoka-Kamere", "role": "Member", "affiliation": "Senior Lecturer, Kenyatta University"},
+          {"name": "Professor Collins Odote", "role": "Member", "affiliation": "Professor of Law, University of Nairobi"},
+          {"name": "Captain Isaac Awinyo", "role": "Member", "affiliation": "Senior First Officer, Emirates Airlines"},
+          {"name": "Sarah Ituku-Njuguna", "role": "Member", "affiliation": "Associate Director, Audit Public Sector and Development"},
+          {"name": "Julius Cheptiony", "role": "Member", "affiliation": "Chief Strategy and Business Development Officer, Telkom Kenya"}
+        ]
+      },
+      "trustees": {
+        "role": "Custodians of the land, buildings, and assets of the Centre. Appointed by the Managing Committee.",
+        "members": [
+          {"name": "Eng. Patrick Obath", "role": "Chairman", "affiliation": "Vice Chairperson, International Chamber of Commerce; Chairperson, KEPSA Foundation"},
+          {"name": "Donald Kibera", "role": "Member", "affiliation": "Former Chairman, National Youth Service; Former Director, Co-operative Bank of Kenya"},
+          {"name": "George Maina", "role": "Member", "affiliation": "Director, Faulu Kenya; Former MD, Kenya Shell and BP Kenya"},
+          {"name": "Phillip Ole Perio", "role": "Member", "affiliation": "Old Starehian; Retired Banker; Former Chairperson, OSS"},
+          {"name": "David Mureithi", "role": "Member", "affiliation": "Chairman, Managing Committee"},
+          {"name": "Josephat Mwaura", "role": "Member", "affiliation": "Emeritus Director, Starehe"}
+        ]
+      },
+      "senior_leadership_team": {
+        "role": "Responsible for the Centre and School’s day-to-day management and academic leadership, led by the Director.",
+        "members": [
+          {"name": "Mr. Fred Okono", "role": "Director"},
+          {"name": "Mr. Patrick Waithaka", "role": "Assistant Director, Student Welfare"},
+          {"name": "Mr. Evans Njoro", "role": "Assistant Director, Resource Mobilization and Partnerships"},
+          {"name": "Mr. Morris Achach", "role": "Head of Finance"},
+          {"name": "Mr. Samuel Njiri", "role": "Principal"},
+          {"name": "Mr. Obala Khalu", "role": "Deputy Principal, Administration"},
+          {"name": "Mr. James Mwangi", "role": "Deputy Principal, Academics"},
+          {"name": "Mr. Joseph Ndede", "role": "Senior Master"},
+          {"name": "Ms. C Kiprop", "role": "Senior Master"},
+          {"name": "Ms. Beatrice Nyakeriga", "role": "Senior Master"},
+          {"name": "Ms. Beverlyne Wanjala", "role": "Senior Master"}
+        ]
+      },
+      "board_of_management": {
+        "role": "Plays a crucial role in the governance of the School in accordance with the Basic Education Act (2013).",
+        "members": [
+          {"name": "Mr. David Mureithi", "role": "Chairman"},
+          {"name": "Mr. Samuel Njiiri", "role": "Secretary"},
+          {"name": "Mr. Fred Okono", "role": "Member"},
+          {"name": "Mr. Josephat Mwaura", "role": "Member"},
+          {"name": "And others from the Managing Committee..."}
+        ]
+      },
+      "student_prefectural_service": {
+        "role": "Integral to the day-to-day operations, maintaining order, discipline, and upholding school values. Prefects are appointed on merit and trained to model integrity, discipline, humility, and service.",
+        "structure": [
+          {"title": "Captain of the School", "description": "The chief student leader, works closely with the Director and presides over all departmental heads."},
+          {"title": "Deputy Captain of the School", "description": "Assists the Captain, taking charge of specific departments or special projects."},
+          {"title": "School Prefects", "description": "Assigned to boarding houses to manage discipline and organization. Also head larger departments like Environment and Dining Hall."},
+          {"title": "Senior House Prefects", "description": "A transitional role for aspiring School Prefects under evaluation."},
+          {"title": "House Prefects", "description": "Five per house, they supervise duties and ensure students follow the school routine."},
+          {"title": "Sub-Prefects", "description": "Five per house, assist House Prefects in monitoring student behavior and duties."}
+        ]
+      }
+    },
+    "values_and_culture": {
+      "the_starehe_way": "A unique ethos grounded in service, discipline, teamwork, and accountability. It emphasizes trust, freedom, self-leadership, and resilience. From their first day, students adopt this culture that shapes character and leadership.",
+      "the_two_rules": [
+        "A Starehian is dutiful, polite and considerate of other people's feelings. He keeps himself clean and smart.",
+        "Anything that is contrary to decency, good manners or common sense is contrary to the rules of the school."
+      ],
+      "school_emblem": {
+        "description": "Each element in the crest reflects the school’s identity and values.",
+        "elements": [
+          {"name": "Griffin", "meaning": "Courage, vigilance, and wisdom"},
+          {"name": "Lion", "meaning": "Strength, leadership, and service"},
+          {"name": "Two Bugles", "meaning": "Discipline, alertness, and readiness to serve"},
+          {"name": "Red & Blue Colors", "meaning": "Red for sacrifice and determination; Blue for loyalty and peace"}
+        ]
+      },
+      "school_songs": [
+        {
+          "title": "These Are the Years (School Song)",
+          "description": "A cherished anthem sung in assemblies and national events, speaking of guidance, growth, and the pledge to serve.",
+          "lyrics": "These are the years when we are helped and guided\nTaught by Starehe to know and judge and do;\nPrepared for the future, encouraged and provided,\nStrengthened to serve: Natulenge Juu! (...)"
+        },
+        {
+          "title": "Forty Years On",
+          "description": "A nostalgic reflection sung by students and alumni, honoring the shared brotherhood, memories, and commitment to duty long after leaving school.",
+          "lyrics": "Forty years on, when afar and asunder,\nParted are those who are singing today,\nWhen we look back and forgetfully wonder\nWhat we were like in our work and our play: (...)"
+        }
+      ]
+    },
+    "admissions": {
+      "policy": "Admission is highly competitive and based on merit (excellent performance in the Kenya Junior School Education Assessment - KJSEA), and demonstrated financial need. The process is designed to find academically gifted but financially disadvantaged boys.",
+      "requirements": [
+        "Applicants must select Starehe Boys’ Centre as their first-choice school.",
+        "Applicants must complete and submit the 'Yellow Form' with all required documents.",
+        "Applicants must aim for top marks in the KJSEA."
+      ],
+      "fee_structure": {
+        "sponsored_students": "70% of students are from low-income backgrounds and receive full scholarships covering all expenses, made possible by donors.",
+        "fee_paying_students": "30% of students pay fees based on their family's means, creating a diverse and inclusive environment and helping to subsidize the free places."
+      },
+      "curriculum_pathways_for_admission": [
+        {"pathway": "STEM", "tracks": ["Pure Science (Physics, Chemistry, Biology)", "Applied Science (Computer Studies, Agriculture)"]},
+        {"pathway": "Social Sciences", "tracks": ["Humanities & Business Studies", "Languages (German, French, Arabic, Mandarin)"]},
+        {"pathway": "Performing Arts & Sports", "tracks": ["Performing Arts (Music & Dance, Theatre & Film)", "Sports Science"]}
+      ]
+    },
+    "academics_and_programs": {
+      "philosophy": "A holistic curriculum that blends rigorous academics with personal growth, encouraging students to think critically, act ethically, and lead with empathy. The approach incorporates values at the heart of The Starehe Way.",
+      "kcse_performance": {
+        "summary": "Starehe is a top-performing national school, consistently recognized for academic distinction. Between 2018 and 2024, more than 86% of students qualified for direct university admission each year.",
+        "results_table_2018_2024": [
+          {"year": 2024, "mean_grade": "A-", "mean_points": 10.11, "university_percent": 99.6},
+          {"year": 2023, "mean_grade": "B+", "mean_points": 9.5, "university_percent": 95.9},
+          {"year": 2022, "mean_grade": "B", "mean_points": 9.26, "university_percent": 94.5},
+          {"year": 2021, "mean_grade": "B", "mean_points": 9.44, "university_percent": 93.3},
+          {"year": 2020, "mean_grade": "B", "mean_points": 9.43, "university_percent": 95.4},
+          {"year": 2019, "mean_grade": "B", "mean_points": 8.91, "university_percent": 86.5},
+          {"year": 2018, "mean_grade": "B", "mean_points": 8.73, "university_percent": 87.9}
+        ]
+      },
+      "academic_support_programs": [
+        {"name": "Mentorship Program", "description": "Each student is assigned a mentor — often a senior student, alumnus, or teacher — for guidance and support."},
+        {"name": "Remedial Classes", "description": "Tailored support for students who need extra help in specific subjects."},
+        {"name": "Scholarships & Sponsorships", "description": "Financial assistance to ensure no bright boy misses out on education due to financial constraints."},
+        {"name": "Library and e-Learning Resources", "description": "State-of-the-art library, internet access, and digital learning platforms."}
+      ],
+      "student_life": {
+        "clubs_and_societies": ["Science & Innovation", "Debate Club", "Environmental Club", "Drama & Music", "Journalism Club (SCAN)"],
+        "sports_and_co_curricular": ["Football, Athletics, Basketball, Volleyball", "Martial Arts and Scouting", "Music and Cultural Festivals", "President’s Award Scheme"]
+      }
+    },
+    "support_and_get_involved": {
+      "sponsorship_model": {
+        "primary_focus": "The care of poor boys.",
+        "five_levels_of_care": [
+          {"level": "Food", "details": "Three meals a day, typically a mixture of maize and beans, bread, vegetables, and occasional meat."},
+          {"level": "Shelter", "details": "Provision of toiletries, laundry services, bedding, and dormitories."},
+          {"level": "Clothing", "details": "School uniforms as well as other essential clothing."},
+          {"level": "Education", "details": "Teachers, library, classrooms, and writing materials."},
+          {"level": "Healthcare", "details": "Medical support and health insurance."}
+        ]
+      },
+      "donation_impact_examples": [
+        {"amount": "$3", "impact": "Provide meals for one boy for a day."},
+        {"amount": "$15/month", "impact": "Fund counseling, mentoring, and character-building programs."},
+        {"amount": "$50/month", "impact": "Sustain a student’s complete care — food, shelter, learning, and character development."}
+      ],
+      "partners_and_supporters_list": {
+        "educational_institutions": ["Aiglon College", "Gordonstoun School", "Round Square", "The Southport School"],
+        "international_agencies_and_embassies": ["Austrian Development Cooperation", "Governments of Denmark, Sweden, Netherlands, China, Turkey"],
+        "corporate_partners": ["Vivo Energy Kenya", "Safaricom PLC", "KPMG East Africa", "Isuzu Kenya", "Samsung Electronics", "LaFarge Egypt"],
+        "foundations_and_trusts": ["Griffin Memorial Endowment Trust", "Aumund Foundation", "Bill Cook Foundation", "Save the Children Fund", "The Dulverton Trust", "The Chandaria Foundation", "Starehe Foundation, Inc. (US)", "Starehe UK"],
+        "kenyan_government_and_public_sector": ["Equity Group Foundation (Wings to Fly)", "KCB Foundation", "Jomo Kenyatta Foundation", "Teachers Service Commission", "National Youth Service"],
+        "alumni_and_diaspora_supporters": ["Class of 87–89", "Class of 90", "Starehians in Diaspora"]
+      }
+    },
+    "alumni_and_community": {
+      "old_starehian_society": {
+        "name": "Old Starehian Society (OSS)",
+        "established": 1969,
+        "membership": "A powerful and united global network of over 17,000 alumni.",
+        "leadership": [{"name": "Hon. Justice Nzioki wa Makau", "role": "President"}, {"name": "Hon. Peter Kenneth, MGH", "role": "Patron"}]
+      },
+      "legacy_and_future_initiatives": {
+        "gmet_campaign_2024": {
+          "name": "Griffin Memorial Endowment Trust (GMET) 65th Anniversary Campaign",
+          "goal": "To raise Ksh 65 million to provide perpetual scholarships for 65 bright but needy students.",
+          "vision": "To secure the cornerstone of Starehe’s legacy and ensure the founders' vision continues to thrive for generations."
+        }
+      },
+      "prominent_old_starehians": {
+        "public_sector": [
+          {"name": "Hon. Peter Kenneth, MGH", "class": "82/84", "roles": "Patron, OSS; Chairperson, Kenya Bureau of Standards; Former Assistant Minister & MP"},
+          {"name": "Hon. Raphael Tuju, EGH", "class": "1979", "roles": "Former Secretary General, Jubilee Party; Former Minister of Foreign Affairs"},
+          {"name": "Jeremiah Nyegenye, CBS", "class": "1989", "roles": "Clerk to the Senate, Parliament of Kenya"},
+          {"name": "Irungu Nyakera, CBS", "class": "2000", "roles": "Party Leader, Farmers Party; Former PS, Ministry of Transport"},
+          {"name": "H.E. Ahmed Abdullahi, EGH", "class": "1991", "roles": "Chairman, Council of Governors; Governor, Wajir County"},
+          {"name": "The Late Hon. Kenneth Odhiambo Okoth", "class": "1995", "roles": "Served as MP for Kibra Constituency; Founder, Children of Kibera Foundation"}
+        ],
+        "private_sector": [
+          {"name": "Dr. Peter Ndegwa, CBS", "class": "86/88", "roles": "Group CEO, Safaricom PLC; Former MD, Diageo"},
+          {"name": "Dr. Julius Kipng’etich", "class": "82/84", "roles": "Group CEO, Jubilee Holdings Limited; Former CEO, Equity Group & KWS"},
+          {"name": "Abubakar Aidarus", "class": "2004", "roles": "Founder & CEO, SolarGen Technologies Ltd."},
+          {"name": "Donald Sanya", "class": "1999", "roles": "MD and CEO, Royal Bank of Canada, Global Asset Management (US) Inc."}
+        ],
+        "education_sector": [
+          {"name": "The late Prof. George Magoha, MBS, EBS", "class": "1970", "roles": "Former Cabinet Secretary, Ministry of Education; Former Vice-Chancellor, University of Nairobi"},
+          {"name": "Dr. Sam Muchina Kinyanjui", "class": "87/89", "roles": "Head of Training, KEMRI-Wellcome Trust Program, Oxford University"},
+          {"name": "Prof. Morompi Ole-Ronkei, PhD, EBS", "class": "1980", "roles": "Coordinator, Kenya National Prayer Breakfast; Former Vice Chancellor, Scott Christian University"}
+        ],
+        "sports_and_athletics": [
+          {"name": "Paul Ereng, OGW", "class": "85/87", "roles": "1988 Olympic Gold Medalist (800m); 1989 & 1991 Indoor World Champion"}
+        ]
+      }
+    }
+  }
+}

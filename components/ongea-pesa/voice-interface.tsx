@@ -1,4 +1,4 @@
-// @ts-nocheck
+  // @ts-nocheck
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
@@ -23,7 +23,7 @@ interface VoiceInterfaceProps {
 export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   const { user, signOut } = useAuth();
   const { userId, user: userContext, isLoading: userContextLoading } = useUser();
-  const { isConnected, isLoading, messages, conversation, isSpeaking, startSession } = useElevenLabs();
+  const { isConnected, isLoading, messages, conversation, isSpeaking, startSession, endSession } = useElevenLabs();
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'speaking'>('idle')
   const [transcript, setTranscript] = useState('')
   const [agentResponse, setAgentResponse] = useState('')
@@ -82,17 +82,17 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     inactivityTimerRef.current = setTimeout(async () => {
       console.log('5 seconds of inactivity - closing session and going back');
       try {
-        await conversation.endSession();
+        await endSession();
       } catch (error) {
         console.error('Error ending session:', error);
       }
       onNavigate("dashboard");
     }, 5000);
-  }, [conversation, onNavigate]);
+  }, [endSession, onNavigate]);
 
   const stopConversation = useCallback(async () => {
     try {
-      await conversation.endSession();
+      await endSession();
       setTranscript("");
       setAgentResponse("");
       setRecordingTime(0);
@@ -101,7 +101,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     } catch (error) {
       console.error('Error stopping conversation:', error);
     }
-  }, [conversation]);
+  }, [endSession]);
 
   // Start session on first interaction (when user presses push-to-talk)
   const handleFirstInteraction = useCallback(() => {
@@ -160,12 +160,16 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
 
   // Push-to-talk functionality
   const handleMouseDown = useCallback(() => {
-    if (!isConnected) return;
+    // Start session if not connected
+    if (!isConnected) {
+      handleFirstInteraction();
+      return;
+    }
     setIsPushToTalk(true);
     // Reset inactivity timer when user starts talking
     resetInactivityTimer();
     console.log('Started push-to-talk');
-  }, [isConnected, resetInactivityTimer]);
+  }, [isConnected, resetInactivityTimer, handleFirstInteraction]);
 
   const handleMouseUp = useCallback(() => {
     if (!isPushToTalk) return;
@@ -331,7 +335,9 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
               ? 'bg-gradient-to-br from-blue-200 via-purple-100 to-blue-200 shadow-2xl shadow-blue-200/50 animate-pulse'
               : isConnected
               ? 'bg-gradient-to-br from-green-200 via-emerald-100 to-green-200 shadow-2xl shadow-green-200/50'
-              : 'bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 shadow-xl shadow-gray-200/30'
+              : isLoading
+              ? 'bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 shadow-xl shadow-gray-200/30'
+              : 'bg-gradient-to-br from-blue-100 via-sky-50 to-blue-100 shadow-xl shadow-blue-200/40'
           }`}>
             {/* Inner glow effect */}
             <div className={`absolute inset-4 rounded-full transition-all duration-500 ${
@@ -341,7 +347,9 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
                 ? 'bg-gradient-to-br from-blue-300/50 to-purple-300/50 animate-pulse'
                 : isConnected
                 ? 'bg-gradient-to-br from-green-300/50 to-emerald-300/50'
-                : 'bg-gradient-to-br from-gray-300/30 to-gray-300/30'
+                : isLoading
+                ? 'bg-gradient-to-br from-gray-300/30 to-gray-300/30'
+                : 'bg-gradient-to-br from-blue-200/40 to-sky-200/40'
             }`}></div>
             
             {/* Animated rings for active states */}
@@ -370,7 +378,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
               ) : isConnected ? (
                 <Mic className="h-16 w-16 text-green-600" />
               ) : (
-                <MicOff className="h-16 w-16 text-gray-500" />
+                <Mic className="h-16 w-16 text-blue-500" />
               )}
             </div>
           </div>
@@ -404,7 +412,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
                     "Greetings, human!"
                   )
                 ) : (
-                  "Starting AI..."
+                  "Ready to Talk"
                 )}
               </h2>
               <p className="text-gray-600">
@@ -415,7 +423,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
                 ) : isLoading ? (
                   "Please wait..."
                 ) : (
-                  "Initializing..."
+                  "Press and hold the button to start"
                 )}
               </p>
             </div>
@@ -431,13 +439,15 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
             onMouseLeave={handleMouseUp}
             onTouchStart={handleMouseDown}
             onTouchEnd={handleMouseUp}
-            disabled={!isConnected}
+            disabled={isLoading}
             className={`w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${
               isPushToTalk
                 ? "bg-red-500 hover:bg-red-600 scale-110 shadow-red-200"
                 : isConnected
                 ? "bg-green-500 hover:bg-green-600 shadow-green-200"
-                : "bg-gray-400 cursor-not-allowed shadow-gray-200"
+                : isLoading
+                ? "bg-gray-400 cursor-not-allowed shadow-gray-200"
+                : "bg-blue-500 hover:bg-blue-600 shadow-blue-200 hover:scale-105"
             }`}
           >
             {isPushToTalk ? (
@@ -454,7 +464,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
           
           {/* Instructions */}
           <p className="text-center text-gray-600 mt-4 text-sm">
-            {isConnected ? "Hold to speak" : "Connecting..."}
+            {isLoading ? "Connecting..." : isConnected ? "Hold to speak" : "Press to connect & speak"}
           </p>
         </div>
 
@@ -470,10 +480,8 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
           </Button>
           <Button
             variant="outline"
-            onClick={() => {
-              if (conversation.endSession) {
-                conversation.endSession();
-              }
+            onClick={async () => {
+              await endSession();
               setIsListening(false);
               setIsPushToTalk(false);
               setTranscript('');
