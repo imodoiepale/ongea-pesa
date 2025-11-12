@@ -25,7 +25,7 @@ export default function SignupPage() {
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -35,7 +35,33 @@ export default function SignupPage() {
 
     if (error) {
       setError(error.message);
-    } else {
+    } else if (data.user) {
+      // Create payment gate for the new user
+      try {
+        const gateResponse = await fetch('/api/gate/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            email,
+            userId: data.user.id 
+          }),
+        });
+
+        const gateData = await gateResponse.json();
+
+        if (!gateResponse.ok) {
+          console.error('Gate creation failed:', gateData.error);
+          // Don't fail signup if gate creation fails, just log it
+        } else {
+          console.log('Gate created successfully:', gateData);
+        }
+      } catch (gateError) {
+        console.error('Error creating gate:', gateError);
+        // Don't fail signup if gate creation fails
+      }
+
       setSuccess('Success! Please check your email for a confirmation link.');
     }
   };

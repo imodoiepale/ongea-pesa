@@ -1,0 +1,81 @@
+{
+  "info": {
+    "name": "Ongea Pesa - Gate Transfer",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Basic Transfer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"voice_command\": \"Move 5000 from main to savings\",\n  \"voice_verified\": true,\n  \"confidence_score\": 92\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/webhook/gate_transfer",
+          "host": ["{{base_url}}"],
+          "path": ["webhook", "gate_transfer"]
+        }
+      }
+    },
+    {
+      "name": "Transfer with Description",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"voice_command\": \"Transfer 2500 from business to rent for monthly payment\",\n  \"voice_verified\": true,\n  \"confidence_score\": 88\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/webhook/gate_transfer",
+          "host": ["{{base_url}}"],
+          "path": ["webhook", "gate_transfer"]
+        }
+      }
+    },
+    {
+      "name": "Insufficient Balance (Error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"voice_command\": \"Transfer 100000 from savings to business\",\n  \"voice_verified\": true,\n  \"confidence_score\": 90\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/webhook/gate_transfer",
+          "host": ["{{base_url}}"],
+          "path": ["webhook", "gate_transfer"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://your-n8n-instance.com"
+    },
+    {
+      "key": "user_id",
+      "value": "15f7bee0-76b8-478c-87ff-dc9212b1464e"
+    }
+  ]
+}
