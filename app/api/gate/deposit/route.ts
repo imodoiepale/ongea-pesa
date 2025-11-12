@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
           mpesa_number: phone,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user.id);
+        .eq('id', user.id); 
     }
 
     // Create transaction record for the deposit
