@@ -103,11 +103,6 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
         .single()
 
       setMpesaNumber(profile?.mpesa_number || null)
-      
-      // Auto-show dialog if mpesa_number is null
-      if (!profile?.mpesa_number) {
-        setIsMpesaDialogOpen(true)
-      }
     } catch (err) {
       console.error('Error checking M-Pesa number:', err)
     }

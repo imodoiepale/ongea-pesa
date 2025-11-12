@@ -15,17 +15,53 @@ import Analytics from "./analytics"
 import VoiceTest from "./voice-test"
 import PermissionManager from "./permission-manager"
 import PaymentScanner from "./payment-scanner"
+import MpesaSettingsDialog from "./mpesa-settings-dialog"
+import { useAuth } from "@/components/providers/auth-provider"
+import { createClient } from '@/lib/supabase/client'
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner"
 
 export default function OngeaPesaApp() {
+  const { user } = useAuth()
   const [currentScreen, setCurrentScreen] = useState<Screen>("dashboard")
   const [isListening, setIsListening] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isMpesaDialogOpen, setIsMpesaDialogOpen] = useState(false)
+  const [checkingMpesa, setCheckingMpesa] = useState(true)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Global check for M-Pesa number on mount or user change
+  useEffect(() => {
+    if (mounted && user?.id) {
+      checkMpesaNumber()
+    }
+  }, [mounted, user?.id])
+
+  const checkMpesaNumber = async () => {
+    if (!user?.id) return
+    
+    try {
+      setCheckingMpesa(true)
+      const supabase = createClient()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('mpesa_number')
+        .eq('id', user.id)
+        .single()
+
+      // Auto-show dialog if mpesa_number is null or empty
+      if (!profile?.mpesa_number) {
+        setIsMpesaDialogOpen(true)
+      }
+    } catch (err) {
+      console.error('Error checking M-Pesa number:', err)
+    } finally {
+      setCheckingMpesa(false)
+    }
+  }
 
   if (!mounted) {
     return null
@@ -67,6 +103,17 @@ export default function OngeaPesaApp() {
             {/* Hide global widget when on voice interface page to prevent overlap */}
             {currentScreen !== "voice" && <GlobalVoiceWidget />}
             <Toaster />
+            
+            {/* Global M-Pesa Settings Dialog - Shows when mpesa_number is not set */}
+            <MpesaSettingsDialog
+              isOpen={isMpesaDialogOpen}
+              onClose={() => setIsMpesaDialogOpen(false)}
+              onSave={() => {
+                setIsMpesaDialogOpen(false)
+                checkMpesaNumber()
+              }}
+              required={true}
+            />
           </div>
         </ThemeProvider>
       </ElevenLabsProvider>

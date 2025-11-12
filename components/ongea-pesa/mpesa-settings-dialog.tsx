@@ -9,9 +9,10 @@ interface MpesaSettingsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave?: () => void;
+  required?: boolean; // If true, dialog cannot be closed without setting number
 }
 
-export default function MpesaSettingsDialog({ isOpen, onClose, onSave }: MpesaSettingsDialogProps) {
+export default function MpesaSettingsDialog({ isOpen, onClose, onSave, required = false }: MpesaSettingsDialogProps) {
   const { user } = useAuth();
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
@@ -123,30 +124,40 @@ export default function MpesaSettingsDialog({ isOpen, onClose, onSave }: MpesaSe
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 relative">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
-          >
-            <X size={24} />
-          </button>
+          {!required && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
+            >
+              <X size={24} />
+            </button>
+          )}
           <div className="flex items-center gap-3">
             <div className="bg-white/20 p-3 rounded-xl">
               <Phone className="text-white" size={28} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">M-Pesa Number</h2>
-              <p className="text-white/80 text-sm">Set your default M-Pesa number</p>
+              <h2 className="text-2xl font-bold text-white">{required ? 'Welcome to Ongea Pesa!' : 'M-Pesa Number'}</h2>
+              <p className="text-white/80 text-sm">{required ? 'Set your M-Pesa number to continue' : 'Update your default M-Pesa number'}</p>
             </div>
           </div>
         </div>
 
         {/* Body */}
         <form onSubmit={handleSave} className="p-6 space-y-5">
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-            <p className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed">
-              ℹ️ This number will be used for all M-Pesa deposits. You can change it anytime in settings.
-            </p>
-          </div>
+          {required ? (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400 leading-relaxed">
+                🎯 <strong>Required:</strong> Please set your M-Pesa number to start using Ongea Pesa for deposits and payments.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+              <p className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed">
+                ℹ️ This number will be used for all M-Pesa deposits. You can change it anytime in settings.
+              </p>
+            </div>
+          )}
 
           {/* Phone Number Input */}
           <div>
