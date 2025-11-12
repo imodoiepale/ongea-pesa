@@ -31,13 +31,17 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
   const [isAdding, setIsAdding] = useState(false)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loadingTransactions, setLoadingTransactions] = useState(true)
+  const [mpesaNumber, setMpesaNumber] = useState<string | null>(null)
+  const [depositError, setDepositError] = useState('')
+  const [depositSuccess, setDepositSuccess] = useState('')
   const supabase = createClient()
 
-  // Fetch transactions and setup real-time subscription
+  // Fetch transactions and M-Pesa number, setup real-time subscription
   useEffect(() => {
     if (!isOpen || !user?.id) return
 
     fetchTransactions()
+    fetchMpesaNumber()
 
     // Real-time subscription to transactions
     const channel = supabase
@@ -109,46 +113,73 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
     }
   }
 
+  const fetchMpesaNumber = async () => {
+    if (!user?.id) return
+
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('mpesa_number')
+        .eq('id', user.id)
+        .single()
+
+      setMpesaNumber(profile?.mpesa_number || null)
+    } catch (err) {
+      console.error('Error fetching M-Pesa number:', err)
+    }
+  }
+
   const handleAddBalance = async () => {
     const amount = parseFloat(addAmount)
     if (!amount || amount <= 0 || !user?.id) return
 
+    setDepositError('')
+    setDepositSuccess('')
+
+    // Validate minimum amount
+    if (amount < 10) {
+      setDepositError('Minimum deposit amount is KSh 10')
+      return
+    }
+
+    // Check if M-Pesa number is set
+    if (!mpesaNumber) {
+      setDepositError('Please set your M-Pesa number in Settings first')
+      return
+    }
+
     setIsAdding(true)
 
     try {
-      // Create deposit transaction (trigger will update wallet_balance automatically)
-      const { error: txError } = await supabase
-        .from('transactions')
-        .insert({
-          user_id: user.id,
-          type: 'deposit',
+      // Call deposit API with M-Pesa integration
+      const response = await fetch('/api/gate/deposit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           amount: amount,
-          status: 'completed',
-          voice_command_text: `Manual deposit of KSh ${amount.toLocaleString()}`,
-          completed_at: new Date().toISOString()
-        })
-      
-      if (txError) {
-        console.error('❌ Error creating transaction:', txError)
-        alert('Failed to add balance')
-        return
-      }
+          phone: mpesaNumber,
+        }),
+      })
 
-      // Success! Database trigger updates wallet_balance automatically
-      // Real-time subscriptions will notify all components
-      console.log('✅ Deposit transaction created')
-      console.log('💰 Added KSh', amount.toLocaleString())
-      console.log('⚡ Balance will update automatically via trigger + real-time subscription')
-      
-      setAddAmount("")
-      
-      // Real-time subscription will update both:
-      // 1. Transaction list (from transactions table change)
-      // 2. Balance (from profiles table change via trigger)
-      
-    } catch (error) {
-      console.error('❌ Error:', error)
-      alert('Failed to add balance')
+      const data = await response.json()
+
+      if (response.ok) {
+        setDepositSuccess('Deposit initiated! Check your phone for M-Pesa prompt.')
+        setAddAmount('')
+        
+        // Refresh transactions after successful deposit
+        setTimeout(() => {
+          fetchTransactions()
+          setDepositSuccess('')
+        }, 2000)
+      } else {
+        setDepositError(data.error || 'Failed to initiate deposit')
+      }
+    } catch (error: any) {
+      console.error('❌ Deposit error:', error)
+      setDepositError(error.message || 'An error occurred. Please try again.')
     } finally {
       setIsAdding(false)
     }
@@ -228,7 +259,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
             </div>
 
             {/* Custom Amount Input */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-4">
               <Input
                 type="number"
                 placeholder="Enter amount..."
@@ -250,11 +281,37 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
                 ) : (
                   <>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add
+                    Add via M-Pesa
                   </>
                 )}
               </Button>
             </div>
+
+            {/* Error Message */}
+            {depositError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                <p className="text-sm text-red-700">{depositError}</p>
+              </div>
+            )}
+
+            {/* Success Message */}
+            {depositSuccess && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                <p className="text-sm text-green-700">{depositSuccess}</p>
+              </div>
+            )}
+
+            {/* M-Pesa Number Info */}
+            {mpesaNumber && (
+              <div className="text-xs text-gray-600 mt-2">
+                📱 Using M-Pesa: {mpesaNumber}
+              </div>
+            )}
+            {!mpesaNumber && (
+              <div className="text-xs text-orange-600 mt-2">
+                ⚠️ Set your M-Pesa number in Settings to deposit
+              </div>
+            )}
           </div>
 
           {/* Recent Transactions */}

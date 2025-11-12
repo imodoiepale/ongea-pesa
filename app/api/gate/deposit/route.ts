@@ -113,6 +113,24 @@ export async function POST(request: NextRequest) {
         .eq('id', user.id);
     }
 
+    // Create transaction record for the deposit
+    const { error: txError } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: user.id,
+        type: 'deposit',
+        amount: depositAmount,
+        phone: phone,
+        status: 'pending', // Will be updated via webhook when M-Pesa confirms
+        voice_command_text: `M-Pesa deposit of KSh ${depositAmount.toLocaleString()} from ${phone}`,
+        created_at: new Date().toISOString()
+      });
+
+    if (txError) {
+      console.error('⚠️ Failed to create transaction record:', txError);
+      // Don't fail the request, just log the error
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Deposit initiated successfully. Check your phone for M-Pesa prompt.',
