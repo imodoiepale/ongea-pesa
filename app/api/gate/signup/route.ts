@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // Update user with gate_id and gate_name
     const { error: updateError } = await supabaseAdmin
-      .from('users')
+      .from('profiles')
       .update({
         gate_id: gateData.gate_id,
         gate_name: gateData.gate_name,

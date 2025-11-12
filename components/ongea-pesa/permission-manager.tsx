@@ -1,10 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowLeft, Shield, Camera, ContactIcon as Contacts, Mic, MessageSquare, MapPin, Bell } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ArrowLeft, Shield, Camera, ContactIcon as Contacts, Mic, MessageSquare, MapPin, Bell, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
+import MpesaSettingsDialog from "./mpesa-settings-dialog"
+import { createClient } from '@/lib/supabase/client'
+import { useAuth } from "@/components/providers/auth-provider"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -23,6 +26,9 @@ interface Permission {
 }
 
 export default function PermissionManager({ onNavigate }: PermissionManagerProps) {
+  const { user } = useAuth()
+  const [isMpesaDialogOpen, setIsMpesaDialogOpen] = useState(false)
+  const [mpesaNumber, setMpesaNumber] = useState<string | null>(null)
   const [permissions, setPermissions] = useState<Permission[]>([
     {
       id: "microphone",
@@ -80,6 +86,33 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
     },
   ])
 
+  // Check for M-Pesa number on mount
+  useEffect(() => {
+    checkMpesaNumber()
+  }, [user?.id])
+
+  const checkMpesaNumber = async () => {
+    if (!user?.id) return
+    
+    try {
+      const supabase = createClient()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('mpesa_number')
+        .eq('id', user.id)
+        .single()
+
+      setMpesaNumber(profile?.mpesa_number || null)
+      
+      // Auto-show dialog if mpesa_number is null
+      if (!profile?.mpesa_number) {
+        setIsMpesaDialogOpen(true)
+      }
+    } catch (err) {
+      console.error('Error checking M-Pesa number:', err)
+    }
+  }
+
   const togglePermission = (id: string) => {
     setPermissions((prev) =>
       prev.map((permission) => (permission.id === id ? { ...permission, enabled: !permission.enabled } : permission)),
@@ -104,6 +137,30 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
           <p className="text-sm text-gray-600 dark:text-gray-400">Manage app permissions via voice</p>
         </div>
       </div>
+
+      {/* M-Pesa Settings Card */}
+      <Card className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Phone className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div>
+                <p className="font-semibold text-sm text-gray-900 dark:text-white">M-Pesa Number</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {mpesaNumber ? mpesaNumber : 'Not set - Click to add'}
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setIsMpesaDialogOpen(true)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {mpesaNumber ? 'Change' : 'Set Now'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Permission Status */}
       <Card className="mb-6">
@@ -213,6 +270,15 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
           </div>
         </CardContent>
       </Card>
+
+      {/* M-Pesa Settings Dialog */}
+      <MpesaSettingsDialog
+        isOpen={isMpesaDialogOpen}
+        onClose={() => setIsMpesaDialogOpen(false)}
+        onSave={() => {
+          checkMpesaNumber()
+        }}
+      />
     </div>
   )
 }

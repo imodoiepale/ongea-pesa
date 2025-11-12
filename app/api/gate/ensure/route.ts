@@ -22,29 +22,28 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ User authenticated:', user.id, user.email);
 
-    // Check if user exists in public.users table
+    // Check if user exists in profiles table
     const { data: userData, error: fetchError } = await supabase
-      .from('users')
+      .from('profiles')
       .select('id, email, gate_id, gate_name')
       .eq('id', user.id)
       .single();
 
-    // If user doesn't exist in public.users, create them first
+    // If user doesn't exist in profiles table, create them first
     if (fetchError && fetchError.code === 'PGRST116') {
-      console.log('⚠️ User not found in public.users table');
+      console.log('⚠️ User not found in profiles table');
       console.log('Note: The trigger should have created this. Check if trigger is set up.');
       
       // Try to insert user (will only work if RLS allows it)
       const { data: newUser, error: createError } = await supabase
-        .from('users')
+        .from('profiles')
         .insert({
           id: user.id,
           email: user.email,
-          phone: '',
-          name: user.user_metadata?.name || user.user_metadata?.full_name || '',
-          balance: 0.00,
-          daily_limit: 100000.00,
-          is_active: true,
+          phone_number: '',
+          wallet_balance: 0.00,
+          daily_limit: '100000.00',
+          active: 'true',
         })
         .select('id, email, gate_id, gate_name')
         .single();
@@ -89,7 +88,7 @@ export async function POST(request: NextRequest) {
         if (newGateData.status) {
           // Update user with gate info
           await supabase
-            .from('users')
+            .from('profiles')
             .update({
               gate_id: newGateData.gate_id,
               gate_name: newGateData.gate_name,
@@ -193,7 +192,7 @@ export async function POST(request: NextRequest) {
 
     // Update user with gate_id and gate_name
     const { error: updateError } = await supabase
-      .from('users')
+      .from('profiles')
       .update({
         gate_id: gateData.gate_id,
         gate_name: gateData.gate_name,
@@ -248,7 +247,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: userData, error } = await supabase
-      .from('users')
+      .from('profiles')
       .select('gate_id, gate_name')
       .eq('id', user.id)
       .single();

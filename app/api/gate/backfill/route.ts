@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     // Get all users without gates
     const { data: usersWithoutGates, error: fetchError } = await supabaseAdmin
-      .from('users')
+      .from('profiles')
       .select('id, email, gate_id, gate_name')
       .or('gate_id.is.null,gate_name.is.null');
 
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
 
         // Update user with gate_id and gate_name
         const { error: updateError } = await supabaseAdmin
-          .from('users')
+          .from('profiles')
           .update({
             gate_id: gateData.gate_id,
             gate_name: gateData.gate_name,
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
 
     // Count users without gates
     const { count, error } = await supabaseAdmin
-      .from('users')
+      .from('profiles')
       .select('id', { count: 'exact', head: true })
       .or('gate_id.is.null,gate_name.is.null');
 
