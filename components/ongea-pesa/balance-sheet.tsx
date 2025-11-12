@@ -151,6 +151,10 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
     setIsAdding(true)
 
     try {
+      // Set up 20-second timeout for deposit initiation
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 seconds
+
       // Call deposit API with M-Pesa integration
       const response = await fetch('/api/gate/deposit', {
         method: 'POST',
@@ -161,8 +165,10 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
           amount: amount,
           phone: mpesaNumber,
         }),
+        signal: controller.signal,
       })
 
+      clearTimeout(timeoutId)
       const data = await response.json()
 
       if (response.ok) {
@@ -179,7 +185,11 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
       }
     } catch (error: any) {
       console.error('❌ Deposit error:', error)
-      setDepositError(error.message || 'An error occurred. Please try again.')
+      if (error.name === 'AbortError') {
+        setDepositError('Request timed out after 20 seconds. Please try again.')
+      } else {
+        setDepositError(error.message || 'An error occurred. Please try again.')
+      }
     } finally {
       setIsAdding(false)
     }
