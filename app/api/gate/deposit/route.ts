@@ -77,11 +77,29 @@ export async function POST(request: NextRequest) {
     formData.append('pocket_name', 'ongeapesa_wallet');
     formData.append('payment_mode', 'MPESA');
 
+    // Set up 20-second timeout for external API call
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 seconds
+
     // Call the external API for deposit
-    const depositResponse = await fetch('https://aps.co.ke/indexpay/api/gate_deposit.php', {
-      method: 'POST',
-      body: formData,
-    });
+    let depositResponse;
+    try {
+      depositResponse = await fetch('https://aps.co.ke/indexpay/api/gate_deposit.php', {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        return NextResponse.json(
+          { error: 'Deposit request timed out after 20 seconds. Please try again.' },
+          { status: 408 }
+        );
+      }
+      throw fetchError;
+    }
 
     if (!depositResponse.ok) {
       throw new Error('Failed to initiate deposit with external API');
