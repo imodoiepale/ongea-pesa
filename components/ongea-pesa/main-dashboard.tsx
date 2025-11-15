@@ -35,6 +35,15 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
     setMounted(true)
   }, [])
 
+  // Navigation helper that uses router when onNavigate is not provided
+  const handleNavigate = (screen: Screen) => {
+    if (onNavigate) {
+      onNavigate(screen)
+    } else {
+      router.push(`/${screen}`)
+    }
+  }
+
   // Fetch user balance and setup real-time subscription
   useEffect(() => {
     if (!user?.id) return
@@ -141,7 +150,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onNavigate("permissions")}
+            onClick={() => handleNavigate("permissions")}
             className="rounded-full border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
           >
             <Settings className="h-5 w-5" />
@@ -218,7 +227,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
       <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
         <Card
           className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => onNavigate("send")}
+          onClick={() => handleNavigate("send")}
         >
           <CardContent className="p-4 text-center">
             <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 dark:from-[#00FF88] dark:to-[#00E67A] rounded-full flex items-center justify-center mx-auto mb-3">
@@ -231,7 +240,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
 
         <Card
           className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => onNavigate("scanner")}
+          onClick={() => handleNavigate("scanner")}
         >
           <CardContent className="p-4 text-center">
             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-[#00D4AA] dark:to-[#00C299] rounded-full flex items-center justify-center mx-auto mb-3">
@@ -244,7 +253,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
 
         <Card
           className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => onNavigate("recurring")}
+          onClick={() => handleNavigate("recurring")}
         >
           <CardContent className="p-4 text-center">
             <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 dark:from-[#8B5CF6] dark:to-[#7C3AED] rounded-full flex items-center justify-center mx-auto mb-3">
@@ -257,7 +266,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
 
         <Card
           className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => onNavigate("analytics")}
+          onClick={() => handleNavigate("analytics")}
         >
           <CardContent className="p-4 text-center">
             <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 dark:from-[#F97316] dark:to-[#EA580C] rounded-full flex items-center justify-center mx-auto mb-3">
@@ -296,7 +305,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
       {/* Voice Test Mode */}
       <Card
         className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700 relative z-10"
-        onClick={() => onNavigate("test")}
+        onClick={() => handleNavigate("test")}
       >
         <CardContent className="p-4 flex items-center">
           <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-600 dark:from-[#6366F1] dark:to-[#4F46E5] rounded-full flex items-center justify-center mr-4">
