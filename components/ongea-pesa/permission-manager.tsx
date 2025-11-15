@@ -12,7 +12,7 @@ import { useAuth } from "@/components/providers/auth-provider"
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
 interface PermissionManagerProps {
-  onNavigate: (screen: Screen) => void;
+  onNavigate?: (screen: Screen) => void;
 }
 
 interface Permission {

@@ -17,8 +17,8 @@ import BalanceSheet from "./balance-sheet"
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
 interface MainDashboardProps {
-  onNavigate: (screen: Screen) => void;
-  onVoiceActivate: () => void;
+  onNavigate?: (screen: Screen) => void;
+  onVoiceActivate?: () => void;
 }
 
 export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashboardProps) {
