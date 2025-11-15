@@ -2,7 +2,11 @@
 
 import { useEffect, useRef } from "react"
 
-export default function WaveAnimation() {
+interface WaveAnimationProps {
+  className?: string;
+}
+
+export default function WaveAnimation({ className }: WaveAnimationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -81,5 +85,5 @@ export default function WaveAnimation() {
     }
   }, [])
 
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+  return <canvas ref={canvasRef} className={className} />
 }

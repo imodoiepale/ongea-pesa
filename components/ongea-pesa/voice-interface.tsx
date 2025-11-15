@@ -204,6 +204,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     };
   }, [isPushToTalk, isConnected, handleMouseDown, handleMouseUp]);
 
+  // Initialize the ElevenLabs agent
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isConnected) {

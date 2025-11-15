@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useVoice } from "@/components/voice-provider"
+import VoiceInterface from "@/components/ongea-pesa/voice-interface"
 import WaveAnimation from "./wave-animation"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from '@/lib/supabase/client'
@@ -21,6 +24,7 @@ interface MainDashboardProps {
 export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashboardProps) {
   const { user, signOut } = useAuth()
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [balance, setBalance] = useState<number>(0)
   const [loading, setLoading] = useState(true)
@@ -102,7 +106,6 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
 
   const handleVoiceActivation = () => {
     onVoiceActivate()
-    onNavigate("voice")
   }
 
   if (!mounted) {
@@ -300,8 +303,8 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
             <TestTube className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">Voice Test Mode</h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Test AI voice responses</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Ongea Pesa</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Voice-First Financial Companion</p>
           </div>
         </CardContent>
       </Card>

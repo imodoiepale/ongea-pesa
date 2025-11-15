@@ -239,9 +239,23 @@ export async function POST(request: NextRequest) {
           }
         }
         
-        // If we found a session, get the user profile
+        // If we found a session, get the user profile AND email
         if (recentSession) {
           console.log('✅ Using session:', recentSession.session_id, 'user_id:', recentSession.user_id)
+          
+          // Get auth user to get real email
+          try {
+            const { data: { users }, error: authListError } = await supabase.auth.admin.listUsers()
+            if (!authListError && users) {
+              const authUser = users.find(u => u.id === recentSession.user_id)
+              if (authUser) {
+                finalUserEmail = authUser.email || `user-${recentSession.user_id.slice(0, 8)}@ongeapesa.com`
+                console.log('✅ Found auth user email:', finalUserEmail)
+              }
+            }
+          } catch (authLookupError) {
+            console.warn('⚠️ Could not fetch auth user email:', authLookupError)
+          }
           
           // Now get user's profile using the user_id
           const { data: userProfile, error: profileError } = await supabase
@@ -258,19 +272,23 @@ export async function POST(request: NextRequest) {
             console.log('✅ Found profile:', userProfile)
             
             finalUserId = userProfile.id
-            finalUserEmail = `user-${userProfile.id.slice(0, 8)}@ongeapesa.com` // Fallback email
+            if (!finalUserEmail) {
+              finalUserEmail = `user-${userProfile.id.slice(0, 8)}@ongeapesa.com` // Fallback email
+            }
             finalUserPhone = userProfile.phone_number || userProfile.mpesa_number || ''
             finalUserName = userProfile.phone_number || 'User'
             
-            // Try to get actual email from auth.users if possible
-            // But this might not work without service role, so email might be fallback
-            
             console.log('✅ SUCCESSFULLY SET REAL USER DATA FROM VOICE SESSION')
+            console.log('   User ID:', finalUserId)
+            console.log('   Email:', finalUserEmail)
+            console.log('   Phone:', finalUserPhone)
           } else {
             console.warn('⚠️ Profile not found for user_id:', recentSession.user_id)
             // Still use the user_id from session
             finalUserId = recentSession.user_id
-            finalUserEmail = `user-${recentSession.user_id.slice(0, 8)}@ongeapesa.com`
+            if (!finalUserEmail) {
+              finalUserEmail = `user-${recentSession.user_id.slice(0, 8)}@ongeapesa.com`
+            }
             console.log('✅ Using user_id from session without full profile')
           }
         } else {
