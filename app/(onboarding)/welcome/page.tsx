@@ -1,5 +1,4 @@
 // app/(onboarding)/welcome/page.tsx
-"use client"
 
 import { WelcomeScreen } from '@/components/ongea-pesa/welcome-screen';
 

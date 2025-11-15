@@ -119,17 +119,6 @@ export async function POST(request: NextRequest) {
 
     // Save voice session with user context
     try {
-      // First, deactivate any existing active sessions for this user
-      await supabase
-        .from('voice_sessions')
-        .update({ 
-          status: 'ended',
-          ended_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-        .eq('status', 'active');
-      
-      // Now create new session
       await supabase
         .from('voice_sessions')
         .insert({
@@ -138,10 +127,10 @@ export async function POST(request: NextRequest) {
           agent_id: agentId,
           signed_url: signedUrl,
           status: 'active',
-          expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 60 minutes (was 15)
+          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
         });
       
-      console.log('✅ Saved voice session:', sessionId, 'for user:', user.email, 'expires in 60 minutes');
+      console.log('Saved voice session:', sessionId, 'for user:', user.email);
     } catch (dbError: any) {
       console.error('Failed to save voice session:', dbError);
       // Continue anyway - don't fail the request

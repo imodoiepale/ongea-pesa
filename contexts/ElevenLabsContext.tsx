@@ -126,25 +126,13 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!userId) return;
 
-    let retryCount = 0;
-    const MAX_RETRIES = 3;
-
     const fetchBalance = async () => {
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-        const response = await fetch('/api/balance', {
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-
+        const response = await fetch('/api/balance');
         if (response.ok) {
           const data = await response.json();
           const balance = data.balance || 0;
           setUserBalance(balance);
-          retryCount = 0; // Reset retry count on success
           
           // Send balance to ElevenLabs conversation context
           if (isConnected) {
@@ -152,33 +140,20 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
             console.log('💰 Balance updated for ElevenLabs context:', balance);
             // The AI agent will have access to this via the conversation session
           }
-        } else {
-          console.warn('Balance API returned non-OK status:', response.status);
         }
-      } catch (error: any) {
-        retryCount++;
-        if (error.name === 'AbortError') {
-          console.error('Balance fetch timeout - Supabase may be slow');
-        } else {
-          console.error('Failed to fetch balance:', error.message);
-        }
-        
-        // Stop polling if too many failures
-        if (retryCount >= MAX_RETRIES) {
-          console.warn('Too many balance fetch failures, stopping polling');
-          clearInterval(balanceInterval);
-        }
+      } catch (error) {
+        console.error('Failed to fetch balance:', error);
       }
     };
 
     // Fetch immediately
     fetchBalance();
 
-    // Refresh balance every 30 seconds (reduced from 10 to prevent timeout issues)
-    const balanceInterval = setInterval(fetchBalance, 30000);
+    // Refresh balance every 10 seconds for real-time updates
+    const balanceInterval = setInterval(fetchBalance, 10000);
 
     return () => clearInterval(balanceInterval);
-  }, [userId, isConnected]);
+  }, [userId, isConnected, conversation]);
 
   // Manual start function exposed for components to use
   const startElevenLabsSession = async () => {

@@ -1,5 +1,3 @@
-"use client"
-
 import OngeaPesaApp from "@/components/ongea-pesa/app";
 import { ProtectedRoute } from "@/components/protected-route";
 

@@ -105,7 +105,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
   }, [user?.id, supabase])
 
   const handleVoiceActivation = () => {
-    onVoiceActivate()
+    setShowVoiceInterface(true)
   }
 
   if (!mounted) {

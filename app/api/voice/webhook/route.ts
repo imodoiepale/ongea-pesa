@@ -5,46 +5,10 @@ import { createClient } from '@/lib/supabase/server'
 const N8N_WEBHOOK_URL = 'https://primary-production-579c.up.railway.app/webhook/send_money'
 const N8N_AUTH_TOKEN = process.env.N8N_WEBHOOK_AUTH_TOKEN || '' // Add this to .env.local
 
-// In-memory request log storage
-const requestLogs: Array<{
-  id: string
-  timestamp: string
-  method: string
-  url: string
-  headers: Record<string, string>
-  body: any
-  query: Record<string, string>
-  user_id?: string
-  error?: string
-  n8n_response?: any
-  success: boolean
-}> = []
-
-const MAX_LOGS = 50 // Keep last 50 requests
-
-function logRequest(log: any) {
-  requestLogs.unshift({ id: `req_${Date.now()}`, ...log })
-  if (requestLogs.length > MAX_LOGS) {
-    requestLogs.pop()
-  }
-  console.log('📝 Request logged. Total logs:', requestLogs.length)
-}
-
-// Export logs for the logs endpoint
-export function getRequestLogs() {
-  return requestLogs
-}
-
 export async function POST(request: NextRequest) {
-  const startTime = Date.now()
-  const requestId = `req_${startTime}`
-  
   try {
     // Log incoming request details
-    console.log('\n========================================')
-    console.log('🎙️ VOICE WEBHOOK CALLED')
-    console.log('========================================')
-    console.log('Request ID:', requestId)
+    console.log('\n=== VOICE WEBHOOK CALLED ===')
     console.log('Timestamp:', new Date().toISOString())
     console.log('Request URL:', request.url)
     console.log('Request Headers:', Object.fromEntries(request.headers))
@@ -239,23 +203,9 @@ export async function POST(request: NextRequest) {
           }
         }
         
-        // If we found a session, get the user profile AND email
+        // If we found a session, get the user profile
         if (recentSession) {
           console.log('✅ Using session:', recentSession.session_id, 'user_id:', recentSession.user_id)
-          
-          // Get auth user to get real email
-          try {
-            const { data: { users }, error: authListError } = await supabase.auth.admin.listUsers()
-            if (!authListError && users) {
-              const authUser = users.find(u => u.id === recentSession.user_id)
-              if (authUser) {
-                finalUserEmail = authUser.email || `user-${recentSession.user_id.slice(0, 8)}@ongeapesa.com`
-                console.log('✅ Found auth user email:', finalUserEmail)
-              }
-            }
-          } catch (authLookupError) {
-            console.warn('⚠️ Could not fetch auth user email:', authLookupError)
-          }
           
           // Now get user's profile using the user_id
           const { data: userProfile, error: profileError } = await supabase
@@ -272,23 +222,19 @@ export async function POST(request: NextRequest) {
             console.log('✅ Found profile:', userProfile)
             
             finalUserId = userProfile.id
-            if (!finalUserEmail) {
-              finalUserEmail = `user-${userProfile.id.slice(0, 8)}@ongeapesa.com` // Fallback email
-            }
+            finalUserEmail = `user-${userProfile.id.slice(0, 8)}@ongeapesa.com` // Fallback email
             finalUserPhone = userProfile.phone_number || userProfile.mpesa_number || ''
             finalUserName = userProfile.phone_number || 'User'
             
+            // Try to get actual email from auth.users if possible
+            // But this might not work without service role, so email might be fallback
+            
             console.log('✅ SUCCESSFULLY SET REAL USER DATA FROM VOICE SESSION')
-            console.log('   User ID:', finalUserId)
-            console.log('   Email:', finalUserEmail)
-            console.log('   Phone:', finalUserPhone)
           } else {
             console.warn('⚠️ Profile not found for user_id:', recentSession.user_id)
             // Still use the user_id from session
             finalUserId = recentSession.user_id
-            if (!finalUserEmail) {
-              finalUserEmail = `user-${recentSession.user_id.slice(0, 8)}@ongeapesa.com`
-            }
+            finalUserEmail = `user-${recentSession.user_id.slice(0, 8)}@ongeapesa.com`
             console.log('✅ Using user_id from session without full profile')
           }
         } else {
@@ -587,47 +533,15 @@ export async function POST(request: NextRequest) {
     console.log('Response:', JSON.stringify(response, null, 2))
     console.log('=== WEBHOOK COMPLETED ===\n')
     
-    // Log successful request
-    logRequest({
-      timestamp: new Date().toISOString(),
-      method: 'POST',
-      url: request.url,
-      headers: Object.fromEntries(request.headers),
-      body: body,
-      query: Object.fromEntries(new URL(request.url).searchParams),
-      user_id: finalUserId,
-      n8n_response: n8nResult,
-      success: true,
-      duration_ms: Date.now() - startTime
-    })
-    
     return NextResponse.json(response)
 
   } catch (error) {
-    console.error('❌ VOICE WEBHOOK ERROR ❌')
-    console.error('Error:', error)
-    console.error('Stack:', error instanceof Error ? error.stack : 'No stack trace')
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
-    // Log failed request
-    logRequest({
-      timestamp: new Date().toISOString(),
-      method: 'POST',
-      url: request.url,
-      headers: Object.fromEntries(request.headers),
-      body: {},
-      query: Object.fromEntries(new URL(request.url).searchParams),
-      error: errorMessage,
-      success: false,
-      duration_ms: Date.now() - startTime
-    })
-    
+    console.error('Voice webhook error:', error)
     return NextResponse.json(
       { 
         error: 'Internal server error', 
         success: false,
-        details: errorMessage
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )
