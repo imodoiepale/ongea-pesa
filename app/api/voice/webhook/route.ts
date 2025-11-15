@@ -270,7 +270,7 @@ export async function POST(request: NextRequest) {
     console.log('');
     
     // Forward to n8n webhook
-    const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || 'https://primary-production-579c.up.railway.app/webhook-test/send_money';
+    const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || 'https://primary-production-579c.up.railway.app/webhook/send_money';
     console.log('🎯 n8n URL:', n8nWebhookUrl);
     console.log('📨 Complete Payload to n8n:', JSON.stringify(n8nPayload, null, 2));
     

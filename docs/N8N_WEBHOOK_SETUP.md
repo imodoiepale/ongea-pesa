@@ -24,7 +24,7 @@ The webhook is sending data to n8n successfully, but getting a 404 error:
 
 **New URL (as of this fix):**
 ```
-https://primary-production-579c.up.railway.app/webhook-test/send_money
+https://primary-production-579c.up.railway.app/webhook/send_money
 ```
 
 **Previous URL (404 error):**
@@ -58,7 +58,7 @@ The webhook sends a complete payload with all user context:
 ## What n8n Workflow Should Do
 
 ### 1. Receive POST Request
-- Endpoint: `/webhook-test/send_money`
+- Endpoint: `/webhook/send_money`
 - Method: `POST`
 - Content-Type: `application/json`
 
@@ -98,7 +98,7 @@ In n8n dashboard:
 ### 2. Configure Webhook Node
 ```yaml
 Method: POST
-Path: /webhook-test/send_money
+Path: /webhook/send_money
 Authentication: None (handled by Vercel)
 Response: 
   - Mode: Last Node
@@ -109,7 +109,7 @@ Response:
 After activation, test with curl:
 
 ```bash
-curl -X POST https://primary-production-579c.up.railway.app/webhook-test/send_money \
+curl -X POST https://primary-production-579c.up.railway.app/webhook/send_money \
   -H "Content-Type: application/json" \
   -d '{
     "summary": "Test transaction",
@@ -139,7 +139,7 @@ Expected response:
 You can override the webhook URL by setting this in Vercel:
 
 ```env
-N8N_WEBHOOK_URL=https://primary-production-579c.up.railway.app/webhook-test/send_money
+N8N_WEBHOOK_URL=https://primary-production-579c.up.railway.app/webhook/send_money
 ```
 
 **To set in Vercel:**
@@ -153,7 +153,7 @@ N8N_WEBHOOK_URL=https://primary-production-579c.up.railway.app/webhook-test/send
 ### Issue: Still Getting 404
 **Solutions:**
 1. Verify workflow is **ACTIVE** in n8n (toggle on)
-2. Check webhook path exactly matches: `/webhook-test/send_money`
+2. Check webhook path exactly matches: `/webhook/send_money`
 3. Ensure workflow is saved after changes
 4. Check n8n logs for errors
 
