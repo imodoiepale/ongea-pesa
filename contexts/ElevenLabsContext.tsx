@@ -42,6 +42,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     onDisconnect: () => {
       console.log('🎙️ Global ElevenLabs disconnected');
       setIsConnected(false);
+      setIsLoading(false); // Reset loading state to prevent stuck state
     },
     onMessage: (message: any) => {
       console.log('📨 ElevenLabs message:', message);
@@ -65,6 +66,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     onError: (error: any) => {
       console.error('🔴 Global ElevenLabs error:', error);
       setIsLoading(false);
+      setIsConnected(false); // Ensure disconnected state on error
     }
   });
 

@@ -21,6 +21,8 @@ export async function POST(request: NextRequest) {
     let userBalance = 0;
     let userName = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
     
+    console.log('🔍 Fetching balance for user:', user.id, user.email);
+    
     try {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -28,13 +30,22 @@ export async function POST(request: NextRequest) {
         .eq('id', user.id)
         .single();
       
-      if (profile && !profileError) {
+      console.log('📊 Profile query result:', { profile, error: profileError });
+      
+      if (profileError) {
+        console.error('❌ Profile fetch error:', profileError);
+      }
+      
+      if (profile) {
         userBalance = profile.wallet_balance || 0;
         userName = profile.name || userName;
-        console.log('Fetched user balance:', userBalance, 'for user:', userName);
+        console.log('✅ Fetched user balance:', userBalance, 'for user:', userName);
+        console.log('📦 Full profile data:', profile);
+      } else {
+        console.warn('⚠️ No profile found for user:', user.id);
       }
     } catch (balanceError) {
-      console.error('Failed to fetch balance, using default 0:', balanceError);
+      console.error('❌ Failed to fetch balance, using default 0:', balanceError);
     }
 
     // Validate environment variables
