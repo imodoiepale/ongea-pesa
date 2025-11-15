@@ -82,25 +82,24 @@ export async function POST(request: NextRequest) {
       console.log('⚠️ No user context found, checking voice_sessions...');
       console.log('Looking for conversation_id:', conversationId);
       
-      // Try to find active session by conversation_id
+      // Try to find active session by conversation_id OR most recent active session
       let sessionQuery = supabase
         .from('voice_sessions')
         .select(`
           user_id,
           session_id,
-          profiles!inner (
-            id,
-            email,
-            phone,
-            name,
-            wallet_balance
-          )
+          status,
+          created_at,
+          agent_id
         `)
         .eq('status', 'active')
         .gte('expires_at', new Date().toISOString());
       
       if (conversationId) {
+        console.log('🔍 Searching by conversation_id:', conversationId);
         sessionQuery = sessionQuery.eq('session_id', conversationId);
+      } else {
+        console.log('🔍 No conversation_id provided, searching for most recent active session');
       }
       
       const { data: sessions, error: sessionError } = await sessionQuery
@@ -111,22 +110,35 @@ export async function POST(request: NextRequest) {
       console.log('Error:', sessionError);
       console.log('Active sessions found:', sessions?.length || 0);
       
-      if (sessions && sessions.length > 0 && sessions[0].profiles) {
-        const profile = Array.isArray(sessions[0].profiles) ? sessions[0].profiles[0] : sessions[0].profiles;
+      // If we found an active session, get the user profile
+      if (sessions && sessions.length > 0) {
+        const session = sessions[0];
+        console.log('✅ Found active voice session:', session.session_id);
+        
+        // Now get the user profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, email, phone_number, wallet_balance')
+          .eq('id', session.user_id)
+          .single();
+        
         if (profile) {
           userContext = {
             user_id: profile.id,
             user_email: profile.email,
-            user_phone: profile.phone || '254712345678',
-            user_name: profile.name || profile.email?.split('@')[0] || 'User',
+            user_phone: profile.phone_number || '254712345678',
+            user_name: profile.email?.split('@')[0] || 'User',
             balance: profile.wallet_balance || 0
           };
           console.log('✅ Found user from voice_sessions:', userContext);
         } else {
-          console.error('❌ Profile data is empty');
+          console.error('❌ Profile not found for session user_id:', session.user_id);
         }
       } else {
         console.error('❌ No active voice sessions found');
+        if (sessionError) {
+          console.error('Session query error details:', sessionError);
+        }
       }
     }
     
@@ -140,9 +152,9 @@ export async function POST(request: NextRequest) {
         user_email: userEmail || 'test@example.com',
         user_phone: '254712345678',
         user_name: 'Test User',
-        balance: 0
+        balance: 50000 // Test balance of KSh 50,000 for testing
       };
-      console.log('⚠️ Using test mode with zero balance');
+      console.log('⚠️ Using test mode with balance:', userContext.balance);
     }
     
     console.log('📤 Final user data for n8n:');

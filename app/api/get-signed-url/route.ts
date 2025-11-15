@@ -126,13 +126,42 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Successfully generated signed URL for user:', user.email);
 
+    // Create or update voice session in database
+    // This allows the webhook to identify the user even without conversation_id
+    const sessionId = `session_${user.id}_${Date.now()}`;
+    const expiresAt = new Date(Date.now() + 900000).toISOString(); // 15 minutes from now (matches schema default)
+
+    console.log('📝 Creating voice session:', sessionId);
+    const { data: sessionData, error: sessionError } = await supabase
+      .from('voice_sessions')
+      .upsert({
+        user_id: user.id,
+        session_id: sessionId,
+        agent_id: agentId,
+        signed_url: data.signed_url,
+        status: 'active',
+        expires_at: expiresAt
+      }, {
+        onConflict: 'session_id'
+      })
+      .select()
+      .single();
+
+    if (sessionError) {
+      console.error('⚠️ Failed to create voice session:', sessionError);
+      console.error('Session will work but user identification may fall back to test mode');
+    } else {
+      console.log('✅ Voice session created:', sessionData);
+    }
+
     // Return signed URL along with user context
     return NextResponse.json({
       signedUrl: data.signed_url,
       userId: user.id,
       userEmail: user.email,
       balance: userBalance,
-      userName: userName
+      userName: userName,
+      sessionId: sessionId
     });
 
   } catch (error) {
