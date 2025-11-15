@@ -5,10 +5,46 @@ import { createClient } from '@/lib/supabase/server'
 const N8N_WEBHOOK_URL = 'https://primary-production-579c.up.railway.app/webhook/send_money'
 const N8N_AUTH_TOKEN = process.env.N8N_WEBHOOK_AUTH_TOKEN || '' // Add this to .env.local
 
+// In-memory request log storage
+const requestLogs: Array<{
+  id: string
+  timestamp: string
+  method: string
+  url: string
+  headers: Record<string, string>
+  body: any
+  query: Record<string, string>
+  user_id?: string
+  error?: string
+  n8n_response?: any
+  success: boolean
+}> = []
+
+const MAX_LOGS = 50 // Keep last 50 requests
+
+function logRequest(log: any) {
+  requestLogs.unshift({ id: `req_${Date.now()}`, ...log })
+  if (requestLogs.length > MAX_LOGS) {
+    requestLogs.pop()
+  }
+  console.log('📝 Request logged. Total logs:', requestLogs.length)
+}
+
+// Export logs for the logs endpoint
+export function getRequestLogs() {
+  return requestLogs
+}
+
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  const requestId = `req_${startTime}`
+  
   try {
     // Log incoming request details
-    console.log('\n=== VOICE WEBHOOK CALLED ===')
+    console.log('\n========================================')
+    console.log('🎙️ VOICE WEBHOOK CALLED')
+    console.log('========================================')
+    console.log('Request ID:', requestId)
     console.log('Timestamp:', new Date().toISOString())
     console.log('Request URL:', request.url)
     console.log('Request Headers:', Object.fromEntries(request.headers))
@@ -533,15 +569,47 @@ export async function POST(request: NextRequest) {
     console.log('Response:', JSON.stringify(response, null, 2))
     console.log('=== WEBHOOK COMPLETED ===\n')
     
+    // Log successful request
+    logRequest({
+      timestamp: new Date().toISOString(),
+      method: 'POST',
+      url: request.url,
+      headers: Object.fromEntries(request.headers),
+      body: body,
+      query: Object.fromEntries(new URL(request.url).searchParams),
+      user_id: finalUserId,
+      n8n_response: n8nResult,
+      success: true,
+      duration_ms: Date.now() - startTime
+    })
+    
     return NextResponse.json(response)
 
   } catch (error) {
-    console.error('Voice webhook error:', error)
+    console.error('❌ VOICE WEBHOOK ERROR ❌')
+    console.error('Error:', error)
+    console.error('Stack:', error instanceof Error ? error.stack : 'No stack trace')
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // Log failed request
+    logRequest({
+      timestamp: new Date().toISOString(),
+      method: 'POST',
+      url: request.url,
+      headers: Object.fromEntries(request.headers),
+      body: {},
+      query: Object.fromEntries(new URL(request.url).searchParams),
+      error: errorMessage,
+      success: false,
+      duration_ms: Date.now() - startTime
+    })
+    
     return NextResponse.json(
       { 
         error: 'Internal server error', 
         success: false,
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: errorMessage
       },
       { status: 500 }
     )
