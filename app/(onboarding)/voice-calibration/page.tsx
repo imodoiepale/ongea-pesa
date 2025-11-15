@@ -1,4 +1,5 @@
 // app/(onboarding)/voice-calibration/page.tsx
+"use client"
 
 import { VoiceCalibrationScreen } from '@/components/ongea-pesa/voice-calibration';
 
