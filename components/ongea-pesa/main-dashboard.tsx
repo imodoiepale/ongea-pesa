@@ -29,6 +29,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
   const [balance, setBalance] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [isBalanceSheetOpen, setIsBalanceSheetOpen] = useState(false)
+  const [showVoiceInterface, setShowVoiceInterface] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -337,6 +338,22 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
           console.log('✅ Balance updated to:', newBalance)
         }}
       />
+
+      {/* Voice Interface Modal */}
+      {showVoiceInterface && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm">
+          <div className="relative h-full">
+            <Button
+              onClick={() => setShowVoiceInterface(false)}
+              variant="ghost"
+              className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
+            >
+              ✕
+            </Button>
+            <VoiceInterface />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
