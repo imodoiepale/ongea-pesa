@@ -135,13 +135,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           const balance = data.balance || 0;
           setUserBalance(balance);
-          
-          // Send balance to ElevenLabs conversation context
-          if (isConnected) {
-            // Store balance in state for AI to access
-            console.log('💰 Balance updated for ElevenLabs context:', balance);
-            // The AI agent will have access to this via the conversation session
-          }
+          console.log('💰 Balance updated for ElevenLabs context:', balance);
         }
       } catch (error) {
         console.error('Failed to fetch balance:', error);
@@ -155,7 +149,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     const balanceInterval = setInterval(fetchBalance, 10000);
 
     return () => clearInterval(balanceInterval);
-  }, [userId, isConnected, conversation]);
+  }, [userId]); // Only depend on userId to prevent interference with conversation
 
   // Manual start function exposed for components to use
   const startElevenLabsSession = async () => {
@@ -164,17 +158,20 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Check if already connected to prevent duplicate sessions
-    if (conversation.status === 'connected') {
-      console.log('⚠️ Session already active, skipping duplicate start');
-      setIsConnected(true);
+    // Comprehensive guard: check if already connected OR connecting
+    const currentStatus = conversation.status;
+    if (currentStatus === 'connected' || currentStatus === 'connecting') {
+      console.log('⚠️ Session already active or connecting (status:', currentStatus, '), skipping duplicate start');
+      if (currentStatus === 'connected') {
+        setIsConnected(true);
+      }
       setIsLoading(false);
       return;
     }
 
-    // If loading, don't start another
+    // If loading flag is set, don't start another
     if (isLoading) {
-      console.log('⚠️ Session already starting, please wait');
+      console.log('⚠️ Session already starting (loading flag set), please wait');
       return;
     }
 
