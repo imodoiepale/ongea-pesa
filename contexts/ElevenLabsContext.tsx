@@ -100,7 +100,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   };
 
   // Get signed URL for ElevenLabs
-  const getSignedUrl = async (): Promise<{ signedUrl: string; balance: number; userName: string }> => {
+  const getSignedUrl = async (): Promise<{ signedUrl: string; balance: number; userName: string; userEmail: string; userId: string }> => {
     try {
       const response = await fetch('/api/get-signed-url', {
         method: 'POST',
@@ -113,9 +113,9 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
         throw new Error('Failed to get signed URL');
       }
       
-      const { signedUrl, userId: returnedUserId, balance, userName } = await response.json();
-      console.log('✅ Got signed URL for userId:', returnedUserId, 'balance:', balance, 'name:', userName);
-      return { signedUrl, balance, userName };
+      const { signedUrl, userId: returnedUserId, balance, userName, userEmail } = await response.json();
+      console.log('✅ Got signed URL for userId:', returnedUserId, 'email:', userEmail, 'balance:', balance, 'name:', userName);
+      return { signedUrl, balance, userName, userEmail, userId: returnedUserId };
     } catch (error) {
       console.error('❌ Error getting signed URL:', error);
       throw error;
@@ -180,12 +180,16 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       console.log('🚀 Starting global ElevenLabs session for userId:', userId);
       
-      const { signedUrl, balance, userName } = await getSignedUrl();
+      const { signedUrl, balance, userName, userEmail, userId: returnedUserId } = await getSignedUrl();
       
-      // Append userId, balance, and userName to URL for 11labs agent
-      const urlWithContext = `${signedUrl}&user_id=${encodeURIComponent(userId)}&balance=${encodeURIComponent(balance)}&user_name=${encodeURIComponent(userName)}`;
+      // Append user context to URL - ElevenLabs will pass these to webhook
+      const urlWithContext = `${signedUrl}&user_id=${encodeURIComponent(returnedUserId)}&user_email=${encodeURIComponent(userEmail)}&balance=${encodeURIComponent(balance)}&user_name=${encodeURIComponent(userName)}`;
       
-      console.log('💰 Sending balance to 11labs:', balance, 'for user:', userName);
+      console.log('💰 Sending user context to ElevenLabs:');
+      console.log('  - userId:', returnedUserId);
+      console.log('  - userEmail:', userEmail);
+      console.log('  - balance:', balance);
+      console.log('  - userName:', userName);
       
       await conversation.startSession({ 
         signedUrl: urlWithContext
