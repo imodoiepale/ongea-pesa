@@ -350,7 +350,10 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
             >
               ✕
             </Button>
-            <VoiceInterface />
+            <VoiceInterface onNavigate={(screen) => {
+              setShowVoiceInterface(false)
+              handleNavigate(screen)
+            }} />
           </div>
         </div>
       )}
