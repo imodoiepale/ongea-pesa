@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       console.log('🔍 Looking up user by user_id:', userId);
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, email, phone, name, wallet_balance')
+        .select('id, email, phone_number, wallet_balance')
         .eq('id', userId)
         .single();
       
@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
         userContext = {
           user_id: profile.id,
           user_email: profile.email,
-          user_phone: profile.phone || '254712345678',
-          user_name: profile.name || profile.email?.split('@')[0] || 'User',
+          user_phone: profile.phone_number || '254712345678',
+          user_name: profile.email?.split('@')[0] || 'User',
           balance: profile.wallet_balance || 0
         };
         console.log('✅ Found user by user_id:', userContext);
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       console.log('🔍 Looking up user by email:', userEmail);
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, email, phone, name, wallet_balance')
+        .select('id, email, phone_number, wallet_balance')
         .eq('email', userEmail)
         .single();
       
@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
         userContext = {
           user_id: profile.id,
           user_email: profile.email,
-          user_phone: profile.phone || '254712345678',
-          user_name: profile.name || profile.email?.split('@')[0] || 'User',
+          user_phone: profile.phone_number || '254712345678',
+          user_name: profile.email?.split('@')[0] || 'User',
           balance: profile.wallet_balance || 0
         };
         console.log('✅ Found user by email:', userContext);

@@ -36,11 +36,15 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   const conversation = useConversation({
     onConnect: () => {
       console.log('🎙️ Global ElevenLabs connected');
+      console.log('📊 Connection status:', conversation.status);
       setIsConnected(true);
       setIsLoading(false);
     },
-    onDisconnect: () => {
+    onDisconnect: (reason?: any) => {
       console.log('🎙️ Global ElevenLabs disconnected');
+      console.log('📊 Disconnect reason:', reason);
+      console.log('📊 Final status:', conversation.status);
+      console.trace('Disconnect call stack');
       setIsConnected(false);
       setIsLoading(false); // Reset loading state to prevent stuck state
     },
@@ -65,8 +69,13 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     },
     onError: (error: any) => {
       console.error('🔴 Global ElevenLabs error:', error);
+      console.error('🔴 Error details:', JSON.stringify(error, null, 2));
+      console.error('🔴 Current status:', conversation.status);
       setIsLoading(false);
       setIsConnected(false); // Ensure disconnected state on error
+    },
+    onStatusChange: (status: any) => {
+      console.log('📊 ElevenLabs status changed:', status);
     }
   });
 
@@ -179,20 +188,35 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       console.log('🚀 Starting global ElevenLabs session for userId:', userId);
       
+      // Request microphone permissions BEFORE starting session
+      console.log('🎤 Requesting microphone permissions...');
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('✅ Microphone access granted');
+      } catch (micError) {
+        console.error('❌ Microphone access denied:', micError);
+        setIsLoading(false);
+        setIsConnected(false);
+        throw new Error('Microphone access is required for voice interaction');
+      }
+      
       const { signedUrl, balance, userName, userEmail, userId: returnedUserId } = await getSignedUrl();
+      console.log('📝 Received signed URL (first 100 chars):', signedUrl.substring(0, 100));
       
-      // Append user context to URL - ElevenLabs will pass these to webhook
-      const urlWithContext = `${signedUrl}&user_id=${encodeURIComponent(returnedUserId)}&user_email=${encodeURIComponent(userEmail)}&balance=${encodeURIComponent(balance)}&user_name=${encodeURIComponent(userName)}`;
-      
-      console.log('💰 Sending user context to ElevenLabs:');
+      // Note: user_id and user_email are now embedded in the signed URL from the API
+      // They were passed when requesting the signed URL, not appended here
+      console.log('💰 User context embedded in signed URL:');
       console.log('  - userId:', returnedUserId);
       console.log('  - userEmail:', userEmail);
       console.log('  - balance:', balance);
       console.log('  - userName:', userName);
+      console.log('📡 Starting session with conversation.startSession()...');
       
       await conversation.startSession({ 
-        signedUrl: urlWithContext
+        signedUrl: signedUrl
       });
+      
+      console.log('✅ conversation.startSession() completed - waiting for onConnect callback');
       
       // Update local balance state
       setUserBalance(balance);
