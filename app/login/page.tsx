@@ -87,9 +87,14 @@ export default function LoginPage() {
             />
           </div>
           <div className="mb-6">
-            <label className="block text-sm font-medium text-foreground mb-2" htmlFor="password">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-foreground" htmlFor="password">
+                Password
+              </label>
+              <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                Forgot Password?
+              </Link>
+            </div>
             <input
               className="w-full py-3 px-4 bg-input text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300 placeholder:text-muted-foreground"
               id="password"
