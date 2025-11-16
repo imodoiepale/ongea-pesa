@@ -13,8 +13,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract gate_name from email (everything before @)
-    const gateName = email.split('@')[0];
+    // Extract gate_name from email and make it unique with user ID
+    const emailPrefix = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '_');
+    const userIdShort = userId.split('-')[0]; // First segment of UUID
+    const gateName = `${emailPrefix}_${userIdShort}`;
 
     // Prepare form data for gate creation
     const formData = new FormData();

@@ -60,8 +60,10 @@ export async function POST(request: NextRequest) {
       const userEmail = newUser.email!;
       console.log(`Creating gate for newly created user: ${userEmail}`);
       
-      // Extract gate_name from email
-      const newGateName = userEmail.split('@')[0];
+      // Extract gate_name from email and make it unique with user ID
+      const newEmailPrefix = userEmail.split('@')[0].replace(/[^a-zA-Z0-9]/g, '_');
+      const newUserIdShort = user.id.split('-')[0]; // First segment of UUID
+      const newGateName = `${newEmailPrefix}_${newUserIdShort}`;
       
       // Prepare form data
       const newFormData = new FormData();
@@ -151,8 +153,10 @@ export async function POST(request: NextRequest) {
 
     console.log(`Creating gate for existing user: ${userData.email}`);
 
-    // Extract gate_name from email
-    const gateName = userData.email.split('@')[0];
+    // Extract gate_name from email and make it unique with user ID
+    const emailPrefix = userData.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '_');
+    const userIdShort = user.id.split('-')[0]; // First segment of UUID
+    const gateName = `${emailPrefix}_${userIdShort}`;
 
     // Prepare form data for gate creation
     const formData = new FormData();
