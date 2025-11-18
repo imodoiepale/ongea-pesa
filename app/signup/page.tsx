@@ -36,33 +36,9 @@ export default function SignupPage() {
     if (error) {
       setError(error.message);
     } else if (data.user) {
-      // Create payment gate for the new user
-      try {
-        const gateResponse = await fetch('/api/gate/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            email,
-            userId: data.user.id 
-          }),
-        });
-
-        const gateData = await gateResponse.json();
-
-        if (!gateResponse.ok) {
-          console.error('Gate creation failed:', gateData.error);
-          // Don't fail signup if gate creation fails, just log it
-        } else {
-          console.log('Gate created successfully:', gateData);
-        }
-      } catch (gateError) {
-        console.error('Error creating gate:', gateError);
-        // Don't fail signup if gate creation fails
-      }
-
-      setSuccess('Success! Please check your email for a confirmation link.');
+      // Wallet will be created automatically after email confirmation
+      console.log('User signed up:', data.user.email);
+      setSuccess('Success! Please check your email for a confirmation link. Your wallet will be created once you confirm your email.');
     }
   };
 

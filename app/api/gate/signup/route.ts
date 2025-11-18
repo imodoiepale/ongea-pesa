@@ -6,6 +6,8 @@ export async function POST(request: NextRequest) {
   try {
     const { email, userId } = await request.json();
 
+    console.log('🔧 Gate signup request for:', email, userId);
+
     if (!email || !userId) {
       return NextResponse.json(
         { error: 'Email and userId are required' },
@@ -13,10 +15,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Use service role client to check/create profile and gate
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    // Check if user already has a gate
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('gate_id, gate_name')
+      .eq('id', userId)
+      .single();
+
+    if (existingProfile?.gate_id && existingProfile?.gate_name) {
+      console.log('✅ User already has wallet:', existingProfile.gate_id);
+      return NextResponse.json({
+        success: true,
+        message: 'Gate already exists',
+        gate_id: existingProfile.gate_id,
+        gate_name: existingProfile.gate_name,
+        alreadyExists: true,
+      });
+    }
+
     // Extract gate_name from email and make it unique with user ID
     const emailPrefix = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '_');
     const userIdShort = userId.split('-')[0]; // First segment of UUID
     const gateName = `${emailPrefix}_${userIdShort}`;
+
+    console.log('🏗️ Creating new wallet:', gateName);
 
     // Prepare form data for gate creation
     const formData = new FormData();
@@ -39,48 +73,45 @@ export async function POST(request: NextRequest) {
     });
 
     if (!gateResponse.ok) {
-      throw new Error('Failed to create gate with external API');
+      const errorText = await gateResponse.text();
+      console.error('❌ External API error:', gateResponse.status, errorText);
+      throw new Error(`External API error: ${gateResponse.status}`);
     }
 
     const gateData = await gateResponse.json();
+    console.log('📡 Gate API response:', gateData);
 
     // Check if gate creation was successful
     if (!gateData.status) {
+      console.error('❌ Gate creation failed:', gateData.Message);
       return NextResponse.json(
         { error: gateData.Message || 'Gate creation failed' },
         { status: 400 }
       );
     }
 
-    // Use service role client to bypass RLS for initial setup
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
-
-    // Update user with gate_id and gate_name
-    const { error: updateError } = await supabaseAdmin
+    // Ensure profile exists before updating
+    const { error: upsertError } = await supabaseAdmin
       .from('profiles')
-      .update({
+      .upsert({
+        id: userId,
+        email: email,
         gate_id: gateData.gate_id,
         gate_name: gateData.gate_name,
         updated_at: new Date().toISOString(),
-      })
-      .eq('id', userId);
+      }, {
+        onConflict: 'id'
+      });
 
-    if (updateError) {
-      console.error('Failed to update profile with gate info:', updateError);
+    if (upsertError) {
+      console.error('❌ Failed to update profile:', upsertError);
       return NextResponse.json(
-        { error: 'Failed to save gate information to database' },
+        { error: 'Failed to save gate information to database', details: upsertError.message },
         { status: 500 }
       );
     }
+
+    console.log('✅ Wallet created successfully:', gateData.gate_id, gateData.gate_name);
 
     return NextResponse.json({
       success: true,
@@ -89,10 +120,10 @@ export async function POST(request: NextRequest) {
       gate_name: gateData.gate_name,
     });
 
-  } catch (error) {
-    console.error('Gate creation error:', error);
+  } catch (error: any) {
+    console.error('❌ Gate creation error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error?.message },
       { status: 500 }
     );
   }

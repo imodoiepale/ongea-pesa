@@ -24,45 +24,46 @@ export default function LoginPage() {
 
     if (error) {
       setError(error.message);
-    } else {
-      // Ensure user has a payment gate (create if missing)
-      try {
-        const gateResponse = await fetch('/api/gate/ensure', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const gateData = await gateResponse.json();
-
-        if (gateResponse.ok) {
-          if (gateData.created) {
-            console.log('🎉 Payment gate created on login!');
-            console.log('Gate ID:', gateData.gate_id);
-            console.log('Gate Name:', gateData.gate_name);
-            console.log('User Email:', email);
-          } else if (gateData.hasGate) {
-            console.log('✅ Payment gate already exists');
-            console.log('Gate ID:', gateData.gate_id);
-            console.log('Gate Name:', gateData.gate_name);
-            console.log('User Email:', email);
-          } else {
-            console.warn('⚠️ Gate not created yet:', gateData.message);
-          }
-        } else {
-          console.error('❌ Gate check failed (non-blocking):', gateData.error);
-          console.error('Details:', gateData.details || 'No additional details');
-          // Don't fail login if gate creation fails
-        }
-      } catch (gateError) {
-        console.error('⚠️ Gate check failed (non-blocking):', gateError);
-        // Don't fail login if gate check fails
-      }
-
-      router.push('/');
-      router.refresh();
+      return;
     }
+
+    // Ensure user has a payment gate (create if missing)
+    try {
+      console.log('🔍 Checking wallet for user:', email);
+      
+      const gateResponse = await fetch('/api/gate/ensure', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const gateData = await gateResponse.json();
+
+      if (gateResponse.ok) {
+        if (gateData.created) {
+          console.log('🎉 Wallet created on login!');
+          console.log('Gate ID:', gateData.gate_id);
+          console.log('Gate Name:', gateData.gate_name);
+        } else if (gateData.hasGate) {
+          console.log('✅ Wallet already exists');
+          console.log('Gate ID:', gateData.gate_id);
+          console.log('Gate Name:', gateData.gate_name);
+        } else {
+          console.warn('⚠️ Wallet not ready:', gateData.message);
+        }
+      } else {
+        console.error('❌ Wallet check failed (non-blocking):', gateData.error);
+        // Don't fail login if gate creation fails
+      }
+    } catch (gateError) {
+      console.error('⚠️ Wallet check error (non-blocking):', gateError);
+      // Don't fail login if gate check fails
+    }
+
+    // Proceed to home page
+    router.push('/');
+    router.refresh();
   };
 
   return (
