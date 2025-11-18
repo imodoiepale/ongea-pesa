@@ -131,27 +131,47 @@ export async function POST(request: NextRequest) {
         .eq('id', user.id); 
     }
 
+    // Extract transaction reference from response
+    const transactionRef = depositData.transaction_id || depositData.TransactionID || depositData.reference;
+
     // Create transaction record for the deposit
-    const { error: txError } = await supabase
+    const { data: txData, error: txError } = await supabase
       .from('transactions')
       .insert({
         user_id: user.id,
         type: 'deposit',
         amount: depositAmount,
         phone: phone,
-        status: 'pending', // Will be updated via webhook when M-Pesa confirms
+        status: 'pending', // Will be updated via polling
         voice_command_text: `M-Pesa deposit of KSh ${depositAmount.toLocaleString()} from ${phone}`,
+        metadata: {
+          external_reference: transactionRef,
+          gate_name: userData.gate_name,
+          payment_mode: 'MPESA',
+          initiated_at: new Date().toISOString(),
+          ...depositData
+        },
         created_at: new Date().toISOString()
-      });
+      })
+      .select()
+      .single();
 
     if (txError) {
       console.error('⚠️ Failed to create transaction record:', txError);
       // Don't fail the request, just log the error
     }
 
+    const transactionId = txData?.id;
+
+    console.log(`📝 Transaction record created: ${transactionId}`);
+    console.log(`🔄 Transaction will be polled for status updates`);
+
     return NextResponse.json({
       success: true,
       message: 'Deposit initiated successfully. Check your phone for M-Pesa prompt.',
+      transaction_id: transactionId,
+      transaction_reference: transactionRef,
+      polling_enabled: true,
       transaction_data: {
         amount: depositAmount,
         phone: phone,

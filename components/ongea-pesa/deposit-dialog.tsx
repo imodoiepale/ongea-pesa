@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Wallet, Phone, DollarSign, Loader2 } from 'lucide-react';
+import { X, Wallet, Phone, DollarSign, Loader2, CheckCircle2, Clock } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useTransactionPolling } from '@/hooks/use-transaction-polling';
 
 interface DepositDialogProps {
   isOpen: boolean;
@@ -18,6 +19,47 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [transactionId, setTransactionId] = useState<string | null>(null);
+  const [depositAmount, setDepositAmount] = useState<number>(0);
+
+  // Transaction polling hook
+  const polling = useTransactionPolling({
+    transactionId: transactionId || '',
+    gateName: gateName,
+    enabled: !!transactionId && !!gateName,
+    maxAttempts: 60, // 5 minutes
+    intervalMs: 5000, // Check every 5 seconds
+    onSuccess: (data) => {
+      setSuccess('✅ Payment confirmed! Your wallet has been credited.');
+      setLoading(false);
+      
+      if (onSuccess) {
+        onSuccess(depositAmount);
+      }
+
+      // Close dialog after showing success
+      setTimeout(() => {
+        onClose();
+        setSuccess('');
+        setTransactionId(null);
+      }, 3000);
+    },
+    onFailure: (message) => {
+      setError(message || '❌ Transaction failed. Please try again.');
+      setLoading(false);
+      setTransactionId(null);
+    },
+    onTimeout: () => {
+      setSuccess('⏱️ Transaction is taking longer than expected. Check your M-Pesa messages or wallet balance.');
+      setLoading(false);
+      setTransactionId(null);
+      
+      // Still notify success callback as transaction might succeed
+      if (onSuccess) {
+        onSuccess(depositAmount);
+      }
+    },
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -57,15 +99,15 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
     setLoading(true);
 
     try {
-      const depositAmount = parseFloat(amount);
+      const amountValue = parseFloat(amount);
       
-      if (isNaN(depositAmount) || depositAmount <= 0) {
+      if (isNaN(amountValue) || amountValue <= 0) {
         setError('Please enter a valid amount greater than 0');
         setLoading(false);
         return;
       }
 
-      if (depositAmount < 10) {
+      if (amountValue < 10) {
         setError('Minimum deposit amount is KSh 10');
         setLoading(false);
         return;
@@ -83,7 +125,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: depositAmount,
+          amount: amountValue,
           phone: phone,
         }),
       });
@@ -91,25 +133,31 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess(data.message || 'Deposit initiated! Check your phone for M-Pesa prompt.');
+        setSuccess('📱 M-Pesa prompt sent! Waiting for payment confirmation...');
         setAmount('');
+        setDepositAmount(amountValue);
         
-        // Call success callback
-        if (onSuccess) {
-          onSuccess(depositAmount);
+        // Start polling if transaction ID is available
+        if (data.transaction_id) {
+          setTransactionId(data.transaction_id);
+          // Polling hook will take over from here
+        } else {
+          // Fallback if no transaction ID (shouldn't happen)
+          setLoading(false);
+          if (onSuccess) {
+            onSuccess(amountValue);
+          }
+          setTimeout(() => {
+            onClose();
+            setSuccess('');
+          }, 3000);
         }
-
-        // Close dialog after 3 seconds
-        setTimeout(() => {
-          onClose();
-          setSuccess('');
-        }, 3000);
       } else {
         setError(data.error || 'Failed to initiate deposit');
+        setLoading(false);
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -246,6 +294,23 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
               {success && (
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-3">
                   <p className="text-sm text-green-700 dark:text-green-400">{success}</p>
+                </div>
+              )}
+
+              {/* Polling Status */}
+              {polling.isPolling && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3">
+                  <div className="flex items-center gap-2">
+                    <Clock className="animate-pulse text-blue-600" size={18} />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                        Checking transaction status...
+                      </p>
+                      <p className="text-xs text-blue-600 dark:text-blue-500 mt-1">
+                        Attempt {polling.attempts} - This usually takes 10-30 seconds
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
