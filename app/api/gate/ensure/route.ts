@@ -87,6 +87,8 @@ export async function POST(request: NextRequest) {
       
       if (newGateResponse.ok) {
         const newGateData = await newGateResponse.json();
+        console.log('📡 Gate API response for new user:', newGateData);
+        
         if (newGateData.status) {
           // Update user with gate info
           await supabase
@@ -109,6 +111,33 @@ export async function POST(request: NextRequest) {
             created: true,
             userCreated: true,
           });
+        } else if (newGateData.Message && newGateData.Message.includes('Selected Gate Exists')) {
+          // Gate already exists, link it
+          console.log('⚠️ Gate already exists for new user, linking...');
+          
+          if (newGateData.gate_id && newGateData.gate_name) {
+            await supabase
+              .from('profiles')
+              .update({
+                gate_id: newGateData.gate_id,
+                gate_name: newGateData.gate_name,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', user.id);
+            
+            console.log(`✅ Existing gate linked for new user: ${newGateData.gate_id} - ${newGateData.gate_name}`);
+            
+            return NextResponse.json({
+              success: true,
+              hasGate: true,
+              message: 'User created and existing gate linked',
+              gate_id: newGateData.gate_id,
+              gate_name: newGateData.gate_name,
+              created: false,
+              userCreated: true,
+              wasExisting: true,
+            });
+          }
         }
       }
       
@@ -183,9 +212,115 @@ export async function POST(request: NextRequest) {
     }
 
     const gateData = await gateResponse.json();
+    console.log('📡 Gate API response:', gateData);
 
     // Check if gate creation was successful
     if (!gateData.status) {
+      // Special case: If gate already exists, try to retrieve it
+      if (gateData.Message && gateData.Message.includes('Selected Gate Exists')) {
+        console.log('⚠️ Gate already exists externally, attempting to retrieve details...');
+        
+        // If the response includes gate_id and gate_name, use them directly
+        if (gateData.gate_id && gateData.gate_name) {
+          console.log('✅ Gate info retrieved from error response:', gateData.gate_id, gateData.gate_name);
+          
+          // Update user with existing gate info
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              gate_id: gateData.gate_id,
+              gate_name: gateData.gate_name,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', user.id);
+
+          if (updateError) {
+            console.error('Failed to update user with existing gate info:', updateError);
+            return NextResponse.json(
+              { error: 'Failed to link existing gate to database' },
+              { status: 500 }
+            );
+          }
+
+          console.log(`✅ Existing gate linked: ${gateData.gate_id} - ${gateData.gate_name}`);
+
+          return NextResponse.json({
+            success: true,
+            hasGate: true,
+            message: 'Existing gate linked successfully',
+            gate_id: gateData.gate_id,
+            gate_name: gateData.gate_name,
+            created: false,
+            wasExisting: true,
+          });
+        }
+        
+        // If gate_id and gate_name not in response, try to retrieve using request=6
+        console.log('🔍 Gate info not in response, attempting to retrieve with request=6...');
+        
+        const retrieveFormData = new FormData();
+        retrieveFormData.append('request', '6');
+        retrieveFormData.append('user_email', 'info@nsait.co.ke');
+        retrieveFormData.append('gate_name', gateName);
+        
+        try {
+          const retrieveResponse = await fetch('https://aps.co.ke/indexpay/api/get_transactions_2.php', {
+            method: 'POST',
+            body: retrieveFormData,
+          });
+          
+          if (retrieveResponse.ok) {
+            const retrieveData = await retrieveResponse.json();
+            console.log('📡 Gate retrieve response:', retrieveData);
+            
+            if (retrieveData.status && retrieveData.gate_id && retrieveData.gate_name) {
+              // Successfully retrieved gate details
+              const { error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                  gate_id: retrieveData.gate_id,
+                  gate_name: retrieveData.gate_name,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', user.id);
+
+              if (updateError) {
+                console.error('Failed to update user with retrieved gate info:', updateError);
+                return NextResponse.json(
+                  { error: 'Failed to link existing gate to database' },
+                  { status: 500 }
+                );
+              }
+
+              console.log(`✅ Existing gate retrieved and linked: ${retrieveData.gate_id} - ${retrieveData.gate_name}`);
+
+              return NextResponse.json({
+                success: true,
+                hasGate: true,
+                message: 'Existing gate retrieved and linked successfully',
+                gate_id: retrieveData.gate_id,
+                gate_name: retrieveData.gate_name,
+                created: false,
+                wasExisting: true,
+              });
+            }
+          }
+        } catch (retrieveError) {
+          console.error('Error retrieving gate details:', retrieveError);
+        }
+        
+        // If all retrieval attempts fail, return helpful error
+        console.error('❌ Could not retrieve gate details for existing gate');
+        return NextResponse.json(
+          { 
+            error: 'Gate exists but could not retrieve details',
+            message: 'Please contact support to link your existing wallet',
+            gate_name: gateName
+          },
+          { status: 400 }
+        );
+      }
+      
       return NextResponse.json(
         { error: gateData.Message || 'Gate creation failed' },
         { status: 400 }

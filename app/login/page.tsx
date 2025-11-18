@@ -45,6 +45,10 @@ export default function LoginPage() {
           console.log('🎉 Wallet created on login!');
           console.log('Gate ID:', gateData.gate_id);
           console.log('Gate Name:', gateData.gate_name);
+        } else if (gateData.wasExisting) {
+          console.log('🔗 Existing wallet linked successfully!');
+          console.log('Gate ID:', gateData.gate_id);
+          console.log('Gate Name:', gateData.gate_name);
         } else if (gateData.hasGate) {
           console.log('✅ Wallet already exists');
           console.log('Gate ID:', gateData.gate_id);

@@ -83,6 +83,113 @@ export async function POST(request: NextRequest) {
 
     // Check if gate creation was successful
     if (!gateData.status) {
+      // Special case: If gate already exists, try to retrieve it
+      if (gateData.Message && gateData.Message.includes('Selected Gate Exists')) {
+        console.log('⚠️ Gate already exists externally, attempting to retrieve...');
+        
+        // If the response includes gate_id and gate_name, use them
+        if (gateData.gate_id && gateData.gate_name) {
+          console.log('✅ Gate info retrieved from error response:', gateData.gate_id, gateData.gate_name);
+          
+          // Update profile with existing gate info
+          const { error: upsertError } = await supabaseAdmin
+            .from('profiles')
+            .upsert({
+              id: userId,
+              email: email,
+              gate_id: gateData.gate_id,
+              gate_name: gateData.gate_name,
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: 'id'
+            });
+
+          if (upsertError) {
+            console.error('❌ Failed to update profile:', upsertError);
+            return NextResponse.json(
+              { error: 'Failed to save existing gate information', details: upsertError.message },
+              { status: 500 }
+            );
+          }
+
+          console.log('✅ Existing wallet linked successfully:', gateData.gate_id, gateData.gate_name);
+
+          return NextResponse.json({
+            success: true,
+            message: 'Existing gate linked successfully',
+            gate_id: gateData.gate_id,
+            gate_name: gateData.gate_name,
+            wasExisting: true,
+          });
+        }
+        
+        // If gate_id and gate_name not in response, try to retrieve using request=6
+        console.log('🔍 Gate info not in response, attempting to retrieve with request=6...');
+        
+        const retrieveFormData = new FormData();
+        retrieveFormData.append('request', '6');
+        retrieveFormData.append('user_email', 'info@nsait.co.ke');
+        retrieveFormData.append('gate_name', gateName);
+        
+        try {
+          const retrieveResponse = await fetch('https://aps.co.ke/indexpay/api/get_transactions_2.php', {
+            method: 'POST',
+            body: retrieveFormData,
+          });
+          
+          if (retrieveResponse.ok) {
+            const retrieveData = await retrieveResponse.json();
+            console.log('📡 Gate retrieve response:', retrieveData);
+            
+            if (retrieveData.status && retrieveData.gate_id && retrieveData.gate_name) {
+              // Successfully retrieved gate details
+              const { error: upsertError } = await supabaseAdmin
+                .from('profiles')
+                .upsert({
+                  id: userId,
+                  email: email,
+                  gate_id: retrieveData.gate_id,
+                  gate_name: retrieveData.gate_name,
+                  updated_at: new Date().toISOString(),
+                }, {
+                  onConflict: 'id'
+                });
+
+              if (upsertError) {
+                console.error('❌ Failed to update profile with retrieved gate:', upsertError);
+                return NextResponse.json(
+                  { error: 'Failed to save retrieved gate information', details: upsertError.message },
+                  { status: 500 }
+                );
+              }
+
+              console.log('✅ Existing wallet retrieved and linked:', retrieveData.gate_id, retrieveData.gate_name);
+
+              return NextResponse.json({
+                success: true,
+                message: 'Existing gate retrieved and linked successfully',
+                gate_id: retrieveData.gate_id,
+                gate_name: retrieveData.gate_name,
+                wasExisting: true,
+              });
+            }
+          }
+        } catch (retrieveError) {
+          console.error('Error retrieving gate details:', retrieveError);
+        }
+        
+        // If all retrieval attempts fail, return helpful error
+        console.error('❌ Could not retrieve gate details for existing gate');
+        return NextResponse.json(
+          { 
+            error: 'Gate exists but could not retrieve details',
+            message: 'Please contact support to link your existing wallet',
+            gate_name: gateName
+          },
+          { status: 400 }
+        );
+      }
+      
       console.error('❌ Gate creation failed:', gateData.Message);
       return NextResponse.json(
         { error: gateData.Message || 'Gate creation failed' },

@@ -152,15 +152,67 @@ Check console logs for these key messages:
 - `✅ Email confirmed for user: [email]`
 - `✅ Wallet created: [gate_id] [gate_name]`
 - `✅ User already has wallet: [gate_id]`
+- `🔗 Existing wallet linked successfully!`
 
 ### Warning Messages
 - `⚠️ User not found in profiles table`
 - `⚠️ Wallet not ready: [message]`
+- `⚠️ Gate already exists externally, attempting to retrieve...`
 
 ### Error Messages
 - `❌ Wallet creation failed: [error]`
 - `❌ External API error: [status]`
 - `❌ Failed to update profile: [error]`
+- `❌ Wallet check failed (non-blocking): Selected Gate Exists`
+
+## 🚨 Common Issue: "Selected Gate Exists" Error
+
+**Symptom**: User sees "No payment gate found. Please contact support." but logs show "Selected Gate Exists"
+
+**Root Cause**: Wallet exists in external API but not linked to user's database profile
+
+**Solution**: Use the manual fix endpoint
+
+### Quick Fix for Current User
+
+If you're experiencing this issue right now:
+
+1. **Open browser console** (F12)
+2. **Run this command**:
+```javascript
+fetch('/api/gate/fix-existing', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' }
+})
+.then(r => r.json())
+.then(d => console.log('Fix result:', d))
+```
+
+3. **Refresh the page** - your wallet should now work!
+
+### Manual Fix via API
+
+**Endpoint**: `POST /api/gate/fix-existing`
+
+**Authentication**: Requires active user session
+
+**What it does**:
+- Checks if user has gate in database
+- Attempts to retrieve existing gate from external API
+- Links the gate to user's profile
+- Returns gate info
+
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Existing gate linked successfully",
+  "gate_id": 12345,
+  "gate_name": "user_abc123",
+  "wasExisting": true,
+  "fixed": true
+}
+```
 
 ## 🔧 Configuration
 
