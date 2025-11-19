@@ -76,6 +76,12 @@ export async function POST(request: NextRequest) {
     formData.append('gate_name', userData.gate_name);
     formData.append('pocket_name', 'ongeapesa_wallet');
     formData.append('payment_mode', 'MPESA');
+    
+    // Add callback URL to receive payment notifications
+    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/gate/mpesa-callback`;
+    formData.append('callbackURL', callbackUrl);
+    
+    console.log(`📞 Callback URL set: ${callbackUrl}`);
 
     // Set up 20-second timeout for external API call
     const controller = new AbortController();
