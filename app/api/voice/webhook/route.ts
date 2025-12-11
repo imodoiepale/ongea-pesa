@@ -127,27 +127,84 @@ export async function POST(request: NextRequest) {
 
       console.log('✅ User context:', userContext)
     } else {
-      console.log('⚠️ No user found - using test mode')
+      console.log('⚠️ No user found from session/database')
       console.log('Auth error:', authError?.message)
 
-      // For testing: use your actual email if provided, otherwise mock
-      userContext = {
-        id: 'test-user-id',
-        email: userEmail || 'test@ongeapesa.com',
-        phone: '254712345678',
-        full_name: 'Test User',
-        created_at: new Date().toISOString(),
-        test_mode: true,
+      // CHECK: Does ElevenLabs body contain real user data?
+      const hasRealUserData = body.user_id &&
+        body.user_id !== 'test-user-id' &&
+        body.user_email &&
+        body.user_email !== 'test@example.com';
+
+      if (hasRealUserData) {
+        console.log('✅ Using user data from ElevenLabs body (dynamic variables)')
+        userContext = {
+          id: body.user_id,
+          email: body.user_email,
+          phone: body.user_phone || body.phone || '',
+          full_name: body.user_name || body.user_email?.split('@')[0] || 'User',
+          wallet_balance: parseFloat(body.balance) || 0,
+          created_at: new Date().toISOString(),
+          from_elevenlabs: true,
+        }
+        console.log('📋 User context from ElevenLabs:', userContext)
+      }
+      // NEW: If we have gate_name, look up the real user from profiles
+      else if (gateName && gateName !== '') {
+        console.log('🔍 Looking up user by gate_name:', gateName)
+        const { data: gateProfile, error: gateError } = await supabase
+          .from('profiles')
+          .select('id, name, gate_name, gate_id, wallet_balance, phone_number, mpesa_number')
+          .eq('gate_name', gateName)
+          .single()
+
+        if (gateProfile && !gateError) {
+          console.log('✅ Found user by gate_name:', gateProfile)
+          // Get full user details from auth
+          const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers()
+          if (!usersError && users) {
+            const foundUser = users.find(u => u.id === gateProfile.id)
+            if (foundUser) {
+              user = foundUser
+              profile = gateProfile
+              userContext = {
+                id: foundUser.id,
+                email: foundUser.email,
+                phone: foundUser.phone || gateProfile.phone_number || gateProfile.mpesa_number,
+                full_name: gateProfile.name || foundUser.email?.split('@')[0] || 'User',
+                wallet_balance: gateProfile.wallet_balance || 0,
+                created_at: foundUser.created_at,
+                from_gate_lookup: true,
+              }
+              console.log('✅ User context from gate_name lookup:', userContext)
+            }
+          }
+        } else {
+          console.warn('⚠️ Could not find user by gate_name:', gateName, gateError?.message)
+        }
+      }
+
+      // Final fallback: test mode
+      if (!userContext) {
+        console.log('⚠️ No real user data - using test mode')
+        userContext = {
+          id: 'test-user-id',
+          email: userEmail || 'test@ongeapesa.com',
+          phone: '254712345678',
+          full_name: 'Test User',
+          created_at: new Date().toISOString(),
+          test_mode: true,
+        }
       }
     }
 
     console.log('\n=== PREPARING N8N PAYLOAD ===')
 
-    // ALWAYS use real user data - override any test data from ElevenLabs
-    let finalUserId = userContext?.id
-    let finalUserEmail = userContext?.email
-    let finalUserPhone = userContext?.phone
-    let finalUserName = userContext?.full_name
+    // Use user data - prefer ElevenLabs body data if available and valid
+    let finalUserId = userContext?.id || body.user_id
+    let finalUserEmail = userContext?.email || body.user_email
+    let finalUserPhone = userContext?.phone || body.user_phone || body.phone
+    let finalUserName = userContext?.full_name || body.user_name
 
     // If we still don't have user, try to find from saved voice sessions using conversation_id
     if (!user) {
