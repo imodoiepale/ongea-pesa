@@ -37,7 +37,14 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
   const [depositStatus, setDepositStatus] = useState<'idle' | 'sending' | 'waiting' | 'verifying' | 'completed' | 'failed'>('idle')
   const [verificationProgress, setVerificationProgress] = useState(0)
   const [lastDepositAmount, setLastDepositAmount] = useState(0)
+  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'failed'>('all')
   const supabase = createClient()
+
+  // Filter transactions based on selected status
+  const filteredTransactions = transactions.filter(tx => {
+    if (statusFilter === 'all') return true
+    return tx.status === statusFilter
+  })
 
   // Fetch transactions and M-Pesa number, setup real-time subscriptions
   useEffect(() => {
@@ -211,6 +218,17 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
           setDepositError('Transaction failed. Money was not deducted from your M-Pesa.')
 
           // Auto-hide error after 5 seconds
+          setTimeout(() => {
+            setDepositStatus('idle')
+            setDepositError('')
+          }, 5000)
+
+          return true
+        } else if (data.status === 'cancelled') {
+          setDepositStatus('failed')
+          setDepositError('Transaction was cancelled. You can try again.')
+
+          // Auto-hide after 5 seconds
           setTimeout(() => {
             setDepositStatus('idle')
             setDepositError('')
@@ -460,9 +478,23 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
 
             {depositStatus === 'failed' && (
               <div className="bg-gradient-to-r from-red-500 to-rose-600 rounded-lg p-3 mb-3">
-                <div className="flex items-center gap-2">
-                  <XCircle className="h-5 w-5 text-white" />
-                  <p className="text-white text-sm font-medium">Transaction failed</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <XCircle className="h-5 w-5 text-white" />
+                    <p className="text-white text-sm font-medium">{depositError || 'Transaction failed'}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="bg-white/20 hover:bg-white/30 text-white text-xs px-2 py-1 h-7"
+                    onClick={() => {
+                      setDepositStatus('idle')
+                      setDepositError('')
+                      setVerificationProgress(0)
+                    }}
+                  >
+                    Retry
+                  </Button>
                 </div>
               </div>
             )}
@@ -502,7 +534,36 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
 
           {/* Recent Transactions */}
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Transactions</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+              <span className="text-xs text-gray-500">{filteredTransactions.length} of {transactions.length}</span>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+              {[
+                { value: 'all', label: 'All', color: 'bg-gray-100 text-gray-700 hover:bg-gray-200', activeColor: 'bg-gray-800 text-white' },
+                { value: 'completed', label: 'Completed', color: 'bg-green-50 text-green-700 hover:bg-green-100', activeColor: 'bg-green-600 text-white' },
+                { value: 'pending', label: 'Pending', color: 'bg-orange-50 text-orange-700 hover:bg-orange-100', activeColor: 'bg-orange-500 text-white' },
+                { value: 'failed', label: 'Failed', color: 'bg-red-50 text-red-700 hover:bg-red-100', activeColor: 'bg-red-600 text-white' },
+              ].map((filter) => (
+                <button
+                  key={filter.value}
+                  onClick={() => setStatusFilter(filter.value as typeof statusFilter)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${statusFilter === filter.value
+                      ? filter.activeColor
+                      : filter.color
+                    }`}
+                >
+                  {filter.label}
+                  {filter.value !== 'all' && (
+                    <span className="ml-1 opacity-75">
+                      ({transactions.filter(tx => tx.status === filter.value).length})
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
 
             {loadingTransactions ? (
               <div className="flex items-center justify-center py-8">
@@ -513,9 +574,19 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
                 <p>No transactions yet</p>
                 <p className="text-sm mt-1">Your transaction history will appear here</p>
               </div>
+            ) : filteredTransactions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No {statusFilter} transactions</p>
+                <button
+                  onClick={() => setStatusFilter('all')}
+                  className="text-sm text-green-600 hover:underline mt-1"
+                >
+                  Show all transactions
+                </button>
+              </div>
             ) : (
               <div className="space-y-3">
-                {transactions.map((tx) => (
+                {filteredTransactions.map((tx) => (
                   <Card key={tx.id} className="border border-gray-200 hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
@@ -569,7 +640,11 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
                               Fee: KSh {(tx.amount * 0.0005).toFixed(2)}
                             </p>
                           )}
-                          <p className="text-xs text-gray-500 capitalize">
+                          <p className={`text-xs font-semibold capitalize ${tx.status === 'failed' ? 'text-red-600' :
+                            tx.status === 'pending' ? 'text-orange-500' :
+                              tx.status === 'completed' ? 'text-green-600' :
+                                'text-gray-500'
+                            }`}>
                             {tx.status}
                           </p>
                         </div>

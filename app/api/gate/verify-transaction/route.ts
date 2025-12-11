@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        console.log(`🔍 Verifying transaction: ${transaction_reference || transaction_id} for gate ${gate_name}`);
+        // console.log(`🔍 Verifying transaction: ${transaction_reference || transaction_id} for gate ${gate_name}`);
 
         // Set date range: today and tomorrow to catch recent and processing transactions
         const today = new Date();
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         const dateFrom = today.toISOString().split('T')[0]; // YYYY-MM-DD
         const dateTo = tomorrow.toISOString().split('T')[0]; // YYYY-MM-DD
 
-        console.log(`📅 Date range: ${dateFrom} to ${dateTo}`);
+        // console.log(`📅 Date range: ${dateFrom} to ${dateTo}`);
 
         // Prepare form data for get_settlements API
         const formData = new FormData();
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         }
 
         const settlementsData = await settlementsResponse.json();
-        console.log('📊 Settlements response:', JSON.stringify(settlementsData, null, 2));
+        // console.log('📊 Settlements response:', JSON.stringify(settlementsData, null, 2));
 
         // Parse the settlements response
         // Format: [{ "transactions": [...], "email": "...", "date_from": "...", "date_to": "..." }]
@@ -97,14 +97,14 @@ export async function POST(request: NextRequest) {
             transactions = settlementsData.transactions;
         }
 
-        console.log(`📝 Found ${transactions.length} transactions in date range`);
+        // console.log(`📝 Found ${transactions.length} transactions in date range`);
 
         // Filter transactions for this gate
         const gateTransactions = transactions.filter((tx: any) =>
             tx.Gate === gate_name || tx.gate === gate_name
         );
 
-        console.log(`🔐 Found ${gateTransactions.length} transactions for gate ${gate_name}`);
+        // console.log(`🔐 Found ${gateTransactions.length} transactions for gate ${gate_name}`);
 
         // If we have a specific transaction reference, find it
         let matchedTransaction = null;
@@ -129,14 +129,13 @@ export async function POST(request: NextRequest) {
             } else if (txStatus === 'failed') {
                 verificationStatus = 'failed';
                 verificationMessage = 'Transaction failed';
+            } else if (txStatus === 'cancelled' || txStatus === 'canceled') {
+                verificationStatus = 'cancelled';
+                verificationMessage = 'Transaction was cancelled. You can try again.';
             } else if (txStatus === 'pending') {
                 verificationStatus = 'pending';
                 verificationMessage = 'Transaction is still processing';
             }
-
-            console.log(`✅ Found matching transaction: ${matchedTransaction.trx_ID}, Status: ${txStatus}`);
-        } else {
-            console.log(`⚠️ Transaction not found in settlements yet`);
         }
 
         // Update local transaction record and balance if we have a transaction_id
@@ -171,12 +170,12 @@ export async function POST(request: NextRequest) {
                 if (updateError) {
                     console.error('⚠️ Failed to update transaction status:', updateError);
                 } else {
-                    console.log(`📝 Updated transaction ${transaction_id} to ${verificationStatus}`);
+                    // console.log(`📝 Updated transaction ${transaction_id} to ${verificationStatus}`);
 
                     // If completed, update wallet balance using LOCAL transaction amount
                     if (verificationStatus === 'completed') {
                         const depositAmount = parseFloat(localTx.amount) || 0;
-                        console.log(`💵 Deposit amount from local tx: ${depositAmount}`);
+                        // console.log(`💵 Deposit amount from local tx: ${depositAmount}`);
 
                         if (depositAmount > 0) {
                             // Get current balance
@@ -201,13 +200,13 @@ export async function POST(request: NextRequest) {
                             if (balanceError) {
                                 console.error('❌ Failed to update wallet balance:', balanceError);
                             } else {
-                                console.log(`💰 Updated wallet balance: ${currentBalance} + ${depositAmount} = ${newBalance}`);
+                                // console.log(`💰 Updated wallet balance: ${currentBalance} + ${depositAmount} = ${newBalance}`);
                             }
                         }
                     }
                 }
             } else if (localTx?.status === 'completed') {
-                console.log('⚠️ Transaction already completed, skipping balance update to prevent double credit');
+                // console.log('⚠️ Transaction already completed, skipping balance update to prevent double credit');
             }
         }
 

@@ -1,11 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowLeft, Mic, Send, User, DollarSign } from "lucide-react"
+import { ArrowLeft, Mic, Send, User, DollarSign, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useContacts, formatPhoneNumber, getContactDisplayName } from "@/hooks/use-contacts"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -20,6 +21,8 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
   const [isVoiceMode, setIsVoiceMode] = useState(false)
   const [voiceCommand, setVoiceCommand] = useState("")
 
+  const { isSupported, isLoading, selectSingleContact } = useContacts()
+
   const handleVoiceSend = () => {
     setIsVoiceMode(true)
     // Simulate voice recognition
@@ -29,6 +32,16 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
       setRecipient("John Doe")
       setIsVoiceMode(false)
     }, 2000)
+  }
+
+  const handlePickContact = async () => {
+    const contact = await selectSingleContact()
+    if (contact) {
+      setRecipient(getContactDisplayName(contact))
+      if (contact.tel && contact.tel.length > 0) {
+        setPhoneNumber(formatPhoneNumber(contact.tel))
+      }
+    }
   }
 
   const recentContacts = [
@@ -112,6 +125,18 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Contact Picker Button */}
+          {isSupported && (
+            <Button
+              onClick={handlePickContact}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full border-green-500/50 text-green-600 hover:bg-green-500/10"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              {isLoading ? "Opening Contacts..." : "Pick from Contacts"}
+            </Button>
+          )}
           <div>
             <Label htmlFor="recipient">Contact Name</Label>
             <Input

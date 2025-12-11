@@ -13,6 +13,7 @@ import WaveAnimation from "./wave-animation"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from '@/lib/supabase/client'
 import BalanceSheet from "./balance-sheet"
+import PWAInstallPrompt from "./pwa-install-prompt"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -48,7 +49,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
   // Fetch user balance and setup real-time subscription
   useEffect(() => {
     if (!user?.id) return
-    
+
     const fetchBalance = async () => {
       setLoading(false) // Remove loading immediately
       try {
@@ -56,7 +57,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
         if (response.ok) {
           const data = await response.json()
           let finalBalance = data.balance || 0
-          
+
           // If balance is 0, calculate from transactions as fallback
           if (finalBalance === 0) {
             const { data: transactions } = await supabase
@@ -64,7 +65,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
               .select('type, amount, status')
               .eq('user_id', user.id)
               .eq('status', 'completed')
-            
+
             if (transactions && transactions.length > 0) {
               finalBalance = transactions.reduce((total, tx) => {
                 if (tx.type === 'deposit' || tx.type === 'receive') {
@@ -76,7 +77,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
               console.log('📊 Calculated from transactions:', finalBalance)
             }
           }
-          
+
           setBalance(finalBalance)
           console.log('💰 Balance loaded:', finalBalance)
         }
@@ -156,7 +157,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
           >
             <Settings className="h-5 w-5" />
           </Button>
-          
+
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -182,7 +183,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
       </div>
 
       {/* Balance Card - Clickable */}
-      <Card 
+      <Card
         className="mb-6 bg-gradient-to-r from-green-500 to-blue-600 dark:from-[#00FF88] dark:to-[#00D4AA] text-white border-0 shadow-2xl relative overflow-hidden cursor-pointer hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]"
         onClick={() => setIsBalanceSheetOpen(true)}
       >
@@ -357,6 +358,9 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
           </div>
         </div>
       )}
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   )
 }
