@@ -38,9 +38,34 @@ export default function SignupPage() {
     if (error) {
       setError(error.message);
     } else if (data.user) {
-      // Wallet will be created automatically after email confirmation
       console.log('User signed up:', data.user.email);
-      setSuccess('Success! Please check your email for a confirmation link. Your wallet will be created once you confirm your email.');
+
+      try {
+        console.log('🔧 Creating wallet for new signup:', data.user.email);
+        const response = await fetch('/api/gate/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: data.user.email,
+            userId: data.user.id,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('❌ Wallet creation failed during signup:', errorData);
+          setError('Account created but wallet creation failed. Please try logging in again.');
+        } else {
+          const walletData = await response.json();
+          console.log('✅ Wallet creation result:', walletData);
+          setSuccess('Success! Please check your email for a confirmation link. Your wallet has already been provisioned.');
+        }
+      } catch (walletError) {
+        console.error('❌ Wallet creation error during signup:', walletError);
+        setError('Account created but wallet creation encountered an error. Please try logging in again.');
+      }
     }
   };
 

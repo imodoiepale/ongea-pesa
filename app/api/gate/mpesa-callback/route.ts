@@ -147,31 +147,10 @@ export async function POST(request: NextRequest) {
           updateData.status = 'completed';
           updateData.mpesa_transaction_id = mpesa_receipt || MpesaReceiptNumber;
 
-          // Credit wallet
-          const depositAmount = parseFloat(amount || Amount || existingTx.amount);
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('wallet_balance')
-            .eq('id', existingTx.user_id)
-            .single();
-
-          if (profile) {
-            const currentBalance = parseFloat(String(profile.wallet_balance || 0));
-            const newBalance = currentBalance + depositAmount;
-
-            await supabase
-              .from('profiles')
-              .update({
-                wallet_balance: newBalance,
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', existingTx.user_id);
-
-            console.log('💰 Wallet credited!');
-            console.log('   Previous balance: KSh', currentBalance.toFixed(2));
-            console.log('   Deposit amount: KSh', depositAmount.toFixed(2));
-            console.log('   New balance: KSh', newBalance.toFixed(2));
-          }
+          // NOTE: Balance is credited by verify-transaction endpoint when polling
+          // Do NOT credit here to avoid double crediting
+          console.log('✅ Transaction marked as completed');
+          console.log('   Balance will be credited when user verifies transaction');
         } else if (isFailed) {
           updateData.status = 'failed';
           updateData.error_message = message || Message || 'Payment failed';
