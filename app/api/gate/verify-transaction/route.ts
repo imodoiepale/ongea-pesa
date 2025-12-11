@@ -140,73 +140,61 @@ export async function POST(request: NextRequest) {
 
         // Update local transaction record and balance if we have a transaction_id
         if (transaction_id && verificationStatus !== 'pending') {
-            // First, get the local transaction to get the correct amount
-            const { data: localTx, error: txFetchError } = await supabase
+            // ATOMIC UPDATE: Only update if status is NOT already completed
+            // This prevents race conditions from double-crediting
+            const { data: updatedTx, error: updateError } = await supabase
                 .from('transactions')
-                .select('amount, status')
+                .update({
+                    status: verificationStatus,
+                    updated_at: new Date().toISOString(),
+                    metadata: {
+                        verified_at: new Date().toISOString(),
+                        settlement_data: matchedTransaction || null
+                    }
+                })
                 .eq('id', transaction_id)
                 .eq('user_id', user.id)
+                .neq('status', 'completed') // Only update if NOT already completed
+                .select('amount')
                 .single();
 
-            if (txFetchError) {
-                console.error('⚠️ Failed to fetch local transaction:', txFetchError);
-            }
-
-            // Only update if not already completed (prevent double crediting)
-            if (localTx && localTx.status !== 'completed') {
-                const { error: updateError } = await supabase
-                    .from('transactions')
-                    .update({
-                        status: verificationStatus,
-                        updated_at: new Date().toISOString(),
-                        metadata: {
-                            verified_at: new Date().toISOString(),
-                            settlement_data: matchedTransaction || null
-                        }
-                    })
-                    .eq('id', transaction_id)
-                    .eq('user_id', user.id);
-
-                if (updateError) {
-                    console.error('⚠️ Failed to update transaction status:', updateError);
+            if (updateError) {
+                // If no rows updated, transaction was already completed
+                if (updateError.code === 'PGRST116') {
+                    console.log('⚠️ Transaction already completed, skipping balance update');
                 } else {
-                    // console.log(`📝 Updated transaction ${transaction_id} to ${verificationStatus}`);
+                    console.error('⚠️ Failed to update transaction status:', updateError);
+                }
+            } else if (updatedTx && verificationStatus === 'completed') {
+                // Transaction was updated (not already completed), now credit balance
+                const depositAmount = parseFloat(updatedTx.amount) || 0;
 
-                    // If completed, update wallet balance using LOCAL transaction amount
-                    if (verificationStatus === 'completed') {
-                        const depositAmount = parseFloat(localTx.amount) || 0;
-                        // console.log(`💵 Deposit amount from local tx: ${depositAmount}`);
+                if (depositAmount > 0) {
+                    // Get current balance
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('wallet_balance')
+                        .eq('id', user.id)
+                        .single();
 
-                        if (depositAmount > 0) {
-                            // Get current balance
-                            const { data: profile } = await supabase
-                                .from('profiles')
-                                .select('wallet_balance')
-                                .eq('id', user.id)
-                                .single();
+                    const currentBalance = parseFloat(profile?.wallet_balance) || 0;
+                    const newBalance = currentBalance + depositAmount;
 
-                            const currentBalance = parseFloat(profile?.wallet_balance) || 0;
-                            const newBalance = currentBalance + depositAmount;
+                    // Update balance
+                    const { error: balanceError } = await supabase
+                        .from('profiles')
+                        .update({
+                            wallet_balance: newBalance,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', user.id);
 
-                            // Update balance
-                            const { error: balanceError } = await supabase
-                                .from('profiles')
-                                .update({
-                                    wallet_balance: newBalance,
-                                    updated_at: new Date().toISOString()
-                                })
-                                .eq('id', user.id);
-
-                            if (balanceError) {
-                                console.error('❌ Failed to update wallet balance:', balanceError);
-                            } else {
-                                // console.log(`💰 Updated wallet balance: ${currentBalance} + ${depositAmount} = ${newBalance}`);
-                            }
-                        }
+                    if (balanceError) {
+                        console.error('❌ Failed to update wallet balance:', balanceError);
+                    } else {
+                        console.log(`💰 Wallet credited: ${currentBalance} + ${depositAmount} = ${newBalance}`);
                     }
                 }
-            } else if (localTx?.status === 'completed') {
-                // console.log('⚠️ Transaction already completed, skipping balance update to prevent double credit');
             }
         }
 
