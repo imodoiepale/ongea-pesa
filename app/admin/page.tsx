@@ -8,6 +8,12 @@ export const metadata: Metadata = {
   description: 'Revenue analytics and platform statistics',
 }
 
+// List of admin emails (add your admin emails here)
+const ADMIN_EMAILS = [
+  'ijepale@gmail.com',
+  'admin@ongeapesa.com',
+];
+
 export default async function AdminPage() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -17,19 +23,19 @@ export default async function AdminPage() {
     redirect('/login')
   }
 
-  // TODO: Add admin role check here
-  // For now, any authenticated user can access
-  // In production, check if user has 'admin' or 'creator' role
-  // Example:
-  // const { data: profile } = await supabase
-  //   .from('profiles')
-  //   .select('role')
-  //   .eq('id', user.id)
-  //   .single()
-  // 
-  // if (profile?.role !== 'admin') {
-  //   redirect('/dashboard')
-  // }
+  // Check if user is an admin by email or role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isAdmin = ADMIN_EMAILS.includes(user.email || '') || profile?.role === 'admin' || profile?.role === 'creator';
+
+  if (!isAdmin) {
+    console.log('Access denied for user:', user.email, 'role:', profile?.role);
+    redirect('/dashboard')
+  }
 
   return (
     <div className="min-h-screen">

@@ -404,9 +404,9 @@ export async function POST(request: NextRequest) {
         console.log('  Amount:', requestedAmount, '(>= KES 1,000)')
         console.log('  Free transactions remaining:', freeTxRemaining)
       } else {
-        // Calculate 0.5% platform fee
-        platformFeeAmount = Math.round(requestedAmount * 0.005 * 100) / 100
-        console.log('💰 REGULAR TRANSACTION (0.5% fee)')
+        // Calculate 0.00005% platform fee (0.00005)
+        platformFeeAmount = Math.round(requestedAmount * 0.0005 * 10000) / 10000
+        console.log('💰 REGULAR TRANSACTION (0.00005% fee)')
         console.log('  Platform fee:', platformFeeAmount)
 
         if (subscriptionStatus !== 'active') {

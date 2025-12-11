@@ -78,7 +78,7 @@ export default function RevenueDashboard() {
       })
 
       const response = await fetch(`/api/admin/revenue/summary?${params}`)
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch revenue data')
       }
@@ -264,7 +264,7 @@ export default function RevenueDashboard() {
               {formatCurrency(summary.total_revenue)}
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-              Platform fees earned (0.5%)
+              Platform fees earned (0.00005%)
             </p>
           </CardContent>
         </Card>

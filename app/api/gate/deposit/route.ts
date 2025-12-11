@@ -4,10 +4,10 @@ import { createClient } from '@/lib/supabase/server';
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     // Get the authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Not authenticated' },
@@ -76,11 +76,11 @@ export async function POST(request: NextRequest) {
     formData.append('gate_name', userData.gate_name);
     formData.append('pocket_name', 'ongeapesa_wallet');
     formData.append('payment_mode', 'MPESA');
-    
+
     // Add callback URL to receive payment notifications
     const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/gate/mpesa-callback`;
     formData.append('callbackURL', callbackUrl);
-    
+
     console.log(`📞 Callback URL set: ${callbackUrl}`);
 
     // Set up 20-second timeout for external API call
@@ -112,12 +112,44 @@ export async function POST(request: NextRequest) {
     }
 
     const depositData = await depositResponse.json();
+    console.log('📦 Raw deposit response:', JSON.stringify(depositData, null, 2));
 
-    // Check if deposit was successful
-    if (!depositData.status) {
+    // Parse the mpesapayment response format:
+    // { "mpesapayment": [{ "bool_code": "TRUE", "message": "...", "trx_id": "..." }, { "account_number": "..." }] }
+    let mpesaResponse = null;
+    let trxId = '';
+    let accountNumber = ''; // This is the transaction code for verification
+    let boolCode = '';
+    let responseMessage = '';
+
+    if (depositData.mpesapayment && Array.isArray(depositData.mpesapayment)) {
+      // Extract from mpesapayment array
+      for (const item of depositData.mpesapayment) {
+        if (item.bool_code) boolCode = item.bool_code;
+        if (item.message) responseMessage = item.message;
+        if (item.trx_id) trxId = item.trx_id;
+        if (item.account_number) accountNumber = item.account_number;
+      }
+      mpesaResponse = depositData.mpesapayment;
+    }
+
+    // Check if deposit was successful - more robust check
+    // bool_code can be "TRUE", "true", or truthy value
+    const isSuccess =
+      boolCode.toUpperCase() === 'TRUE' ||
+      boolCode === '1' ||
+      depositData.status === true ||
+      depositData.status === 'success' ||
+      (mpesaResponse && accountNumber); // If we have account_number, STK push was sent
+
+    console.log(`🔍 Success check: boolCode="${boolCode}", isSuccess=${isSuccess}, hasAccountNumber=${!!accountNumber}`);
+
+    if (!isSuccess) {
       return NextResponse.json(
-        { 
-          error: depositData.Message || depositData.message || 'Deposit initiation failed',
+        {
+          success: false,
+          transaction_sent: false,
+          error: responseMessage || depositData.Message || depositData.message || 'Deposit initiation failed',
           details: depositData
         },
         { status: 400 }
@@ -125,6 +157,8 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`✅ Deposit initiated successfully for ${userData.gate_name}`);
+    console.log(`📝 Transaction ID: ${trxId}`);
+    console.log(`🔑 Account Number (for verification): ${accountNumber}`);
 
     // Update user's M-Pesa number if it's different (save as default)
     if (userData.mpesa_number !== phone) {
@@ -134,11 +168,11 @@ export async function POST(request: NextRequest) {
           mpesa_number: phone,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user.id); 
+        .eq('id', user.id);
     }
 
-    // Extract transaction reference from response
-    const transactionRef = depositData.transaction_id || depositData.TransactionID || depositData.reference;
+    // Use account_number as the primary transaction reference for status checks
+    const transactionRef = accountNumber || trxId || depositData.transaction_id || depositData.TransactionID;
 
     // Create transaction record for the deposit
     const { data: txData, error: txError } = await supabase
@@ -148,14 +182,16 @@ export async function POST(request: NextRequest) {
         type: 'deposit',
         amount: depositAmount,
         phone: phone,
-        status: 'pending', // Will be updated via polling
+        status: 'pending', // Will be updated via verification
         voice_command_text: `M-Pesa deposit of KSh ${depositAmount.toLocaleString()} from ${phone}`,
+        external_ref: transactionRef,
+        mpesa_transaction_id: trxId,
         metadata: {
-          external_reference: transactionRef,
+          account_number: accountNumber,
           gate_name: userData.gate_name,
           payment_mode: 'MPESA',
           initiated_at: new Date().toISOString(),
-          ...depositData
+          mpesa_response: mpesaResponse
         },
         created_at: new Date().toISOString()
       })
@@ -172,24 +208,29 @@ export async function POST(request: NextRequest) {
     console.log(`📝 Transaction record created: ${transactionId}`);
     console.log(`🔄 Transaction will be polled for status updates`);
 
+    // Return standardized JSON response
     return NextResponse.json({
       success: true,
-      message: 'Deposit initiated successfully. Check your phone for M-Pesa prompt.',
+      status: 'initiated',
+      message: responseMessage || 'Deposit initiated successfully. Check your phone for M-Pesa prompt.',
+      transaction_sent: true,
       transaction_id: transactionId,
       transaction_reference: transactionRef,
-      polling_enabled: true,
-      transaction_data: {
-        amount: depositAmount,
-        phone: phone,
-        gate_name: userData.gate_name,
-        ...depositData
-      }
+      mpesa_trx_id: trxId,
+      account_number: accountNumber, // Use this for verification via get_settlements
+      amount: depositAmount,
+      phone: phone,
+      gate_name: userData.gate_name,
+      timestamp: new Date().toISOString(),
+      next_step: 'Enter M-Pesa PIN on your phone to complete the transaction',
+      verify_url: '/api/gate/verify-transaction',
+      mpesa_response: mpesaResponse
     });
 
   } catch (error: any) {
     console.error('❌ Gate deposit error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         details: error?.message || 'Unknown error'
       },

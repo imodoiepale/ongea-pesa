@@ -1,4 +1,4 @@
-  // @ts-nocheck
+// @ts-nocheck
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
@@ -77,7 +77,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     // Timer disabled - sessions should persist until user explicitly ends them
     // This prevents the voice interface from interfering with the global widget
     return;
-    
+
     // // Clear existing timer
     // if (inactivityTimerRef.current) {
     //   clearTimeout(inactivityTimerRef.current);
@@ -154,7 +154,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     if (isConnected) {
       resetInactivityTimer();
     }
-    
+
     // Cleanup timer on unmount
     return () => {
       if (inactivityTimerRef.current) {
@@ -257,7 +257,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
             Ongea Pesa
           </h1>
         </div>
-        
+
         <div className="flex items-center gap-3">
           {/* Balance Display - Clickable */}
           <Button
@@ -276,15 +276,14 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
 
           {/* Status Indicator */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/60 backdrop-blur-sm rounded-full">
-            <div className={`w-2 h-2 rounded-full transition-colors ${
-              isConnected ? 'bg-green-500 animate-pulse' : 
-              isLoading ? 'bg-yellow-500 animate-pulse' : 
-              error ? 'bg-red-500' : 'bg-gray-400'
-            }`}></div>
+            <div className={`w-2 h-2 rounded-full transition-colors ${isConnected ? 'bg-green-500 animate-pulse' :
+                isLoading ? 'bg-yellow-500 animate-pulse' :
+                  error ? 'bg-red-500' : 'bg-gray-400'
+              }`}></div>
             <p className="text-xs font-medium text-gray-700">
-              {isConnected ? 'Connected' : 
-               isLoading ? 'Connecting' : 
-               error ? 'Error' : 'Starting'}
+              {isConnected ? 'Connected' :
+                isLoading ? 'Connecting' :
+                  error ? 'Error' : 'Starting'}
             </p>
           </div>
 
@@ -334,30 +333,28 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
         {/* 3D Orb Container */}
         <div className="relative mb-8">
           {/* 3D Glassmorphic Orb */}
-          <div className={`relative w-48 h-48 rounded-full transition-all duration-700 ${
-            isPushToTalk 
-              ? 'bg-gradient-to-br from-red-200 via-pink-100 to-red-200 shadow-2xl shadow-red-200/50' 
+          <div className={`relative w-48 h-48 rounded-full transition-all duration-700 ${isPushToTalk
+              ? 'bg-gradient-to-br from-red-200 via-pink-100 to-red-200 shadow-2xl shadow-red-200/50'
               : isProcessing
-              ? 'bg-gradient-to-br from-blue-200 via-purple-100 to-blue-200 shadow-2xl shadow-blue-200/50 animate-pulse'
-              : isConnected
-              ? 'bg-gradient-to-br from-green-200 via-emerald-100 to-green-200 shadow-2xl shadow-green-200/50'
-              : isLoading
-              ? 'bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 shadow-xl shadow-gray-200/30'
-              : 'bg-gradient-to-br from-blue-100 via-sky-50 to-blue-100 shadow-xl shadow-blue-200/40'
-          }`}>
+                ? 'bg-gradient-to-br from-blue-200 via-purple-100 to-blue-200 shadow-2xl shadow-blue-200/50 animate-pulse'
+                : isConnected
+                  ? 'bg-gradient-to-br from-green-200 via-emerald-100 to-green-200 shadow-2xl shadow-green-200/50'
+                  : isLoading
+                    ? 'bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 shadow-xl shadow-gray-200/30'
+                    : 'bg-gradient-to-br from-blue-100 via-sky-50 to-blue-100 shadow-xl shadow-blue-200/40'
+            }`}>
             {/* Inner glow effect */}
-            <div className={`absolute inset-4 rounded-full transition-all duration-500 ${
-              isPushToTalk
+            <div className={`absolute inset-4 rounded-full transition-all duration-500 ${isPushToTalk
                 ? 'bg-gradient-to-br from-red-300/50 to-pink-300/50 animate-pulse'
                 : isProcessing
-                ? 'bg-gradient-to-br from-blue-300/50 to-purple-300/50 animate-pulse'
-                : isConnected
-                ? 'bg-gradient-to-br from-green-300/50 to-emerald-300/50'
-                : isLoading
-                ? 'bg-gradient-to-br from-gray-300/30 to-gray-300/30'
-                : 'bg-gradient-to-br from-blue-200/40 to-sky-200/40'
-            }`}></div>
-            
+                  ? 'bg-gradient-to-br from-blue-300/50 to-purple-300/50 animate-pulse'
+                  : isConnected
+                    ? 'bg-gradient-to-br from-green-300/50 to-emerald-300/50'
+                    : isLoading
+                      ? 'bg-gradient-to-br from-gray-300/30 to-gray-300/30'
+                      : 'bg-gradient-to-br from-blue-200/40 to-sky-200/40'
+              }`}></div>
+
             {/* Animated rings for active states */}
             {isPushToTalk && (
               <>
@@ -365,7 +362,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
                 <div className="absolute -inset-8 rounded-full border border-red-200 opacity-40 animate-ping animation-delay-200"></div>
               </>
             )}
-            
+
             {isProcessing && !isPushToTalk && (
               <>
                 <div className="absolute -inset-4 rounded-full border-2 border-blue-300 opacity-60 animate-pulse"></div>
@@ -446,15 +443,14 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
             onTouchStart={handleMouseDown}
             onTouchEnd={handleMouseUp}
             disabled={isLoading}
-            className={`w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${
-              isPushToTalk
+            className={`w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${isPushToTalk
                 ? "bg-red-500 hover:bg-red-600 scale-110 shadow-red-200"
                 : isConnected
-                ? "bg-green-500 hover:bg-green-600 shadow-green-200"
-                : isLoading
-                ? "bg-gray-400 cursor-not-allowed shadow-gray-200"
-                : "bg-blue-500 hover:bg-blue-600 shadow-blue-200 hover:scale-105"
-            }`}
+                  ? "bg-green-500 hover:bg-green-600 shadow-green-200"
+                  : isLoading
+                    ? "bg-gray-400 cursor-not-allowed shadow-gray-200"
+                    : "bg-blue-500 hover:bg-blue-600 shadow-blue-200 hover:scale-105"
+              }`}
           >
             {isPushToTalk ? (
               <div className="relative">
@@ -467,7 +463,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
               <Mic className="h-8 w-8 text-white" />
             )}
           </Button>
-          
+
           {/* Instructions */}
           <p className="text-center text-gray-600 mt-4 text-sm">
             {isLoading ? "Connecting..." : isConnected ? "Hold to speak" : "Press to connect & speak"}
@@ -488,7 +484,6 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
             variant="outline"
             onClick={async () => {
               await endSession();
-              setIsListening(false);
               setIsPushToTalk(false);
               setTranscript('');
               setAgentResponse('');
