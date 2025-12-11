@@ -42,7 +42,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract user name from email (before @)
-    const userName = user.email?.split('@')[0] || 'User';
+    const userNameFromEmail = user.email?.split('@')[0] || 'User';
+    // Use profile name if available, otherwise fall back to email-based name
+    const finalUserName = userName || userNameFromEmail;
 
     // Get environment variables
     const agentId = process.env.NEXT_PUBLIC_AGENT_ID;
@@ -71,22 +73,24 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       user_email: user.email || '',
       balance: userBalance.toString(),
-      user_name: userName
+      user_name: finalUserName,
+      gate_name: gateName,
+      gate_id: gateId
     };
-    
+
     // Build URL with query parameters (ElevenLabs expects GET, not POST)
     const elevenLabsUrl = new URL('https://api.elevenlabs.io/v1/convai/conversation/get-signed-url');
     elevenLabsUrl.searchParams.append('agent_id', agentId);
-    
+
     // Add dynamic variables as query parameters
     Object.entries(dynamicVariables).forEach(([key, value]) => {
       elevenLabsUrl.searchParams.append(key, value);
     });
-    
+
     console.log('🌐 ElevenLabs Request (GET with query params):');
     console.log('   Full URL:', elevenLabsUrl.toString());
     console.log('   Dynamic Variables:', dynamicVariables);
-    
+
     const response = await fetch(elevenLabsUrl.toString(), {
       method: 'GET',
       headers: {

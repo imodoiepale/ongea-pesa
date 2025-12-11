@@ -1,6 +1,10 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+// n8n webhook URL and auth
+const N8N_WEBHOOK_URL = 'https://primary-production-579c.up.railway.app/webhook/send_money';
+const N8N_AUTH_TOKEN = process.env.N8N_WEBHOOK_AUTH_TOKEN || '';
+
 export async function POST(request: NextRequest) {
   try {
     // Log incoming request details
@@ -95,7 +99,7 @@ export async function POST(request: NextRequest) {
             console.warn('⚠️ User ID from session not found in users list')
           }
         } else {
-          console.error('❌ Profile not found for session user_id:', session.user_id);
+          console.error('❌ Failed to list users for session lookup');
         }
       } else {
         console.warn('⚠️ No active voice session found')
@@ -527,7 +531,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Return success response to ElevenLabs
-    return NextResponse.json({
+    console.log('\n=== SENDING RESPONSE TO ELEVENLABS ===')
+    const response = {
       success: true,
       message: `Transaction processed successfully${userContext?.email ? ' for ' + userContext.email : ''}`,
       transaction_id: n8nResult.transaction_id || null,
