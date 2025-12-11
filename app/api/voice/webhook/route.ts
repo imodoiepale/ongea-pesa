@@ -1,9 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-
-// n8n webhook URL and auth
-const N8N_WEBHOOK_URL = 'https://primary-production-579c.up.railway.app/webhook/send_money'
-const N8N_AUTH_TOKEN = process.env.N8N_WEBHOOK_AUTH_TOKEN || '' // Add this to .env.local
+import { NextResponse, NextRequest } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -99,7 +95,7 @@ export async function POST(request: NextRequest) {
             console.warn('⚠️ User ID from session not found in users list')
           }
         } else {
-          console.error('❌ Failed to list users:', lookupError)
+          console.error('❌ Profile not found for session user_id:', session.user_id);
         }
       } else {
         console.warn('⚠️ No active voice session found')
@@ -481,7 +477,9 @@ export async function POST(request: NextRequest) {
 
     const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(n8nPayload),
     })
 
@@ -529,8 +527,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Return success response to ElevenLabs
-    console.log('\n=== SENDING RESPONSE TO ELEVENLABS ===')
-    const response = {
+    return NextResponse.json({
       success: true,
       message: `Transaction processed successfully${userContext?.email ? ' for ' + userContext.email : ''}`,
       transaction_id: n8nResult.transaction_id || null,
@@ -554,13 +551,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Handle OPTIONS for CORS preflight
+// Handle OPTIONS for CORS
 export async function OPTIONS(request: NextRequest) {
   return NextResponse.json({}, {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Headers': 'Content-Type',
     },
-  })
+  });
 }

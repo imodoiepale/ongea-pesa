@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useVoice } from "@/components/voice-provider"
+import VoiceInterface from "@/components/ongea-pesa/voice-interface"
 import WaveAnimation from "./wave-animation"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from '@/lib/supabase/client'
@@ -14,22 +17,33 @@ import BalanceSheet from "./balance-sheet"
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
 interface MainDashboardProps {
-  onNavigate: (screen: Screen) => void;
-  onVoiceActivate: () => void;
+  onNavigate?: (screen: Screen) => void;
+  onVoiceActivate?: () => void;
 }
 
 export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashboardProps) {
   const { user, signOut } = useAuth()
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [balance, setBalance] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [isBalanceSheetOpen, setIsBalanceSheetOpen] = useState(false)
+  const [showVoiceInterface, setShowVoiceInterface] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Navigation helper that uses router when onNavigate is not provided
+  const handleNavigate = (screen: Screen) => {
+    if (onNavigate) {
+      onNavigate(screen)
+    } else {
+      router.push(`/${screen}`)
+    }
+  }
 
   // Fetch user balance and setup real-time subscription
   useEffect(() => {
@@ -101,8 +115,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
   }, [user?.id, supabase])
 
   const handleVoiceActivation = () => {
-    onVoiceActivate()
-    onNavigate("voice")
+    setShowVoiceInterface(true)
   }
 
   if (!mounted) {
@@ -138,7 +151,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onNavigate("permissions")}
+            onClick={() => handleNavigate("permissions")}
             className="rounded-full border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
           >
             <Settings className="h-5 w-5" />
@@ -215,7 +228,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
       <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
         <Card
           className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => onNavigate("send")}
+          onClick={() => handleNavigate("send")}
         >
           <CardContent className="p-4 text-center">
             <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 dark:from-[#00FF88] dark:to-[#00E67A] rounded-full flex items-center justify-center mx-auto mb-3">
@@ -228,7 +241,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
 
         <Card
           className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => onNavigate("scanner")}
+          onClick={() => handleNavigate("scanner")}
         >
           <CardContent className="p-4 text-center">
             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-[#00D4AA] dark:to-[#00C299] rounded-full flex items-center justify-center mx-auto mb-3">
@@ -241,7 +254,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
 
         <Card
           className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => onNavigate("recurring")}
+          onClick={() => handleNavigate("recurring")}
         >
           <CardContent className="p-4 text-center">
             <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 dark:from-[#8B5CF6] dark:to-[#7C3AED] rounded-full flex items-center justify-center mx-auto mb-3">
@@ -254,7 +267,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
 
         <Card
           className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => onNavigate("analytics")}
+          onClick={() => handleNavigate("analytics")}
         >
           <CardContent className="p-4 text-center">
             <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 dark:from-[#F97316] dark:to-[#EA580C] rounded-full flex items-center justify-center mx-auto mb-3">
@@ -293,15 +306,15 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
       {/* Voice Test Mode */}
       <Card
         className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700 relative z-10"
-        onClick={() => onNavigate("test")}
+        onClick={() => handleNavigate("test")}
       >
         <CardContent className="p-4 flex items-center">
           <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-600 dark:from-[#6366F1] dark:to-[#4F46E5] rounded-full flex items-center justify-center mr-4">
             <TestTube className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">Voice Test Mode</h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Test AI voice responses</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Ongea Pesa</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Voice-First Financial Companion</p>
           </div>
         </CardContent>
       </Card>
@@ -325,6 +338,25 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
           console.log('✅ Balance updated to:', newBalance)
         }}
       />
+
+      {/* Voice Interface Modal */}
+      {showVoiceInterface && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm">
+          <div className="relative h-full">
+            <Button
+              onClick={() => setShowVoiceInterface(false)}
+              variant="ghost"
+              className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
+            >
+              ✕
+            </Button>
+            <VoiceInterface onNavigate={(screen) => {
+              setShowVoiceInterface(false)
+              handleNavigate(screen)
+            }} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

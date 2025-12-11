@@ -69,7 +69,7 @@ https://your-app.vercel.app/api/voice/webhook
 
 Your n8n webhook URL changed from:
 ```
-/webhook-test/send_money  ❌ (test mode)
+/webhook/send_money  ❌ (test mode)
 ```
 
 To:
@@ -223,7 +223,7 @@ https://your-app.vercel.app
 ### n8n webhook failing
 
 **Check:**
-1. Changed from `/webhook-test/` to `/webhook/`?
+1. Changed from `/webhook/` to `/webhook/`?
 2. Workflow is **activated** in production mode?
 3. Test manually with curl:
    ```bash

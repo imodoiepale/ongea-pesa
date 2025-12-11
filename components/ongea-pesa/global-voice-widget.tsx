@@ -27,7 +27,8 @@ export default function GlobalVoiceWidget() {
       console.log('🎙️ Starting ElevenLabs session from global widget');
       startSession();
     }
-  }, [isOpen, isConnected, isLoading, startSession]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]); // Only depend on isOpen to prevent infinite loops
 
   const handleSendText = () => {
     if (textInput.trim()) {

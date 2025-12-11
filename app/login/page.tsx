@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 import AuthLayout from '@/components/auth/auth-layout';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -24,45 +26,50 @@ export default function LoginPage() {
 
     if (error) {
       setError(error.message);
-    } else {
-      // Ensure user has a payment gate (create if missing)
-      try {
-        const gateResponse = await fetch('/api/gate/ensure', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const gateData = await gateResponse.json();
-
-        if (gateResponse.ok) {
-          if (gateData.created) {
-            console.log('🎉 Payment gate created on login!');
-            console.log('Gate ID:', gateData.gate_id);
-            console.log('Gate Name:', gateData.gate_name);
-            console.log('User Email:', email);
-          } else if (gateData.hasGate) {
-            console.log('✅ Payment gate already exists');
-            console.log('Gate ID:', gateData.gate_id);
-            console.log('Gate Name:', gateData.gate_name);
-            console.log('User Email:', email);
-          } else {
-            console.warn('⚠️ Gate not created yet:', gateData.message);
-          }
-        } else {
-          console.error('❌ Gate check failed (non-blocking):', gateData.error);
-          console.error('Details:', gateData.details || 'No additional details');
-          // Don't fail login if gate creation fails
-        }
-      } catch (gateError) {
-        console.error('⚠️ Gate check failed (non-blocking):', gateError);
-        // Don't fail login if gate check fails
-      }
-
-      router.push('/');
-      router.refresh();
+      return;
     }
+
+    // Ensure user has a payment gate (create if missing)
+    try {
+      console.log('🔍 Checking wallet for user:', email);
+      
+      const gateResponse = await fetch('/api/gate/ensure', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const gateData = await gateResponse.json();
+
+      if (gateResponse.ok) {
+        if (gateData.created) {
+          console.log('🎉 Wallet created on login!');
+          console.log('Gate ID:', gateData.gate_id);
+          console.log('Gate Name:', gateData.gate_name);
+        } else if (gateData.wasExisting) {
+          console.log('🔗 Existing wallet linked successfully!');
+          console.log('Gate ID:', gateData.gate_id);
+          console.log('Gate Name:', gateData.gate_name);
+        } else if (gateData.hasGate) {
+          console.log('✅ Wallet already exists');
+          console.log('Gate ID:', gateData.gate_id);
+          console.log('Gate Name:', gateData.gate_name);
+        } else {
+          console.warn('⚠️ Wallet not ready:', gateData.message);
+        }
+      } else {
+        console.error('❌ Wallet check failed (non-blocking):', gateData.error);
+        // Don't fail login if gate creation fails
+      }
+    } catch (gateError) {
+      console.error('⚠️ Wallet check error (non-blocking):', gateError);
+      // Don't fail login if gate check fails
+    }
+
+    // Proceed to home page
+    router.push('/');
+    router.refresh();
   };
 
   return (
@@ -87,18 +94,33 @@ export default function LoginPage() {
             />
           </div>
           <div className="mb-6">
-            <label className="block text-sm font-medium text-foreground mb-2" htmlFor="password">
-              Password
-            </label>
-            <input
-              className="w-full py-3 px-4 bg-input text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300 placeholder:text-muted-foreground"
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-foreground" htmlFor="password">
+                Password
+              </label>
+              <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                Forgot Password?
+              </Link>
+            </div>
+            <div className="relative">
+              <input
+                className="w-full py-3 px-4 pr-12 bg-input text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300 placeholder:text-muted-foreground"
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
           {error && <p className="text-destructive text-sm text-center mb-4">{error}</p>}
           <div className="mb-6">

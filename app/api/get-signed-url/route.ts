@@ -8,9 +8,9 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      console.error('User not authenticated:', authError?.message);
+      console.error('Authentication error:', authError);
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Unauthorized. Please log in.' },
         { status: 401 }
       );
     }
@@ -41,7 +41,10 @@ export async function POST(request: NextRequest) {
       console.error('Failed to fetch profile, using defaults:', balanceError);
     }
 
-    // Validate environment variables
+    // Extract user name from email (before @)
+    const userName = user.email?.split('@')[0] || 'User';
+
+    // Get environment variables
     const agentId = process.env.NEXT_PUBLIC_AGENT_ID;
     const apiKey = process.env.ELEVENLABS_API_KEY;
 
@@ -63,17 +66,33 @@ export async function POST(request: NextRequest) {
 
     console.log('Requesting signed URL for agent:', agentId, 'with userId:', user.id);
 
-    // Add user context as custom metadata in the signed URL request
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${agentId}`,
-      {
-        method: 'GET',
-        headers: {
-          'xi-api-key': apiKey,
-          'Content-Type': 'application/json',
-        },
+    // Prepare dynamic variables for ElevenLabs
+    const dynamicVariables = {
+      user_id: user.id,
+      user_email: user.email || '',
+      balance: userBalance.toString(),
+      user_name: userName
+    };
+    
+    // Build URL with query parameters (ElevenLabs expects GET, not POST)
+    const elevenLabsUrl = new URL('https://api.elevenlabs.io/v1/convai/conversation/get-signed-url');
+    elevenLabsUrl.searchParams.append('agent_id', agentId);
+    
+    // Add dynamic variables as query parameters
+    Object.entries(dynamicVariables).forEach(([key, value]) => {
+      elevenLabsUrl.searchParams.append(key, value);
+    });
+    
+    console.log('🌐 ElevenLabs Request (GET with query params):');
+    console.log('   Full URL:', elevenLabsUrl.toString());
+    console.log('   Dynamic Variables:', dynamicVariables);
+    
+    const response = await fetch(elevenLabsUrl.toString(), {
+      method: 'GET',
+      headers: {
+        'xi-api-key': apiKey,
       }
-    );
+    });
 
     if (!response.ok) {
       const errorBody = await response.text();
@@ -88,12 +107,12 @@ export async function POST(request: NextRequest) {
         );
       } else if (response.status === 404) {
         return NextResponse.json(
-          { error: 'Agent not found. Please check your NEXT_PUBLIC_AGENT_ID.' },
+          { error: `Agent not found. Please verify NEXT_PUBLIC_AGENT_ID: ${agentId}` },
           { status: 404 }
         );
       } else {
         return NextResponse.json(
-          { error: `ElevenLabs API error: ${response.status} ${response.statusText}` },
+          { error: `ElevenLabs API error: ${response.statusText}`, details: errorBody },
           { status: response.status }
         );
       }
@@ -104,7 +123,7 @@ export async function POST(request: NextRequest) {
     if (!data.signed_url) {
       console.error('No signed URL in response:', data);
       return NextResponse.json(
-        { error: 'Invalid response from ElevenLabs API - no signed URL received' },
+        { error: 'No signed URL received from ElevenLabs' },
         { status: 500 }
       );
     }
@@ -145,9 +164,8 @@ export async function POST(request: NextRequest) {
     // Return signed URL with user context including balance and gate info
     return NextResponse.json({
       signedUrl: data.signed_url,
-      userEmail: user.email,
       userId: user.id,
-      userName: userName,
+      userEmail: user.email,
       balance: userBalance,
       gateName: gateName,
       gateId: gateId,

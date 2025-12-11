@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 import AuthLayout from '@/components/auth/auth-layout';
 
 const supabase = createClient(
@@ -14,6 +15,7 @@ const supabase = createClient(
 export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
@@ -36,33 +38,9 @@ export default function SignupPage() {
     if (error) {
       setError(error.message);
     } else if (data.user) {
-      // Create payment gate for the new user
-      try {
-        const gateResponse = await fetch('/api/gate/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            email,
-            userId: data.user.id 
-          }),
-        });
-
-        const gateData = await gateResponse.json();
-
-        if (!gateResponse.ok) {
-          console.error('Gate creation failed:', gateData.error);
-          // Don't fail signup if gate creation fails, just log it
-        } else {
-          console.log('Gate created successfully:', gateData);
-        }
-      } catch (gateError) {
-        console.error('Error creating gate:', gateError);
-        // Don't fail signup if gate creation fails
-      }
-
-      setSuccess('Success! Please check your email for a confirmation link.');
+      // Wallet will be created automatically after email confirmation
+      console.log('User signed up:', data.user.email);
+      setSuccess('Success! Please check your email for a confirmation link. Your wallet will be created once you confirm your email.');
     }
   };
 
@@ -102,15 +80,25 @@ export default function SignupPage() {
               <label className="block text-sm font-medium text-foreground mb-2" htmlFor="password">
                 Password
               </label>
-              <input
-                className="w-full py-3 px-4 bg-input text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300 placeholder:text-muted-foreground"
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <input
+                  className="w-full py-3 px-4 pr-12 bg-input text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300 placeholder:text-muted-foreground"
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
             {error && <p className="text-destructive text-sm text-center mb-4">{error}</p>}
             <div className="mb-6">

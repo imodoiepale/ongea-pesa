@@ -12,7 +12,7 @@ import { useAuth } from "@/components/providers/auth-provider"
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
 interface PermissionManagerProps {
-  onNavigate: (screen: Screen) => void;
+  onNavigate?: (screen: Screen) => void;
 }
 
 interface Permission {
@@ -123,14 +123,9 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
   return (
     <div className="min-h-screen p-4 pb-20">
       {/* Header */}
-      <div className="flex items-center mb-6 pt-8">
-        <Button variant="ghost" size="icon" onClick={() => onNavigate("dashboard")} className="mr-3">
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Permissions</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Manage app permissions via voice</p>
-        </div>
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">App Permissions</h1>
+        <p className="text-md text-gray-500 dark:text-gray-400 mt-2">Ongea Pesa needs access to some features to work correctly.</p>
       </div>
 
       {/* M-Pesa Settings Card */}

@@ -36,12 +36,17 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   const conversation = useConversation({
     onConnect: () => {
       console.log('🎙️ Global ElevenLabs connected');
+      console.log('📊 Connection status:', conversation.status);
       setIsConnected(true);
       setIsLoading(false);
     },
-    onDisconnect: () => {
+    onDisconnect: (reason?: any) => {
       console.log('🎙️ Global ElevenLabs disconnected');
+      console.log('📊 Disconnect reason:', reason);
+      console.log('📊 Final status:', conversation.status);
+      console.trace('Disconnect call stack');
       setIsConnected(false);
+      setIsLoading(false); // Reset loading state to prevent stuck state
     },
     onMessage: (message: any) => {
       console.log('📨 ElevenLabs message:', message);
@@ -64,7 +69,13 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     },
     onError: (error: any) => {
       console.error('🔴 Global ElevenLabs error:', error);
+      console.error('🔴 Error details:', JSON.stringify(error, null, 2));
+      console.error('🔴 Current status:', conversation.status);
       setIsLoading(false);
+      setIsConnected(false); // Ensure disconnected state on error
+    },
+    onStatusChange: (status: any) => {
+      console.log('📊 ElevenLabs status changed:', status);
     }
   });
 
@@ -100,7 +111,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   };
 
   // Get signed URL for ElevenLabs
-  const getSignedUrl = async (): Promise<{ signedUrl: string; balance: number; userName: string; gateName: string; gateId: string }> => {
+  const getSignedUrl = async (): Promise<{ signedUrl: string; balance: number; userName: string; userEmail: string; userId: string }> => {
     try {
       const response = await fetch('/api/get-signed-url', {
         method: 'POST',
@@ -112,10 +123,10 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
       if (!response.ok) {
         throw new Error('Failed to get signed URL');
       }
-
-      const { signedUrl, userId: returnedUserId, balance, userName, gateName, gateId } = await response.json();
-      console.log('✅ Got signed URL for userId:', returnedUserId, 'balance:', balance, 'name:', userName, 'gate:', gateName);
-      return { signedUrl, balance, userName, gateName, gateId };
+      
+      const { signedUrl, userId: returnedUserId, balance, userName, userEmail } = await response.json();
+      console.log('✅ Got signed URL for userId:', returnedUserId, 'email:', userEmail, 'balance:', balance, 'name:', userName);
+      return { signedUrl, balance, userName, userEmail, userId: returnedUserId };
     } catch (error) {
       console.error('❌ Error getting signed URL:', error);
       throw error;
@@ -133,13 +144,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           const balance = data.balance || 0;
           setUserBalance(balance);
-
-          // Send balance to ElevenLabs conversation context
-          if (isConnected) {
-            // Store balance in state for AI to access
-            console.log('💰 Balance updated for ElevenLabs context:', balance);
-            // The AI agent will have access to this via the conversation session
-          }
+          console.log('💰 Balance updated for ElevenLabs context:', balance);
         }
       } catch (error) {
         console.error('Failed to fetch balance:', error);
@@ -153,7 +158,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     const balanceInterval = setInterval(fetchBalance, 10000);
 
     return () => clearInterval(balanceInterval);
-  }, [userId, isConnected, conversation]);
+  }, [userId]); // Only depend on userId to prevent interference with conversation
 
   // Manual start function exposed for components to use
   const startElevenLabsSession = async () => {
@@ -162,35 +167,57 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Check if already connected to prevent duplicate sessions
-    if (conversation.status === 'connected') {
-      console.log('⚠️ Session already active, skipping duplicate start');
-      setIsConnected(true);
+    // Comprehensive guard: check if already connected OR connecting
+    const currentStatus = conversation.status;
+    if (currentStatus === 'connected' || currentStatus === 'connecting') {
+      console.log('⚠️ Session already active or connecting (status:', currentStatus, '), skipping duplicate start');
+      if (currentStatus === 'connected') {
+        setIsConnected(true);
+      }
       setIsLoading(false);
       return;
     }
 
-    // If loading, don't start another
+    // If loading flag is set, don't start another
     if (isLoading) {
-      console.log('⚠️ Session already starting, please wait');
+      console.log('⚠️ Session already starting (loading flag set), please wait');
       return;
     }
 
     try {
       setIsLoading(true);
       console.log('🚀 Starting global ElevenLabs session for userId:', userId);
-
-      const { signedUrl, balance, userName, gateName, gateId } = await getSignedUrl();
-
-      // Append userId, balance, userName, gateName, and gateId to URL for 11labs agent
-      const urlWithContext = `${signedUrl}&user_id=${encodeURIComponent(userId)}&balance=${encodeURIComponent(balance)}&user_name=${encodeURIComponent(userName)}&gate_name=${encodeURIComponent(gateName)}&gate_id=${encodeURIComponent(gateId)}`;
-
-      console.log('💰 Sending balance to 11labs:', balance, 'for user:', userName);
-
-      await conversation.startSession({
-        signedUrl: urlWithContext
+      
+      // Request microphone permissions BEFORE starting session
+      console.log('🎤 Requesting microphone permissions...');
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('✅ Microphone access granted');
+      } catch (micError) {
+        console.error('❌ Microphone access denied:', micError);
+        setIsLoading(false);
+        setIsConnected(false);
+        throw new Error('Microphone access is required for voice interaction');
+      }
+      
+      const { signedUrl, balance, userName, userEmail, userId: returnedUserId } = await getSignedUrl();
+      console.log('📝 Received signed URL (first 100 chars):', signedUrl.substring(0, 100));
+      
+      // Note: user_id and user_email are now embedded in the signed URL from the API
+      // They were passed when requesting the signed URL, not appended here
+      console.log('💰 User context embedded in signed URL:');
+      console.log('  - userId:', returnedUserId);
+      console.log('  - userEmail:', userEmail);
+      console.log('  - balance:', balance);
+      console.log('  - userName:', userName);
+      console.log('📡 Starting session with conversation.startSession()...');
+      
+      await conversation.startSession({ 
+        signedUrl: signedUrl
       });
-
+      
+      console.log('✅ conversation.startSession() completed - waiting for onConnect callback');
+      
       // Update local balance state
       setUserBalance(balance);
     } catch (error) {

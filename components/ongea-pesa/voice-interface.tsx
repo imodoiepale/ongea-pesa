@@ -71,24 +71,29 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     }
   }, [messages]);
 
-  // Inactivity timer function
+  // Inactivity timer function - DISABLED to prevent premature disconnects
+  // The global voice widget should handle session management instead
   const resetInactivityTimer = useCallback(() => {
-    // Clear existing timer
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-    }
+    // Timer disabled - sessions should persist until user explicitly ends them
+    // This prevents the voice interface from interfering with the global widget
+    return;
     
-    // Set new timer for 5 seconds of inactivity
-    inactivityTimerRef.current = setTimeout(async () => {
-      console.log('5 seconds of inactivity - closing session and going back');
-      try {
-        await endSession();
-      } catch (error) {
-        console.error('Error ending session:', error);
-      }
-      onNavigate("dashboard");
-    }, 5000);
-  }, [endSession, onNavigate]);
+    // // Clear existing timer
+    // if (inactivityTimerRef.current) {
+    //   clearTimeout(inactivityTimerRef.current);
+    // }
+    // 
+    // // Set new timer for 60 seconds of inactivity (increased from 5s)
+    // inactivityTimerRef.current = setTimeout(async () => {
+    //   console.log('60 seconds of inactivity - closing session');
+    //   try {
+    //     await endSession();
+    //   } catch (error) {
+    //     console.error('Error ending session:', error);
+    //   }
+    //   onNavigate("dashboard");
+    // }, 60000);
+  }, []);
 
   const stopConversation = useCallback(async () => {
     try {
@@ -204,6 +209,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     };
   }, [isPushToTalk, isConnected, handleMouseDown, handleMouseUp]);
 
+  // Initialize the ElevenLabs agent
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isConnected) {

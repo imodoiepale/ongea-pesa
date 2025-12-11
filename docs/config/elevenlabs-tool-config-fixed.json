@@ -1,0 +1,196 @@
+{
+  "type": "webhook",
+  "name": "send_money",
+  "description": "Sends the details of a transaction to process M-Pesa payments",
+  "disable_interruptions": false,
+  "force_pre_tool_speech": "auto",
+  "assignments": [],
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "execution_mode": "immediate",
+  "api_schema": {
+    "url": "https://ongeapesa.vercel.app/api/voice/webhook",
+    "method": "POST",
+    "path_params_schema": [],
+    "query_params_schema": [
+      {
+        "id": "request",
+        "type": "string",
+        "value_type": "llm_prompt",
+        "description": "The full user request verbatim",
+        "dynamic_variable": "",
+        "constant_value": "",
+        "enum": null,
+        "is_system_provided": false,
+        "required": true
+      },
+      {
+        "id": "user_email",
+        "type": "string",
+        "value_type": "dynamic_variable",
+        "description": "User email from conversation context",
+        "dynamic_variable": "user_email",
+        "constant_value": "",
+        "enum": null,
+        "is_system_provided": false,
+        "required": true
+      },
+      {
+        "id": "user_id",
+        "type": "string",
+        "value_type": "dynamic_variable",
+        "description": "User ID from conversation context",
+        "dynamic_variable": "user_id",
+        "constant_value": "",
+        "enum": null,
+        "is_system_provided": false,
+        "required": true
+      },
+      {
+        "id": "conversation_id",
+        "type": "string",
+        "value_type": "system_provided",
+        "description": "ElevenLabs conversation ID",
+        "dynamic_variable": "",
+        "constant_value": "",
+        "enum": null,
+        "is_system_provided": true,
+        "required": false
+      }
+    ],
+    "request_body_schema": {
+      "id": "body",
+      "type": "object",
+      "description": "Transaction parameters extracted from user speech",
+      "properties": [
+        {
+          "id": "type",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Transaction type: send_phone, buy_goods_pochi, buy_goods_till, paybill, withdraw, bank_to_mpesa, bank_to_bank",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": ["send_phone", "buy_goods_pochi", "buy_goods_till", "paybill", "withdraw", "bank_to_mpesa", "bank_to_bank"],
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "amount",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Amount to send in KSH (Kenyan Shillings). Extract numeric value only.",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "summary",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Brief summary of the transaction request",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "phone",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Phone number for send_phone or buy_goods_pochi. Format: 254XXXXXXXXX or 07XXXXXXXX",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "till",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Till number for buy_goods_till transactions (5-7 digits)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "paybill",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Paybill number for bill payments (5-7 digits)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "account",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Account number for paybill or bank transfers",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "store",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Store number for agent withdrawals",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "agent",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Agent number for cash withdrawals",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "bankCode",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Bank code for bank transfers",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        }
+      ],
+      "required": false,
+      "value_type": "llm_prompt"
+    },
+    "request_headers": [],
+    "auth_connection": null
+  },
+  "response_timeout_secs": 20,
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {
+      "user_email": {
+        "description": "User's email address from signed URL",
+        "source": "query_param"
+      },
+      "user_id": {
+        "description": "User's unique ID from signed URL", 
+        "source": "query_param"
+      }
+    }
+  }
+}
