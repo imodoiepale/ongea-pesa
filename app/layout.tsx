@@ -52,14 +52,20 @@ export default function RootLayout({
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://ongeapesa.nsait.co.ke" />
         <meta property="og:site_name" content="Ongea Pesa" />
         <meta property="og:title" content="Ongea Pesa - Voice-Activated M-Pesa" />
         <meta property="og:description" content="Kenya's fastest voice-activated M-Pesa assistant. Pay bills, send money, and manage finances with just your voice." />
+        <meta property="og:image" content="https://ongeapesa.nsait.co.ke/icons/icon-512x512.png" />
+        <meta property="og:image:width" content="512" />
+        <meta property="og:image:height" content="512" />
+        <meta property="og:image:alt" content="Ongea Pesa - Voice-Activated M-Pesa Assistant" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Ongea Pesa - Voice-Activated M-Pesa" />
         <meta name="twitter:description" content="Kenya's fastest voice-activated M-Pesa assistant" />
+        <meta name="twitter:image" content="https://ongeapesa.nsait.co.ke/icons/icon-512x512.png" />
 
         <title>Ongea Pesa - Voice-Activated M-Pesa</title>
       </head>
