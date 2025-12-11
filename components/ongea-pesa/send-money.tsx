@@ -1,14 +1,28 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowLeft, Mic, Send, User, DollarSign, UserPlus } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ArrowLeft, Mic, Send, User, DollarSign, UserPlus, Loader2, Search, Wallet, CheckCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useContacts, formatPhoneNumber, getContactDisplayName } from "@/hooks/use-contacts"
+import { Badge } from "@/components/ui/badge"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+
+interface Contact {
+  id: string | null;
+  name: string;
+  email: string | null;
+  phone: string;
+  gate_name: string;
+  gate_id: string;
+  balance: number;
+  source: 'local' | 'indexpay';
+  has_account: boolean;
+  avatar: string;
+}
 
 interface SendMoneyProps {
   onNavigate: (screen: Screen) => void;
@@ -18,10 +32,44 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
   const [amount, setAmount] = useState("")
   const [recipient, setRecipient] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [isVoiceMode, setIsVoiceMode] = useState(false)
   const [voiceCommand, setVoiceCommand] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
+  
+  // Contacts state
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [loadingContacts, setLoadingContacts] = useState(true)
+  const [contactsError, setContactsError] = useState<string | null>(null)
+  
+  // Transfer state
+  const [isSending, setIsSending] = useState(false)
+  const [sendResult, setSendResult] = useState<{ success: boolean; message: string } | null>(null)
 
   const { isSupported, isLoading, selectSingleContact } = useContacts()
+
+  // Fetch contacts on mount
+  useEffect(() => {
+    fetchContacts()
+  }, [])
+
+  const fetchContacts = async () => {
+    setLoadingContacts(true)
+    setContactsError(null)
+    try {
+      const response = await fetch('/api/contacts')
+      if (!response.ok) {
+        throw new Error('Failed to fetch contacts')
+      }
+      const data = await response.json()
+      setContacts(data.contacts || [])
+    } catch (error: any) {
+      console.error('Error fetching contacts:', error)
+      setContactsError(error.message)
+    } finally {
+      setLoadingContacts(false)
+    }
+  }
 
   const handleVoiceSend = () => {
     setIsVoiceMode(true)
@@ -44,11 +92,71 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
     }
   }
 
-  const recentContacts = [
-    { name: "John Doe", phone: "0712345678", avatar: "JD" },
-    { name: "Mary Smith", phone: "0723456789", avatar: "MS" },
-    { name: "Peter Kamau", phone: "0734567890", avatar: "PK" },
-  ]
+  const handleSelectContact = (contact: Contact) => {
+    setSelectedContact(contact)
+    setRecipient(contact.name)
+    setPhoneNumber(contact.phone || '')
+    setSearchQuery('')
+  }
+
+  const handleSendMoney = async () => {
+    if (!selectedContact?.gate_name || !amount) {
+      setSendResult({ success: false, message: 'Please select a recipient and enter an amount' })
+      return
+    }
+
+    setIsSending(true)
+    setSendResult(null)
+
+    try {
+      const response = await fetch('/api/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient_gate_name: selectedContact.gate_name,
+          amount: parseFloat(amount),
+          description: `Send to ${selectedContact.name}`,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Transfer failed')
+      }
+
+      setSendResult({ 
+        success: true, 
+        message: data.message || `Successfully sent KES ${amount} to ${selectedContact.name}` 
+      })
+      
+      // Reset form after success
+      setTimeout(() => {
+        setAmount('')
+        setRecipient('')
+        setPhoneNumber('')
+        setSelectedContact(null)
+        setSendResult(null)
+      }, 3000)
+
+    } catch (error: any) {
+      setSendResult({ success: false, message: error.message })
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  // Filter contacts based on search
+  const filteredContacts = contacts.filter(contact => {
+    if (!searchQuery) return true
+    const query = searchQuery.toLowerCase()
+    return (
+      contact.name.toLowerCase().includes(query) ||
+      contact.phone?.toLowerCase().includes(query) ||
+      contact.gate_name?.toLowerCase().includes(query) ||
+      contact.email?.toLowerCase().includes(query)
+    )
+  })
 
   return (
     <div className="min-h-screen p-4 pb-20">
@@ -158,32 +266,143 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
         </CardContent>
       </Card>
 
-      {/* Recent Contacts */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Recent Contacts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {recentContacts.map((contact, index) => (
-              <div
-                key={index}
-                className="flex items-center p-3 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                onClick={() => {
-                  setRecipient(contact.name)
-                  setPhoneNumber(contact.phone)
-                }}
-              >
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                  {contact.avatar}
+      {/* Transfer Result */}
+      {sendResult && (
+        <Card className={`mb-6 ${sendResult.success ? 'bg-green-50 dark:bg-green-900/20 border-green-500' : 'bg-red-50 dark:bg-red-900/20 border-red-500'}`}>
+          <CardContent className="p-4 flex items-center gap-3">
+            {sendResult.success ? (
+              <CheckCircle className="h-5 w-5 text-green-600" />
+            ) : (
+              <AlertCircle className="h-5 w-5 text-red-600" />
+            )}
+            <p className={`text-sm ${sendResult.success ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+              {sendResult.message}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Selected Contact Display */}
+      {selectedContact && (
+        <Card className="mb-6 border-green-500 bg-green-50/50 dark:bg-green-900/20">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold ${selectedContact.has_account ? 'bg-green-500' : 'bg-orange-500'}`}>
+                  {selectedContact.avatar}
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{contact.name}</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">{contact.phone}</p>
+                <div>
+                  <p className="font-semibold">{selectedContact.name}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{selectedContact.phone || selectedContact.gate_name}</p>
+                  {!selectedContact.has_account && (
+                    <p className="text-xs text-orange-600 dark:text-orange-400">Gate will be auto-created</p>
+                  )}
                 </div>
               </div>
-            ))}
+              <Button variant="ghost" size="sm" onClick={() => setSelectedContact(null)}>
+                Change
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Ongea Pesa Contacts */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-green-600" />
+              Ongea Pesa Contacts
+            </span>
+            <Badge variant="outline" className="text-xs">
+              {contacts.length} contacts
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Search */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search by name, phone, or gate..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
           </div>
+
+          {/* Loading State */}
+          {loadingContacts && (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+              <span className="ml-2 text-sm text-gray-600">Loading contacts...</span>
+            </div>
+          )}
+
+          {/* Error State */}
+          {contactsError && (
+            <div className="text-center py-4">
+              <p className="text-sm text-red-600 mb-2">{contactsError}</p>
+              <Button variant="outline" size="sm" onClick={fetchContacts}>
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {/* Contacts List */}
+          {!loadingContacts && !contactsError && (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {filteredContacts.length === 0 ? (
+                <p className="text-center text-sm text-gray-500 py-4">
+                  {searchQuery ? 'No contacts found' : 'No contacts available'}
+                </p>
+              ) : (
+                filteredContacts.map((contact, index) => (
+                  <div
+                    key={contact.gate_name || index}
+                    className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${
+                      selectedContact?.gate_name === contact.gate_name
+                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
+                    onClick={() => handleSelectContact(contact)}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold mr-3 ${
+                      contact.has_account ? 'bg-green-500' : 'bg-orange-500'
+                    }`}>
+                      {contact.avatar}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm truncate">{contact.name}</p>
+                        {contact.has_account ? (
+                          <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                            Verified
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300">
+                            Unclaimed
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                        {contact.phone || contact.gate_name}
+                      </p>
+                    </div>
+                    {contact.has_account && contact.balance > 0 && (
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Balance</p>
+                        <p className="text-sm font-medium text-green-600">
+                          KSh {contact.balance.toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -191,10 +410,20 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
       <div className="fixed bottom-6 left-4 right-4">
         <Button
           className="w-full h-12 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700"
-          disabled={!amount || (!recipient && !phoneNumber)}
+          disabled={!amount || !selectedContact || isSending}
+          onClick={handleSendMoney}
         >
-          <Send className="h-5 w-5 mr-2" />
-          Send KSh {amount || "0"}
+          {isSending ? (
+            <>
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              Sending...
+            </>
+          ) : (
+            <>
+              <Send className="h-5 w-5 mr-2" />
+              Send KSh {amount || "0"} {selectedContact ? `to ${selectedContact.name}` : ''}
+            </>
+          )}
         </Button>
       </div>
     </div>
