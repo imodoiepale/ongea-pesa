@@ -17,24 +17,28 @@ export async function POST(request: NextRequest) {
 
     console.log('Generating signed URL for user:', user.email);
 
-    // Fetch user balance from profiles table
+    // Fetch user profile including balance, gate_name, and gate_id
     let userBalance = 0;
     let userName = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
-    
+    let gateName = '';
+    let gateId = '';
+
     try {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('wallet_balance, name')
+        .select('wallet_balance, name, gate_name, gate_id')
         .eq('id', user.id)
         .single();
-      
+
       if (profile && !profileError) {
         userBalance = profile.wallet_balance || 0;
         userName = profile.name || userName;
-        console.log('Fetched user balance:', userBalance, 'for user:', userName);
+        gateName = profile.gate_name || '';
+        gateId = profile.gate_id || '';
+        console.log('Fetched user profile:', { balance: userBalance, userName, gateName, gateId });
       }
     } catch (balanceError) {
-      console.error('Failed to fetch balance, using default 0:', balanceError);
+      console.error('Failed to fetch profile, using defaults:', balanceError);
     }
 
     // Validate environment variables
@@ -75,7 +79,7 @@ export async function POST(request: NextRequest) {
       const errorBody = await response.text();
       const errorMessage = `ElevenLabs API Error: ${response.status} ${response.statusText} - ${errorBody}`;
       console.error(errorMessage);
-      
+
       // Return more specific error messages
       if (response.status === 401) {
         return NextResponse.json(
@@ -96,7 +100,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    
+
     if (!data.signed_url) {
       console.error('No signed URL in response:', data);
       return NextResponse.json(
@@ -108,7 +112,7 @@ export async function POST(request: NextRequest) {
     // Extract session ID from signed URL if available
     const signedUrl = data.signed_url;
     let sessionId = 'session-' + Date.now(); // Fallback session ID
-    
+
     try {
       const urlObj = new URL(signedUrl);
       const pathParts = urlObj.pathname.split('/');
@@ -129,7 +133,7 @@ export async function POST(request: NextRequest) {
           status: 'active',
           expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
         });
-      
+
       console.log('Saved voice session:', sessionId, 'for user:', user.email);
     } catch (dbError: any) {
       console.error('Failed to save voice session:', dbError);
@@ -137,21 +141,23 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Successfully generated signed URL for user:', user.email);
-    
-    // Return signed URL with user context including balance
-    return NextResponse.json({ 
+
+    // Return signed URL with user context including balance and gate info
+    return NextResponse.json({
       signedUrl: data.signed_url,
       userEmail: user.email,
       userId: user.id,
       userName: userName,
       balance: userBalance,
+      gateName: gateName,
+      gateId: gateId,
     });
-    
+
   } catch (error: any) {
     console.error('Error generating signed URL:', error);
     return NextResponse.json(
-      { 
-        error: 'Failed to generate signed URL', 
+      {
+        error: 'Failed to generate signed URL',
         details: error.message || 'Unknown error'
       },
       { status: 500 }

@@ -12,41 +12,45 @@ export async function POST(request: NextRequest) {
     console.log('Timestamp:', new Date().toISOString())
     console.log('Request URL:', request.url)
     console.log('Request Headers:', Object.fromEntries(request.headers))
-    
+
     // Parse the incoming data from ElevenLabs
     const body = await request.json()
     console.log('Request Body:', JSON.stringify(body, null, 2))
-    
+
     const queryParams = new URL(request.url).searchParams
     const fullRequest = queryParams.get('request')
     const userEmail = queryParams.get('user_email') || body.user_email
     const userId = queryParams.get('user_id') || body.user_id
+    const gateName = queryParams.get('gate_name') || body.gate_name || ''
+    const gateId = queryParams.get('gate_id') || body.gate_id || ''
     const conversationId = body.conversation_id || body.session_id // ElevenLabs sends this
-    
+
     console.log('Query Param - request:', fullRequest)
     console.log('Query Param - user_email:', userEmail)
     console.log('Query Param - user_id:', userId)
+    console.log('Query Param - gate_name:', gateName)
+    console.log('Query Param - gate_id:', gateId)
     console.log('Conversation ID:', conversationId)
-    
+
     // Initialize Supabase with service role for user lookup
     const supabase = await createClient()
-    
+
     let userContext = null
     let profile = null
     let user = null
 
     // Option 1: Try to get user from session (if called from browser)
     const { data: { user: sessionUser }, error: authError } = await supabase.auth.getUser()
-    
+
     if (sessionUser && !authError) {
       user = sessionUser
       console.log('✅ User from session:', user.email)
-    } 
+    }
     // Option 2: Look up user by email from query params
     else if (userEmail) {
       console.log('🔍 Looking up user by email:', userEmail)
       const { data: { users }, error: lookupError } = await supabase.auth.admin.listUsers()
-      
+
       if (!lookupError && users) {
         user = users.find(u => u.email === userEmail)
         if (user) {
@@ -58,18 +62,18 @@ export async function POST(request: NextRequest) {
     else {
       console.log('🔍 Looking up user from recent voice sessions')
       console.log('Current time:', new Date().toISOString())
-      
+
       // First, check if we have any voice sessions at all
       const { data: allSessions, error: countError } = await supabase
         .from('voice_sessions')
         .select('*')
         .limit(5)
-      
+
       console.log('Total recent voice sessions:', allSessions?.length || 0)
       if (allSessions && allSessions.length > 0) {
         console.log('Recent sessions:', JSON.stringify(allSessions, null, 2))
       }
-      
+
       const { data: recentSession, error: sessionError } = await supabase
         .from('voice_sessions')
         .select('user_id')
@@ -78,11 +82,11 @@ export async function POST(request: NextRequest) {
         .order('created_at', { ascending: false })
         .limit(1)
         .single()
-      
+
       if (sessionError) {
         console.error('❌ Voice session lookup error:', sessionError)
       }
-      
+
       if (!sessionError && recentSession) {
         console.log('✅ Found active voice session, user_id:', recentSession.user_id)
         // Get full user details
@@ -101,7 +105,7 @@ export async function POST(request: NextRequest) {
         console.warn('⚠️ No active voice session found')
       }
     }
-    
+
     // If we found a user, get their profile
     if (user) {
       const { data: profileData } = await supabase
@@ -109,9 +113,9 @@ export async function POST(request: NextRequest) {
         .select('*')
         .eq('id', user.id)
         .single()
-      
+
       profile = profileData
-      
+
       userContext = {
         id: user.id,
         email: user.email,
@@ -120,12 +124,12 @@ export async function POST(request: NextRequest) {
         wallet_balance: profile?.wallet_balance || 0,
         created_at: user.created_at,
       }
-      
+
       console.log('✅ User context:', userContext)
     } else {
       console.log('⚠️ No user found - using test mode')
       console.log('Auth error:', authError?.message)
-      
+
       // For testing: use your actual email if provided, otherwise mock
       userContext = {
         id: 'test-user-id',
@@ -138,21 +142,21 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('\n=== PREPARING N8N PAYLOAD ===')
-    
+
     // ALWAYS use real user data - override any test data from ElevenLabs
     let finalUserId = userContext?.id
     let finalUserEmail = userContext?.email
     let finalUserPhone = userContext?.phone
     let finalUserName = userContext?.full_name
-    
+
     // If we still don't have user, try to find from saved voice sessions using conversation_id
     if (!user) {
       console.log('⚠️ No user context found, checking voice_sessions...')
       console.log('  Looking for conversation_id:', conversationId)
-      
+
       try {
         let recentSession = null
-        
+
         // FIRST: Try to match by conversation_id if available
         if (conversationId) {
           console.log('🔍 Looking up session by conversation_id:', conversationId)
@@ -161,7 +165,7 @@ export async function POST(request: NextRequest) {
             .select('user_id, session_id, created_at, status, expires_at')
             .eq('session_id', conversationId)
             .maybeSingle()
-          
+
           if (matchError) {
             console.error('❌ Error matching session by conversation_id:', matchError)
           } else if (matchedSession) {
@@ -171,7 +175,7 @@ export async function POST(request: NextRequest) {
             console.warn('⚠️ No session found for conversation_id:', conversationId)
           }
         }
-        
+
         // FALLBACK: If no conversation_id match, get recent ACTIVE sessions
         if (!recentSession) {
           console.log('🔍 Fallback: Looking for recent active sessions')
@@ -182,19 +186,19 @@ export async function POST(request: NextRequest) {
             .gte('expires_at', new Date().toISOString())
             .order('created_at', { ascending: false })
             .limit(5)
-          
+
           console.log('Voice sessions query:')
           console.log('  Error:', sessionsError)
           console.log('  Active sessions found:', allSessions?.length || 0)
-          
+
           if (sessionsError) {
             console.error('❌ Error fetching sessions:', sessionsError)
           }
-          
+
           if (allSessions && allSessions.length > 0) {
             console.log('✅ Found', allSessions.length, 'active voice sessions')
             console.log('Sessions:', JSON.stringify(allSessions, null, 2))
-            
+
             // ⚠️ WARNING: This is a fallback and may not be accurate in multi-user scenarios
             recentSession = allSessions[0]
             console.warn('⚠️ Using most recent active session as fallback - this may be inaccurate!')
@@ -202,33 +206,33 @@ export async function POST(request: NextRequest) {
             console.error('❌ No active voice sessions found')
           }
         }
-        
+
         // If we found a session, get the user profile
         if (recentSession) {
           console.log('✅ Using session:', recentSession.session_id, 'user_id:', recentSession.user_id)
-          
+
           // Now get user's profile using the user_id
           const { data: userProfile, error: profileError } = await supabase
             .from('profiles')
             .select('id, phone_number, mpesa_number, wallet_balance')
             .eq('id', recentSession.user_id)
             .maybeSingle()
-          
+
           if (profileError) {
             console.error('❌ Profile query error:', profileError)
           }
-          
+
           if (userProfile) {
             console.log('✅ Found profile:', userProfile)
-            
+
             finalUserId = userProfile.id
             finalUserEmail = `user-${userProfile.id.slice(0, 8)}@ongeapesa.com` // Fallback email
             finalUserPhone = userProfile.phone_number || userProfile.mpesa_number || ''
             finalUserName = userProfile.phone_number || 'User'
-            
+
             // Try to get actual email from auth.users if possible
             // But this might not work without service role, so email might be fallback
-            
+
             console.log('✅ SUCCESSFULLY SET REAL USER DATA FROM VOICE SESSION')
           } else {
             console.warn('⚠️ Profile not found for user_id:', recentSession.user_id)
@@ -248,13 +252,13 @@ export async function POST(request: NextRequest) {
     } else {
       console.log('✅ User already found from earlier lookup')
     }
-    
+
     console.log('📤 Final user data for n8n:')
     console.log('  user_id:', finalUserId)
     console.log('  user_email:', finalUserEmail)
     console.log('  user_phone:', finalUserPhone)
     console.log('  user_name:', finalUserName)
-    
+
     // ============================================
     // REAL-TIME BALANCE & SUBSCRIPTION CHECK
     // ============================================
@@ -263,14 +267,14 @@ export async function POST(request: NextRequest) {
     let subscriptionStatus = 'inactive'
     let freeTxRemaining = 0
     let subscriptionEndDate = null
-    
+
     if (finalUserId && finalUserId !== 'no-user-found' && finalUserId !== 'test-user-id') {
       const { data: balanceData, error: balanceError } = await supabase
         .from('profiles')
         .select('wallet_balance, subscription_status, subscription_end_date, free_transactions_remaining')
         .eq('id', finalUserId)
         .single()
-      
+
       if (balanceError) {
         console.error('❌ Error fetching balance:', balanceError)
       } else if (balanceData) {
@@ -278,19 +282,19 @@ export async function POST(request: NextRequest) {
         subscriptionStatus = balanceData.subscription_status || 'inactive'
         subscriptionEndDate = balanceData.subscription_end_date
         freeTxRemaining = balanceData.free_transactions_remaining || 0
-        
+
         console.log('💰 Current wallet balance:', currentBalance)
         console.log('📅 Subscription status:', subscriptionStatus)
         console.log('🎁 Free transactions remaining:', freeTxRemaining)
       }
     }
-    
+
     // Validate amount
     const requestedAmount = parseFloat(body.amount)
     if (isNaN(requestedAmount) || requestedAmount <= 0) {
       console.error('❌ Invalid amount received:', body.amount)
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: 'Invalid amount',
           message: `The amount ${body.amount} is not valid. Please provide a positive number.`,
@@ -300,11 +304,11 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     if (requestedAmount > 999999) {
       console.error('❌ Amount exceeds maximum:', requestedAmount)
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: 'Amount too large',
           message: `The amount KSh ${requestedAmount.toLocaleString()} exceeds the maximum of KSh 999,999.`,
@@ -314,29 +318,29 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     // ============================================
     // CHECK FREE TRANSACTION ELIGIBILITY
     // ============================================
     let isFreeTransaction = false
     let platformFeeAmount = 0
-    
+
     // Check if this is a debit transaction (money going out)
     const debitTypes = [
       'send_phone', 'buy_goods_pochi', 'buy_goods_till',
       'paybill', 'withdraw', 'bank_to_mpesa', 'mpesa_to_bank'
     ]
     const isDebitTransaction = debitTypes.includes(body.type)
-    
+
     if (isDebitTransaction) {
       console.log('\n=== CHECKING FREE TRANSACTION ELIGIBILITY ===')
-      
+
       // Check if user qualifies for free transaction
-      if (subscriptionStatus === 'active' && 
-          subscriptionEndDate && 
-          new Date(subscriptionEndDate) >= new Date() &&
-          requestedAmount >= 1000 && 
-          freeTxRemaining > 0) {
+      if (subscriptionStatus === 'active' &&
+        subscriptionEndDate &&
+        new Date(subscriptionEndDate) >= new Date() &&
+        requestedAmount >= 1000 &&
+        freeTxRemaining > 0) {
         isFreeTransaction = true
         platformFeeAmount = 0
         console.log('✅ FREE TRANSACTION QUALIFIED!')
@@ -347,7 +351,7 @@ export async function POST(request: NextRequest) {
         platformFeeAmount = Math.round(requestedAmount * 0.005 * 100) / 100
         console.log('💰 REGULAR TRANSACTION (0.5% fee)')
         console.log('  Platform fee:', platformFeeAmount)
-        
+
         if (subscriptionStatus !== 'active') {
           console.log('  Reason: No active subscription')
         } else if (requestedAmount < 1000) {
@@ -357,7 +361,7 @@ export async function POST(request: NextRequest) {
         }
       }
     }
-    
+
     // For debit transactions, check if user has sufficient balance
     if (isDebitTransaction) {
       console.log('\n=== BALANCE VALIDATION ===')
@@ -367,19 +371,19 @@ export async function POST(request: NextRequest) {
       console.log('  Platform Fee:', platformFeeAmount)
       console.log('  Total Required:', requestedAmount + platformFeeAmount)
       console.log('  Current Balance:', currentBalance)
-      
+
       const totalRequired = requestedAmount + platformFeeAmount
-      
+
       if (currentBalance < totalRequired) {
         const shortfall = totalRequired - currentBalance
         console.error('❌ INSUFFICIENT FUNDS')
         console.error('  Balance:', currentBalance)
         console.error('  Required:', totalRequired)
         console.error('  Shortfall:', shortfall)
-        
+
         // Return error to ElevenLabs AI agent with clear message
         return NextResponse.json(
-          { 
+          {
             success: false,
             error: 'Insufficient funds',
             message: `Your current balance is KSh ${currentBalance.toLocaleString()}, but you need KSh ${totalRequired.toLocaleString()} (including fees). You need KSh ${shortfall.toLocaleString()} more.`,
@@ -392,15 +396,15 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      
+
       console.log('✅ BALANCE CHECK PASSED')
       console.log('  Balance after transaction:', currentBalance - totalRequired)
     } else {
       console.log('💰 Credit transaction (deposit/receive) - no balance check needed')
     }
-    
+
     console.log('✅ Valid amount:', requestedAmount)
-    
+
     // ============================================
     // TRUST AI EXTRACTION - NO RE-CONFIRMATION
     // ============================================
@@ -409,28 +413,30 @@ export async function POST(request: NextRequest) {
     // We just validate and execute immediately
     console.log('🤖 AI already confirmed transaction with user')
     console.log('⚡ Executing immediately - no re-confirmation needed')
-    
+
     // Prepare the payload - all fields at top level for n8n
     const n8nPayload = {
       // Voice request
       request: fullRequest || body.summary || 'Voice transaction request',
       voice_command_text: fullRequest || body.summary || '',
-      
+
       // User context - ALWAYS REAL DATA, NEVER TEST
       user_id: finalUserId || 'no-user-found',
       user_email: finalUserEmail || 'no-email@ongeapesa.com',
       user_phone: finalUserPhone || '',
       user_name: finalUserName || 'User',
+      gate_name: gateName || '',
+      gate_id: gateId || '',
       current_balance: currentBalance, // Send current wallet balance to AI
       wallet_balance: currentBalance, // Alternative field name for compatibility
-      
+
       // Subscription & Free Transaction Info
       subscription_status: subscriptionStatus,
       subscription_end_date: subscriptionEndDate,
       free_transactions_remaining: freeTxRemaining,
       is_free_transaction: isFreeTransaction,
       platform_fee: platformFeeAmount,
-      
+
       // Transaction details from ElevenLabs
       type: body.type,
       amount: requestedAmount, // Already validated above
@@ -442,37 +448,37 @@ export async function POST(request: NextRequest) {
       store: body.store || '',
       bank_code: body.bankCode || '',
       summary: body.summary || '',
-      
+
       // Voice metadata
       voice_verified: true,
       confidence_score: 85,
-      
+
       // Status fields
       status: 'pending',
       mpesa_transaction_id: '',
       external_ref: '',
-      
+
       // Timestamp and source
       timestamp: new Date().toISOString(),
       source: 'elevenlabs',
     }
-    
+
     console.log('N8N Payload:', JSON.stringify(n8nPayload, null, 2))
 
     // Forward to n8n
     console.log('\n=== FORWARDING TO N8N ===')
     console.log('N8N URL:', N8N_WEBHOOK_URL)
     console.log('Auth configured:', N8N_AUTH_TOKEN ? 'Yes' : 'No')
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     }
-    
+
     // Add authentication header if token is configured
     if (N8N_AUTH_TOKEN) {
       headers['Authorization'] = N8N_AUTH_TOKEN
     }
-    
+
     const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
       headers,
@@ -496,7 +502,7 @@ export async function POST(request: NextRequest) {
     // Parse n8n response safely
     const responseText = await n8nResponse.text()
     console.log('n8n Raw Response:', responseText)
-    
+
     let n8nResult: any = {}
     try {
       if (responseText && responseText.trim()) {
@@ -504,8 +510,8 @@ export async function POST(request: NextRequest) {
         console.log('✅ n8n Response parsed:', n8nResult)
       } else {
         console.log('⚠️ n8n returned empty response, using default')
-        n8nResult = { 
-          success: true, 
+        n8nResult = {
+          success: true,
           message: 'Transaction queued for processing',
           transaction_id: `tx_${Date.now()}`
         }
@@ -514,8 +520,8 @@ export async function POST(request: NextRequest) {
       console.error('❌ Failed to parse n8n response as JSON:', parseError)
       console.error('Raw response:', responseText)
       // If n8n doesn't return JSON, assume success since the request went through
-      n8nResult = { 
-        success: true, 
+      n8nResult = {
+        success: true,
         message: 'Transaction sent to n8n',
         raw_response: responseText,
         transaction_id: `tx_${Date.now()}`
@@ -532,14 +538,14 @@ export async function POST(request: NextRequest) {
     }
     console.log('Response:', JSON.stringify(response, null, 2))
     console.log('=== WEBHOOK COMPLETED ===\n')
-    
+
     return NextResponse.json(response)
 
   } catch (error) {
     console.error('Voice webhook error:', error)
     return NextResponse.json(
-      { 
-        error: 'Internal server error', 
+      {
+        error: 'Internal server error',
         success: false,
         details: error instanceof Error ? error.message : 'Unknown error'
       },
