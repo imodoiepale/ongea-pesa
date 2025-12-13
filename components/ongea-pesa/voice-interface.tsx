@@ -117,12 +117,14 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   }, [isConnected, isLoading, userId, startSession]);
 
   // Auto-start ElevenLabs session when voice interface opens
+  const hasAutoStarted = useRef(false);
   useEffect(() => {
-    if (userId && !isConnected && !isLoading) {
+    if (userId && !isConnected && !isLoading && !hasAutoStarted.current) {
+      hasAutoStarted.current = true;
       console.log('🚀 Auto-starting ElevenLabs session on voice interface open');
       startSession();
     }
-  }, [userId]); // Only run once when userId is available
+  }, [userId, isConnected, isLoading, startSession]); // Include all deps but use ref to prevent re-runs
 
   // Fetch balance on mount and set up real-time subscription
   useEffect(() => {
@@ -171,44 +173,36 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     };
   }, [isConnected, resetInactivityTimer]);
 
-  // Push-to-talk functionality
-  const handleMouseDown = useCallback(async () => {
+  // Button click to start session (no longer push-to-talk, just click to connect)
+  const handleMicClick = useCallback(async () => {
     // Start session if not connected
     if (!isConnected && !isLoading) {
-      console.log('🎤 Starting session on push-to-talk...');
+      console.log('🎤 Starting session on mic click...');
+      hasAutoStarted.current = true; // Prevent auto-start from also triggering
       await startSession();
-      // Set push-to-talk immediately so user can start talking as soon as connected
-      setIsPushToTalk(true);
       return;
     }
-    setIsPushToTalk(true);
-    // Reset inactivity timer when user starts talking
-    resetInactivityTimer();
-    console.log('Started push-to-talk');
-  }, [isConnected, isLoading, startSession, resetInactivityTimer]);
+    // If already connected, just log - ElevenLabs is always listening
+    console.log('Already connected - just speak');
+  }, [isConnected, isLoading, startSession]);
 
+  // Keep these for backwards compatibility but they're not really needed anymore
+  const handleMouseDown = handleMicClick;
   const handleMouseUp = useCallback(() => {
-    if (!isPushToTalk) return;
-    setIsPushToTalk(false);
-    // Reset inactivity timer when user stops talking
-    resetInactivityTimer();
-    console.log('Stopped push-to-talk');
-  }, [isPushToTalk, resetInactivityTimer]);
+    // No-op - ElevenLabs is always listening when connected
+  }, []);
 
-  // Handle keyboard events for push-to-talk
+  // Handle keyboard events - Space to connect if not connected
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && !isPushToTalk && isConnected) {
+      if (e.code === 'Space' && !isConnected && !isLoading) {
         e.preventDefault();
-        handleMouseDown();
+        handleMicClick();
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && isPushToTalk) {
-        e.preventDefault();
-        handleMouseUp();
-      }
+      // No-op - ElevenLabs is always listening
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -218,7 +212,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isPushToTalk, isConnected, handleMouseDown, handleMouseUp]);
+  }, [isConnected, isLoading, handleMicClick]);
 
   // Initialize the ElevenLabs agent
   useEffect(() => {
@@ -477,7 +471,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
 
           {/* Instructions */}
           <p className="text-center text-gray-600 mt-4 text-sm">
-            {isLoading ? "Connecting..." : isConnected ? "Hold to speak" : "Press to connect & speak"}
+            {isLoading ? "Connecting..." : isConnected ? "Just speak - I'm listening" : "Press to connect"}
           </p>
         </div>
 
