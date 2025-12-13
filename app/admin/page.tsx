@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 const ADMIN_EMAILS = [
   'ijepale@gmail.com',
   'admin@ongeapesa.com',
+  'ongeapesa.kenya@gmail.com',
 ];
 
 export default async function AdminPage() {

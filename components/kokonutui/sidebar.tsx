@@ -67,28 +67,15 @@ export default function Sidebar() {
       >
         <div className="h-full flex flex-col">
           <Link
-            href="https://kokonutui.com/"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/"
             className="h-16 px-6 flex items-center border-b border-gray-200 dark:border-[#1F1F23]"
           >
             <div className="flex items-center gap-3">
-              <Image
-                src="https://kokonutui.com/logo.svg"
-                alt="Acme"
-                width={32}
-                height={32}
-                className="flex-shrink-0 hidden dark:block"
-              />
-              <Image
-                src="https://kokonutui.com/logo-black.svg"
-                alt="Acme"
-                width={32}
-                height={32}
-                className="flex-shrink-0 block dark:hidden"
-              />
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">OP</span>
+              </div>
               <span className="text-lg font-semibold hover:cursor-pointer text-gray-900 dark:text-white">
-                KokonutUI
+                Ongea Pesa
               </span>
             </div>
           </Link>
@@ -100,54 +87,51 @@ export default function Sidebar() {
                   Overview
                 </div>
                 <div className="space-y-1">
-                  <NavItem href="#" icon={Home}>
-                    Dashboard
+                  <NavItem href="/" icon={Home}>
+                    Home
                   </NavItem>
-                  <NavItem href="#" icon={BarChart2}>
+                  <NavItem href="/admin-analytics" icon={BarChart2}>
                     Analytics
                   </NavItem>
-                  <NavItem href="#" icon={Building2}>
-                    Organization
+                  <NavItem href="/admin" icon={Building2}>
+                    Revenue Dashboard
                   </NavItem>
-                  <NavItem href="#" icon={Folder}>
-                    Projects
+                  <NavItem href="/admin-analytics/revenue" icon={CreditCard}>
+                    Revenue & Partners
                   </NavItem>
                 </div>
               </div>
 
               <div>
                 <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Finance
+                  Payments
                 </div>
                 <div className="space-y-1">
-                  <NavItem href="#" icon={Wallet}>
+                  <NavItem href="/admin-analytics/transactions" icon={Wallet}>
                     Transactions
                   </NavItem>
-                  <NavItem href="#" icon={Receipt}>
-                    Invoices
+                  <NavItem href="/admin-analytics/mpesa-history" icon={Receipt}>
+                    M-Pesa History
                   </NavItem>
-                  <NavItem href="#" icon={CreditCard}>
-                    Payments
+                  <NavItem href="/admin-analytics/wallet-transfers" icon={CreditCard}>
+                    Wallet Transfers
                   </NavItem>
                 </div>
               </div>
 
               <div>
                 <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Team
+                  Users
                 </div>
                 <div className="space-y-1">
-                  <NavItem href="#" icon={Users2}>
-                    Members
+                  <NavItem href="/admin-analytics/users" icon={Users2}>
+                    All Users
                   </NavItem>
-                  <NavItem href="#" icon={Shield}>
-                    Permissions
+                  <NavItem href="/admin-analytics/settings" icon={Shield}>
+                    Admin Settings
                   </NavItem>
-                  <NavItem href="#" icon={MessagesSquare}>
-                    Chat
-                  </NavItem>
-                  <NavItem href="#" icon={Video}>
-                    Meetings
+                  <NavItem href="/admin-analytics/voice-sessions" icon={MessagesSquare}>
+                    Voice Sessions
                   </NavItem>
                 </div>
               </div>
