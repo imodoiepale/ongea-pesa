@@ -22,6 +22,10 @@ interface Contact {
   source: 'local' | 'indexpay';
   has_account: boolean;
   avatar: string;
+  is_me?: boolean;
+  is_admin?: boolean;
+  indexpay_gate_balance?: number;
+  indexpay_pocket_balance?: number;
 }
 
 interface SendMoneyProps {
@@ -39,6 +43,7 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
   
   // Contacts state
   const [contacts, setContacts] = useState<Contact[]>([])
+  const [currentUser, setCurrentUser] = useState<Contact | null>(null)
   const [loadingContacts, setLoadingContacts] = useState(true)
   const [contactsError, setContactsError] = useState<string | null>(null)
   
@@ -58,13 +63,22 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
     setContactsError(null)
     try {
       const response = await fetch('/api/contacts')
-      if (!response.ok) {
-        throw new Error('Failed to fetch contacts')
-      }
       const data = await response.json()
+      console.log('📱 Contacts API response:', data)
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch contacts')
+      }
+      
       setContacts(data.contacts || [])
+      setCurrentUser(data.current_user || null)
+      console.log('✅ Loaded contacts:', data.contacts?.length || 0)
+      console.log('👤 Current user:', data.current_user?.name)
+      if (data.debug) {
+        console.log('📊 Debug info:', data.debug)
+      }
     } catch (error: any) {
-      console.error('Error fetching contacts:', error)
+      console.error('❌ Error fetching contacts:', error)
       setContactsError(error.message)
     } finally {
       setLoadingContacts(false)
@@ -120,6 +134,7 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
       })
 
       const data = await response.json()
+      console.log('💸 Transfer response:', data)
 
       if (!response.ok) {
         throw new Error(data.error || 'Transfer failed')
@@ -129,6 +144,17 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
         success: true, 
         message: data.message || `Successfully sent KES ${amount} to ${selectedContact.name}` 
       })
+
+      // Update current user's balance immediately
+      if (data.new_balance !== undefined && currentUser) {
+        setCurrentUser({
+          ...currentUser,
+          balance: data.new_balance
+        })
+      }
+
+      // Refresh contacts to get updated balances
+      await fetchContacts()
       
       // Reset form after success
       setTimeout(() => {
@@ -140,6 +166,7 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
       }, 3000)
 
     } catch (error: any) {
+      console.error('❌ Transfer error:', error)
       setSendResult({ success: false, message: error.message })
     } finally {
       setIsSending(false)
@@ -353,7 +380,64 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
           {/* Contacts List */}
           {!loadingContacts && !contactsError && (
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {filteredContacts.length === 0 ? (
+              {/* Current User (Me) - Always shown at top */}
+              {currentUser && (
+                <div className="flex items-center p-3 rounded-lg border border-blue-300 bg-blue-50 dark:bg-blue-900/20 cursor-not-allowed opacity-75">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold mr-3 bg-blue-500">
+                    {currentUser.avatar}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm truncate">{currentUser.name}</p>
+                      <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
+                        You
+                      </Badge>
+                      {currentUser.is_admin && (
+                        <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300">
+                          Admin
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                      {currentUser.gate_name || currentUser.email}
+                    </p>
+                  </div>
+                  <div className="text-right space-y-1">
+                    <div>
+                      <p className="text-xs text-gray-500">Wallet Balance</p>
+                      <p className="text-sm font-medium text-blue-600">
+                        KSh {currentUser.balance.toLocaleString()}
+                      </p>
+                    </div>
+                    {/* Show IndexPay balances for admin user */}
+                    {currentUser.is_admin && currentUser.indexpay_gate_balance !== undefined && (
+                      <div className="border-t pt-1">
+                        <p className="text-xs text-purple-500">Gate Balance</p>
+                        <p className="text-xs font-medium text-purple-600">
+                          KSh {currentUser.indexpay_gate_balance.toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {currentUser.is_admin && currentUser.indexpay_pocket_balance !== undefined && (
+                      <div>
+                        <p className="text-xs text-purple-500">Pocket Balance</p>
+                        <p className="text-xs font-medium text-purple-600">
+                          KSh {currentUser.indexpay_pocket_balance.toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Separator */}
+              {currentUser && filteredContacts.length > 0 && (
+                <div className="border-t my-2 pt-2">
+                  <p className="text-xs text-gray-500 mb-2">Send money to:</p>
+                </div>
+              )}
+
+              {filteredContacts.length === 0 && !currentUser ? (
                 <p className="text-center text-sm text-gray-500 py-4">
                   {searchQuery ? 'No contacts found' : 'No contacts available'}
                 </p>

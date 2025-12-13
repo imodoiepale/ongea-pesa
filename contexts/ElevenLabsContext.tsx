@@ -111,7 +111,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   };
 
   // Get signed URL for ElevenLabs
-  const getSignedUrl = async (): Promise<{ signedUrl: string; balance: number; userName: string; userEmail: string; userId: string }> => {
+  const getSignedUrl = async (): Promise<{ signedUrl: string; balance: number; userName: string; userEmail: string; userId: string; gateName: string; gateId: string }> => {
     try {
       const response = await fetch('/api/get-signed-url', {
         method: 'POST',
@@ -124,9 +124,9 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
         throw new Error('Failed to get signed URL');
       }
       
-      const { signedUrl, userId: returnedUserId, balance, userName, userEmail } = await response.json();
+      const { signedUrl, userId: returnedUserId, balance, userName, userEmail, gateName, gateId } = await response.json();
       console.log('✅ Got signed URL for userId:', returnedUserId, 'email:', userEmail, 'balance:', balance, 'name:', userName);
-      return { signedUrl, balance, userName, userEmail, userId: returnedUserId };
+      return { signedUrl, balance, userName, userEmail, userId: returnedUserId, gateName: gateName || '', gateId: gateId || '' };
     } catch (error) {
       console.error('❌ Error getting signed URL:', error);
       throw error;
@@ -200,20 +200,25 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
         throw new Error('Microphone access is required for voice interaction');
       }
       
-      const { signedUrl, balance, userName, userEmail, userId: returnedUserId } = await getSignedUrl();
+      const { signedUrl, balance, userName, userEmail, userId: returnedUserId, gateName, gateId } = await getSignedUrl();
       console.log('📝 Received signed URL (first 100 chars):', signedUrl.substring(0, 100));
       
-      // Note: user_id and user_email are now embedded in the signed URL from the API
-      // They were passed when requesting the signed URL, not appended here
-      console.log('💰 User context embedded in signed URL:');
-      console.log('  - userId:', returnedUserId);
-      console.log('  - userEmail:', userEmail);
-      console.log('  - balance:', balance);
-      console.log('  - userName:', userName);
+      // Prepare dynamic variables to pass to the session
+      const dynamicVariables = {
+        user_id: returnedUserId,
+        user_email: userEmail || '',
+        user_name: userName || 'User',
+        balance: balance.toString(),
+        gate_name: gateName || '',
+        gate_id: gateId || ''
+      };
+      
+      console.log('💰 Dynamic variables for ElevenLabs session:', dynamicVariables);
       console.log('📡 Starting session with conversation.startSession()...');
       
       await conversation.startSession({ 
-        signedUrl: signedUrl
+        signedUrl: signedUrl,
+        dynamicVariables: dynamicVariables
       });
       
       console.log('✅ conversation.startSession() completed - waiting for onConnect callback');

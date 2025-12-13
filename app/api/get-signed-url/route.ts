@@ -26,13 +26,12 @@ export async function POST(request: NextRequest) {
     try {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('wallet_balance, name, gate_name, gate_id')
+        .select('wallet_balance, gate_name, gate_id')
         .eq('id', user.id)
         .single();
 
       if (profile && !profileError) {
         userBalance = profile.wallet_balance || 0;
-        userName = profile.name || userName;
         gateName = profile.gate_name || '';
         gateId = profile.gate_id || '';
         console.log('Fetched user profile:', { balance: userBalance, userName, gateName, gateId });
@@ -170,6 +169,7 @@ export async function POST(request: NextRequest) {
       signedUrl: data.signed_url,
       userId: user.id,
       userEmail: user.email,
+      userName: finalUserName,
       balance: userBalance,
       gateName: gateName,
       gateId: gateId,

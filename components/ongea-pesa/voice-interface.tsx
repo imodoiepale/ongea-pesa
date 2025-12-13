@@ -116,6 +116,14 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     }
   }, [isConnected, isLoading, userId, startSession]);
 
+  // Auto-start ElevenLabs session when voice interface opens
+  useEffect(() => {
+    if (userId && !isConnected && !isLoading) {
+      console.log('🚀 Auto-starting ElevenLabs session on voice interface open');
+      startSession();
+    }
+  }, [userId]); // Only run once when userId is available
+
   // Fetch balance on mount and set up real-time subscription
   useEffect(() => {
     // Initial fetch
@@ -164,17 +172,20 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   }, [isConnected, resetInactivityTimer]);
 
   // Push-to-talk functionality
-  const handleMouseDown = useCallback(() => {
+  const handleMouseDown = useCallback(async () => {
     // Start session if not connected
-    if (!isConnected) {
-      handleFirstInteraction();
+    if (!isConnected && !isLoading) {
+      console.log('🎤 Starting session on push-to-talk...');
+      await startSession();
+      // Set push-to-talk immediately so user can start talking as soon as connected
+      setIsPushToTalk(true);
       return;
     }
     setIsPushToTalk(true);
     // Reset inactivity timer when user starts talking
     resetInactivityTimer();
     console.log('Started push-to-talk');
-  }, [isConnected, resetInactivityTimer, handleFirstInteraction]);
+  }, [isConnected, isLoading, startSession, resetInactivityTimer]);
 
   const handleMouseUp = useCallback(() => {
     if (!isPushToTalk) return;

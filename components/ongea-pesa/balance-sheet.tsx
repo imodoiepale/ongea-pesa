@@ -38,7 +38,12 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
   const [verificationProgress, setVerificationProgress] = useState(0)
   const [lastDepositAmount, setLastDepositAmount] = useState(0)
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'failed'>('all')
+  const [indexPayGateBalance, setIndexPayGateBalance] = useState<number | null>(null)
+  const [indexPayPocketBalance, setIndexPayPocketBalance] = useState<number | null>(null)
   const supabase = createClient()
+
+  // Check if current user is admin (ijepale@gmail.com)
+  const isAdminUser = user?.email === 'ijepale@gmail.com'
 
   // Filter transactions based on selected status
   const filteredTransactions = transactions.filter(tx => {
@@ -52,6 +57,11 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
 
     fetchTransactions()
     fetchMpesaNumber()
+    
+    // Fetch IndexPay balances for admin user
+    if (isAdminUser) {
+      fetchIndexPayBalances()
+    }
 
     // Real-time subscription to transactions
     const txChannel = supabase
@@ -158,6 +168,60 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
       setMpesaNumber(profile?.mpesa_number || null)
     } catch (err) {
       console.error('Error fetching M-Pesa number:', err)
+    }
+  }
+
+  // Fetch IndexPay gate and pocket balances for admin user
+  const fetchIndexPayBalances = async () => {
+    if (!isAdminUser || !user?.id) return
+
+    try {
+      // Get user's gate_name from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('gate_name')
+        .eq('id', user.id)
+        .single()
+
+      if (!profile?.gate_name) return
+
+      // Fetch gates from IndexPay
+      const gatesFormData = new FormData()
+      gatesFormData.append('user_email', 'info@nsait.co.ke')
+      
+      const gatesResponse = await fetch('https://aps.co.ke/indexpay/api/get_gate_list.php', {
+        method: 'POST',
+        body: gatesFormData,
+      })
+
+      if (gatesResponse.ok) {
+        const gatesData = await gatesResponse.json()
+        const gates = Array.isArray(gatesData) ? gatesData : (gatesData?.response || [])
+        const userGate = gates.find((g: any) => g.gate_name === profile.gate_name)
+        if (userGate) {
+          setIndexPayGateBalance(parseFloat(userGate.account_balance || 0))
+        }
+      }
+
+      // Fetch pockets from IndexPay
+      const pocketsFormData = new FormData()
+      pocketsFormData.append('user_email', 'info@nsait.co.ke')
+      
+      const pocketsResponse = await fetch('https://aps.co.ke/indexpay/api/get_pocket_list.php', {
+        method: 'POST',
+        body: pocketsFormData,
+      })
+
+      if (pocketsResponse.ok) {
+        const pocketsData = await pocketsResponse.json()
+        const pockets = Array.isArray(pocketsData) ? pocketsData : (pocketsData?.response || [])
+        const userPocket = pockets.find((p: any) => p.gate === profile.gate_name || p.pocket_name === 'ongeapesa_wallet')
+        if (userPocket) {
+          setIndexPayPocketBalance(parseFloat(userPocket.acct_balance || 0))
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching IndexPay balances:', err)
     }
   }
 
@@ -346,14 +410,16 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
   }
 
   const getTransactionIcon = (type: string) => {
-    if (type === 'deposit' || type.includes('receive')) {
+    if (type === 'deposit' || type.includes('receive') || type === 'transfer_in') {
       return <TrendingUp className="h-5 w-5 text-green-600" />
     }
     return <TrendingDown className="h-5 w-5 text-red-600" />
   }
 
   const isDebit = (type: string) => {
-    return !type.includes('deposit') && !type.includes('receive')
+    // transfer_out, send, withdraw, payment are debits
+    // deposit, receive, transfer_in are credits
+    return !type.includes('deposit') && !type.includes('receive') && !type.includes('transfer_in')
   }
 
   if (!isOpen) return null
@@ -367,7 +433,24 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Balance & Transactions</h2>
-            <p className="text-sm text-gray-600 mt-1">Current Balance: <span className="font-semibold text-green-600">KSh {currentBalance.toLocaleString()}</span></p>
+            <p className="text-sm text-gray-600 mt-1">
+              Wallet Balance: <span className="font-semibold text-green-600">KSh {currentBalance.toLocaleString()}</span>
+            </p>
+            {/* Show IndexPay balances for admin user only */}
+            {isAdminUser && (
+              <div className="flex gap-4 mt-1">
+                {indexPayGateBalance !== null && (
+                  <p className="text-xs text-purple-600">
+                    Gate: <span className="font-semibold">KSh {indexPayGateBalance.toLocaleString()}</span>
+                  </p>
+                )}
+                {indexPayPocketBalance !== null && (
+                  <p className="text-xs text-purple-600">
+                    Pocket: <span className="font-semibold">KSh {indexPayPocketBalance.toLocaleString()}</span>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           <Button
             variant="ghost"
