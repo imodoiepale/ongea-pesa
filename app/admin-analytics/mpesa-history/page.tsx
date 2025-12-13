@@ -80,12 +80,15 @@ export default function MpesaHistoryPage() {
         }
       }
 
-      const supabaseTx = (supabaseData || []).map(tx => ({
-        ...tx,
-        platform_fee: (tx.amount || 0) * 0.0005, // Calculate 0.05% fee
-        source: "supabase",
-        profiles: profilesMap[tx.user_id] || null
-      }))
+      const supabaseTx = (supabaseData || []).map(tx => {
+        const isDeposit = tx.type?.toLowerCase() === "deposit"
+        return {
+          ...tx,
+          platform_fee: isDeposit ? 0 : (tx.amount || 0) * 0.0005, // Deposits have 0% fee
+          source: "supabase",
+          profiles: profilesMap[tx.user_id] || null
+        }
+      })
 
       // Fetch from IndexPay API (with proper error handling for non-JSON responses)
       let indexPayTx: MpesaTransaction[] = []
@@ -112,12 +115,13 @@ export default function MpesaHistoryPage() {
               .filter((tx: any) => mpesaTypes.some(t => tx.trans_type?.toLowerCase().includes(t)))
               .map((tx: any) => {
                 const amount = parseFloat(tx.trans_amount || "0")
+                const isDeposit = tx.trans_type?.toLowerCase() === "deposit"
                 return {
                   id: tx.trans_id || `ip_${Date.now()}_${Math.random()}`,
                   user_id: "",
                   type: tx.trans_type || "mpesa",
                   amount: amount,
-                  platform_fee: amount * 0.0005,
+                  platform_fee: isDeposit ? 0 : amount * 0.0005, // Deposits have 0% fee
                   status: tx.trans_status || "completed",
                   mpesa_receipt: tx.mpesa_receipt || tx.receipt_no,
                   description: tx.description || tx.gate_name,

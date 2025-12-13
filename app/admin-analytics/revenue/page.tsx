@@ -161,11 +161,14 @@ export default function RevenuePage() {
       // Calculate stats - only completed transactions
       const completedTx = (transactions || []).filter(tx => tx.status === "completed")
       
-      // Calculate fees client-side at 0.05% rate
-      const txWithFees = completedTx.map(tx => ({
-        ...tx,
-        calculated_fee: (tx.amount || 0) * PLATFORM_FEE_RATE
-      }))
+      // Calculate fees client-side at 0.05% rate (deposits have 0% fee)
+      const txWithFees = completedTx.map(tx => {
+        const isDeposit = tx.type?.toLowerCase() === "deposit"
+        return {
+          ...tx,
+          calculated_fee: isDeposit ? 0 : (tx.amount || 0) * PLATFORM_FEE_RATE
+        }
+      })
       
       const totalFees = txWithFees.reduce((sum, tx) => sum + tx.calculated_fee, 0)
       const totalVolume = txWithFees.reduce((sum, tx) => sum + (tx.amount || 0), 0)
@@ -267,6 +270,24 @@ export default function RevenuePage() {
             <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Revenue & Partnerships</h1>
             <p className="text-xs text-zinc-600 dark:text-zinc-400">Platform earnings, partnerships, and licensing</p>
           </div>
+          {/* Live Status Bar */}
+        <div className={cn(
+          "flex items-center justify-between px-4 py-2 rounded-xl",
+          "bg-emerald-50 dark:bg-emerald-900/20",
+          "border border-emerald-200 dark:border-emerald-800"
+        )}>
+          <div className="flex items-center gap-2 p-2">
+            <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-pulse" />
+            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Live Data</span>
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400">• {getDateRangeLabel(dateRange)}</span>
+          </div>
+          {lastUpdated && (
+            <div className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400">
+              <Clock className="w-3 h-3" />
+              Last updated: {lastUpdated.toLocaleTimeString("en-KE")}
+            </div>
+          )}
+        </div>
           <div className="flex items-center gap-2">
             <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
               <SelectTrigger className="w-[160px] bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
@@ -324,24 +345,7 @@ export default function RevenuePage() {
           </div>
         </div>
 
-        {/* Live Status Bar */}
-        <div className={cn(
-          "flex items-center justify-between px-4 py-2 rounded-xl",
-          "bg-emerald-50 dark:bg-emerald-900/20",
-          "border border-emerald-200 dark:border-emerald-800"
-        )}>
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-pulse" />
-            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Live Data</span>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400">• {getDateRangeLabel(dateRange)}</span>
-          </div>
-          {lastUpdated && (
-            <div className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400">
-              <Clock className="w-3 h-3" />
-              Last updated: {lastUpdated.toLocaleTimeString("en-KE")}
-            </div>
-          )}
-        </div>
+        
 
         {/* Revenue Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -389,7 +393,7 @@ export default function RevenuePage() {
                 <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
                   <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Daily Revenue (14 Days)</h2>
+                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Daily Revenue ({getDateRangeLabel(dateRange)})</h2>
               </div>
             </div>
             <div className="p-4 h-[200px]">
@@ -432,7 +436,7 @@ export default function RevenuePage() {
                 <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
                   <CreditCard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Transaction Volume (14 Days)</h2>
+                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Transaction Volume ({getDateRangeLabel(dateRange)})</h2>
               </div>
             </div>
             <div className="p-4 h-[200px]">

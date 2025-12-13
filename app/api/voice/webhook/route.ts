@@ -5,6 +5,152 @@ import { createClient } from '@/lib/supabase/server';
 const N8N_WEBHOOK_URL = 'https://primary-production-579c.up.railway.app/webhook/send_money';
 const N8N_AUTH_TOKEN = process.env.N8N_WEBHOOK_AUTH_TOKEN || '';
 
+/**
+ * Calculate similarity between two strings (0-1 scale)
+ */
+function calculateSimilarity(str1: string, str2: string): number {
+  const s1 = str1.toLowerCase().trim();
+  const s2 = str2.toLowerCase().trim();
+  
+  if (s1 === s2) return 1;
+  if (s1.length === 0 || s2.length === 0) return 0;
+  if (s1.includes(s2) || s2.includes(s1)) return 0.9;
+  
+  // Check word matches
+  const words1 = s1.split(/\s+/);
+  const words2 = s2.split(/\s+/);
+  for (const w1 of words1) {
+    for (const w2 of words2) {
+      if (w1 === w2 && w1.length > 2) return 0.85;
+    }
+  }
+  
+  // Levenshtein distance for first-letter matches
+  if (s1[0] === s2[0]) {
+    const matrix: number[][] = [];
+    for (let i = 0; i <= s1.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= s2.length; j++) matrix[0][j] = j;
+    
+    for (let i = 1; i <= s1.length; i++) {
+      for (let j = 1; j <= s2.length; j++) {
+        const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+    const distance = matrix[s1.length][s2.length];
+    return 1 - distance / Math.max(s1.length, s2.length);
+  }
+  
+  return 0;
+}
+
+/**
+ * Resolve a recipient name to a contact with phone/gate info
+ */
+async function resolveRecipientByName(
+  supabase: any,
+  recipientName: string,
+  excludeUserId?: string
+): Promise<{
+  found: boolean;
+  contact: any;
+  confidence: number;
+  alternatives: any[];
+}> {
+  console.log('🔍 Resolving recipient by name:', recipientName);
+  
+  // Fetch all profiles
+  const { data: profiles, error } = await supabase
+    .from('profiles')
+    .select('id, email, phone_number, mpesa_number, gate_name, gate_id, wallet_balance, name');
+  
+  if (error || !profiles) {
+    console.error('❌ Error fetching profiles for name resolution:', error);
+    return { found: false, contact: null, confidence: 0, alternatives: [] };
+  }
+  
+  const matches: Array<{ profile: any; similarity: number; matchType: string }> = [];
+  
+  for (const profile of profiles) {
+    if (excludeUserId && profile.id === excludeUserId) continue;
+    
+    const displayName = profile.name || profile.email?.split('@')[0] || '';
+    const email = profile.email || '';
+    const phone = profile.phone_number || profile.mpesa_number || '';
+    const gateName = profile.gate_name || '';
+    
+    let bestSim = 0;
+    let matchType = '';
+    
+    // Check name
+    if (displayName) {
+      const sim = calculateSimilarity(recipientName, displayName);
+      if (sim > bestSim) { bestSim = sim; matchType = 'name'; }
+    }
+    
+    // Check email prefix
+    if (email) {
+      const sim = calculateSimilarity(recipientName, email.split('@')[0]);
+      if (sim > bestSim) { bestSim = sim; matchType = 'email'; }
+    }
+    
+    // Check phone (if query looks like a number)
+    if (phone && recipientName.replace(/\D/g, '').length >= 4) {
+      const cleanQuery = recipientName.replace(/\D/g, '');
+      const cleanPhone = phone.replace(/\D/g, '');
+      if (cleanPhone.includes(cleanQuery) || cleanQuery.includes(cleanPhone)) {
+        bestSim = 0.95;
+        matchType = 'phone';
+      }
+    }
+    
+    // Check gate name
+    if (gateName) {
+      const sim = calculateSimilarity(recipientName, gateName);
+      if (sim > bestSim) { bestSim = sim; matchType = 'gate_name'; }
+    }
+    
+    if (bestSim >= 0.5) {
+      matches.push({
+        profile: {
+          id: profile.id,
+          name: displayName || email?.split('@')[0] || 'Unknown',
+          email,
+          phone,
+          gate_name: gateName,
+          gate_id: profile.gate_id,
+        },
+        similarity: bestSim,
+        matchType,
+      });
+    }
+  }
+  
+  // Sort by similarity
+  matches.sort((a, b) => b.similarity - a.similarity);
+  
+  if (matches.length === 0) {
+    console.log('❌ No matching contacts found for:', recipientName);
+    return { found: false, contact: null, confidence: 0, alternatives: [] };
+  }
+  
+  const bestMatch = matches[0];
+  const alternatives = matches.slice(1, 4).map(m => m.profile);
+  
+  console.log(`✅ Found match: ${bestMatch.profile.name} (${Math.round(bestMatch.similarity * 100)}% confidence)`);
+  
+  return {
+    found: bestMatch.similarity >= 0.7,
+    contact: bestMatch.profile,
+    confidence: bestMatch.similarity,
+    alternatives,
+  };
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Log incoming request details
@@ -478,6 +624,136 @@ export async function POST(request: NextRequest) {
     console.log('🤖 AI already confirmed transaction with user')
     console.log('⚡ Executing immediately - no re-confirmation needed')
 
+    // ============================================
+    // CONTACT RESOLUTION BY NAME OR PHONE
+    // ============================================
+    // If user said a name instead of phone number, try to resolve it
+    // Also lookup phone numbers to get gate info for wallet transfers
+    let resolvedPhone = body.phone || '';
+    let resolvedRecipient = body.recipient_name || '';
+    let recipientGateName = '';
+    let recipientGateId = '';
+    let contactResolution = null;
+
+    // Helper to normalize phone numbers
+    const normalizePhone = (phone: string): string => {
+      let cleaned = phone.replace(/\D/g, '');
+      if (cleaned.startsWith('254')) cleaned = '0' + cleaned.slice(3);
+      else if (cleaned.startsWith('+254')) cleaned = '0' + cleaned.slice(4);
+      else if (cleaned.startsWith('7') || cleaned.startsWith('1')) cleaned = '0' + cleaned;
+      return cleaned;
+    };
+
+    // CASE 1: Have phone number - lookup profile by phone to get gate info
+    if (body.phone) {
+      const normalizedPhone = normalizePhone(body.phone);
+      console.log('📞 Looking up recipient by phone:', normalizedPhone);
+      
+      const { data: recipientProfile } = await supabase
+        .from('profiles')
+        .select('id, email, phone_number, mpesa_number, gate_name, gate_id, name')
+        .or(`phone_number.eq.${normalizedPhone},mpesa_number.eq.${normalizedPhone}`)
+        .maybeSingle();
+      
+      if (recipientProfile) {
+        resolvedPhone = normalizedPhone;
+        resolvedRecipient = recipientProfile.name || recipientProfile.email?.split('@')[0] || body.recipient_name || '';
+        recipientGateName = recipientProfile.gate_name || '';
+        recipientGateId = recipientProfile.gate_id || '';
+        
+        console.log('✅ Found recipient by phone:', {
+          name: resolvedRecipient,
+          phone: resolvedPhone,
+          gate_name: recipientGateName,
+        });
+      } else {
+        // Phone not in system - still valid for M-Pesa send
+        resolvedPhone = normalizedPhone;
+        console.log('📱 Phone not in system, will send via M-Pesa:', normalizedPhone);
+      }
+    }
+    // CASE 2: Have recipient name but no phone - resolve by name
+    else if (body.recipient_name) {
+      console.log('📇 Attempting to resolve recipient by name:', body.recipient_name);
+      
+      contactResolution = await resolveRecipientByName(
+        supabase,
+        body.recipient_name,
+        finalUserId // Exclude current user
+      );
+      
+      if (contactResolution.found && contactResolution.contact) {
+        resolvedPhone = contactResolution.contact.phone || '';
+        resolvedRecipient = contactResolution.contact.name;
+        recipientGateName = contactResolution.contact.gate_name || '';
+        recipientGateId = contactResolution.contact.gate_id || '';
+        
+        console.log('✅ Resolved contact:', {
+          name: resolvedRecipient,
+          phone: resolvedPhone,
+          gate_name: recipientGateName,
+          confidence: Math.round(contactResolution.confidence * 100) + '%'
+        });
+      } else if (contactResolution.alternatives?.length > 0) {
+        // Low confidence match - return alternatives for confirmation
+        console.log('⚠️ Low confidence match, returning alternatives');
+        return NextResponse.json({
+          success: false,
+          needs_confirmation: true,
+          message: `I found some possible matches for "${body.recipient_name}". Did you mean one of these?`,
+          alternatives: contactResolution.alternatives.map(a => ({
+            name: a.name,
+            phone: a.phone?.slice(-4) ? `***${a.phone.slice(-4)}` : 'No phone',
+          })),
+          agent_message: `I found a few people with similar names. Did you mean ${contactResolution.alternatives.map(a => a.name).join(', or ')}?`
+        });
+      } else {
+        console.log('❌ Could not resolve recipient name:', body.recipient_name);
+        return NextResponse.json({
+          success: false,
+          error: 'Contact not found',
+          message: `I couldn't find anyone named "${body.recipient_name}" in your contacts.`,
+          agent_message: `I'm sorry, I couldn't find anyone named ${body.recipient_name} in your contacts. Could you please provide their phone number instead?`
+        }, { status: 400 });
+      }
+    }
+    
+    // CASE 3: Device contacts provided - search within them
+    if (body.device_contacts && Array.isArray(body.device_contacts) && body.recipient_name) {
+      console.log('📱 Searching within device contacts for:', body.recipient_name);
+      
+      const queryLower = body.recipient_name.toLowerCase();
+      const matchedDeviceContact = body.device_contacts.find((c: any) => {
+        const nameSim = calculateSimilarity(c.name || '', body.recipient_name);
+        return nameSim >= 0.7;
+      });
+      
+      if (matchedDeviceContact) {
+        const devicePhone = normalizePhone(matchedDeviceContact.phone || '');
+        console.log('📱 Found in device contacts:', matchedDeviceContact.name, devicePhone);
+        
+        // Now lookup this phone in our system
+        const { data: deviceProfile } = await supabase
+          .from('profiles')
+          .select('id, email, phone_number, mpesa_number, gate_name, gate_id, name')
+          .or(`phone_number.eq.${devicePhone},mpesa_number.eq.${devicePhone}`)
+          .maybeSingle();
+        
+        if (deviceProfile) {
+          resolvedPhone = devicePhone;
+          resolvedRecipient = deviceProfile.name || matchedDeviceContact.name;
+          recipientGateName = deviceProfile.gate_name || '';
+          recipientGateId = deviceProfile.gate_id || '';
+          console.log('✅ Device contact has Ongea Pesa account:', recipientGateName);
+        } else {
+          // Use device contact phone for M-Pesa
+          resolvedPhone = devicePhone;
+          resolvedRecipient = matchedDeviceContact.name;
+          console.log('📱 Device contact not in system, will use M-Pesa');
+        }
+      }
+    }
+
     // Prepare the payload - all fields at top level for n8n
     const n8nPayload = {
       // Voice request
@@ -501,10 +777,14 @@ export async function POST(request: NextRequest) {
       is_free_transaction: isFreeTransaction,
       platform_fee: platformFeeAmount,
 
-      // Transaction details from ElevenLabs
+      // Transaction details from ElevenLabs (with resolved contact info)
       type: body.type,
       amount: requestedAmount, // Already validated above
-      phone: body.phone || '',
+      phone: resolvedPhone || body.phone || '',
+      recipient_name: resolvedRecipient || body.recipient_name || '',
+      recipient_gate_name: recipientGateName,
+      recipient_gate_id: recipientGateId,
+      contact_confidence: contactResolution?.confidence || 1,
       till: body.till || '',
       paybill: body.paybill || '',
       account: body.account || '',

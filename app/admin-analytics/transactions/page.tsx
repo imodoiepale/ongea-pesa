@@ -110,10 +110,12 @@ export default function TransactionsPage() {
       }
 
       // Mark Supabase transactions and attach profiles with calculated fee rate
+      // Deposits have 0% fee rate
       const supabaseTx = (supabaseData || []).map(tx => {
         const amount = tx.amount || 0
-        const calculatedFee = amount * PLATFORM_FEE_RATE
-        const feeRate = PLATFORM_FEE_RATE * 100 // 0.05%
+        const isDeposit = tx.type?.toLowerCase() === "deposit"
+        const calculatedFee = isDeposit ? 0 : amount * PLATFORM_FEE_RATE
+        const feeRate = isDeposit ? 0 : PLATFORM_FEE_RATE * 100 // 0.05% or 0% for deposits
         return {
           ...tx,
           platform_fee: calculatedFee,
@@ -144,13 +146,14 @@ export default function TransactionsPage() {
             
             indexPayTx = txList.map((tx: IndexPayTransaction) => {
               const amount = parseFloat(tx.trans_amount || "0")
+              const isDeposit = tx.trans_type?.toLowerCase() === "deposit"
               return {
                 id: tx.trans_id || `ip_${Date.now()}_${Math.random()}`,
                 user_id: "",
                 type: tx.trans_type || "unknown",
                 amount: amount,
-                platform_fee: amount * PLATFORM_FEE_RATE,
-                fee_rate: PLATFORM_FEE_RATE * 100,
+                platform_fee: isDeposit ? 0 : amount * PLATFORM_FEE_RATE,
+                fee_rate: isDeposit ? 0 : PLATFORM_FEE_RATE * 100,
                 status: tx.trans_status || "completed",
                 description: tx.description || tx.gate_name || tx.pocket_name,
                 created_at: tx.trans_date || new Date().toISOString(),
