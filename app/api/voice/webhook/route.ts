@@ -206,8 +206,8 @@ export async function POST(request: NextRequest) {
     let finalUserPhone = userContext?.phone || body.user_phone || body.phone
     let finalUserName = userContext?.full_name || body.user_name
 
-    // If we still don't have user, try to find from saved voice sessions using conversation_id
-    if (!user) {
+    // If we still don't have user AND no userContext from ElevenLabs, try voice sessions
+    if (!user && !userContext) {
       console.log('⚠️ No user context found, checking voice_sessions...')
       console.log('  Looking for conversation_id:', conversationId)
 
@@ -317,34 +317,41 @@ export async function POST(request: NextRequest) {
     console.log('  user_name:', finalUserName)
 
     // ============================================
-    // REAL-TIME BALANCE & SUBSCRIPTION CHECK
+    // REAL-TIME BALANCE CHECK
     // ============================================
-    // Get current wallet balance and subscription status
+    // First, try to use balance from ElevenLabs body (most reliable)
     let currentBalance = 0
     let subscriptionStatus = 'inactive'
     let freeTxRemaining = 0
     let subscriptionEndDate = null
 
-    if (finalUserId && finalUserId !== 'no-user-found' && finalUserId !== 'test-user-id') {
+    // Priority 1: Use balance from ElevenLabs dynamic variables (already validated by the app)
+    if (body.balance && !isNaN(parseFloat(body.balance))) {
+      currentBalance = parseFloat(body.balance)
+      console.log('💰 Using balance from ElevenLabs body:', currentBalance)
+    }
+    // Priority 2: Use balance from userContext (set earlier from ElevenLabs data)
+    else if (userContext?.wallet_balance && userContext.wallet_balance > 0) {
+      currentBalance = userContext.wallet_balance
+      console.log('💰 Using balance from userContext:', currentBalance)
+    }
+    // Priority 3: Fallback to DB query (only wallet_balance column exists)
+    else if (finalUserId && finalUserId !== 'no-user-found' && finalUserId !== 'test-user-id') {
       const { data: balanceData, error: balanceError } = await supabase
         .from('profiles')
-        .select('wallet_balance, subscription_status, subscription_end_date, free_transactions_remaining')
+        .select('wallet_balance')
         .eq('id', finalUserId)
         .single()
 
       if (balanceError) {
-        console.error('❌ Error fetching balance:', balanceError)
+        console.error('❌ Error fetching balance from DB:', balanceError)
       } else if (balanceData) {
         currentBalance = parseFloat(String(balanceData.wallet_balance)) || 0
-        subscriptionStatus = balanceData.subscription_status || 'inactive'
-        subscriptionEndDate = balanceData.subscription_end_date
-        freeTxRemaining = balanceData.free_transactions_remaining || 0
-
-        console.log('💰 Current wallet balance:', currentBalance)
-        console.log('📅 Subscription status:', subscriptionStatus)
-        console.log('🎁 Free transactions remaining:', freeTxRemaining)
+        console.log('💰 Using balance from DB:', currentBalance)
       }
     }
+
+    console.log('💰 Final current balance:', currentBalance)
 
     // Validate amount
     const requestedAmount = parseFloat(body.amount)
@@ -536,13 +543,24 @@ export async function POST(request: NextRequest) {
       headers['Authorization'] = N8N_AUTH_TOKEN
     }
 
-    const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(n8nPayload),
-    })
+    console.log('📤 Sending to n8n with headers:', Object.keys(headers))
+    console.log('📤 Payload size:', JSON.stringify(n8nPayload).length, 'bytes')
+
+    let n8nResponse: Response
+    try {
+      n8nResponse = await fetch(N8N_WEBHOOK_URL, {
+        method: 'POST',
+        headers: headers, // Use the headers variable with auth token
+        body: JSON.stringify(n8nPayload),
+      })
+    } catch (fetchError: any) {
+      console.error('❌ FETCH ERROR to n8n:', fetchError.message)
+      console.error('❌ Error details:', fetchError)
+      return NextResponse.json(
+        { error: 'Failed to connect to n8n', success: false, details: fetchError.message },
+        { status: 500 }
+      )
+    }
 
     console.log('n8n Response Status:', n8nResponse.status)
     console.log('n8n Response Headers:', Object.fromEntries(n8nResponse.headers.entries()))
