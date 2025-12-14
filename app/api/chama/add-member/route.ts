@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,8 +47,9 @@ export async function POST(request: NextRequest) {
       .or(`phone_number.eq.${phone},mpesa_number.eq.${phone}`)
       .single();
 
-    // Add member
-    const { data: member, error: memberError } = await supabase
+    // Add member using service client to bypass RLS
+    const serviceClient = createServiceClient();
+    const { data: member, error: memberError } = await serviceClient
       .from('chama_members')
       .insert({
         chama_id,

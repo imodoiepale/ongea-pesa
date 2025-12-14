@@ -14,6 +14,8 @@ import {
   Settings,
   HelpCircle,
   Menu,
+  ShieldCheck,
+  UsersRound,
 } from "lucide-react"
 
 import { Home } from "lucide-react"
@@ -112,6 +114,20 @@ export default function Sidebar() {
                   </NavItem>
                   <NavItem href="/admin-analytics/wallet-transfers" icon={CreditCard}>
                     Wallet Transfers
+                  </NavItem>
+                </div>
+              </div>
+
+              <div>
+                <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Groups
+                </div>
+                <div className="space-y-1">
+                  <NavItem href="/admin-analytics/escrows" icon={ShieldCheck}>
+                    Escrows
+                  </NavItem>
+                  <NavItem href="/admin-analytics/chamas" icon={UsersRound}>
+                    Chamas
                   </NavItem>
                 </div>
               </div>

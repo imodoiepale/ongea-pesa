@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { createEntityGateAndPocket } from '@/lib/services/gateService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -105,6 +106,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create Gate and Pocket for this chama
+    console.log('🏦 Creating gate and pocket for chama:', chama.id);
+    const gateResult = await createEntityGateAndPocket(
+      'chama',
+      chama.id,
+      name,
+      description || `Chama: ${name}`
+    );
+
+    if (gateResult.success) {
+      // Update chama with gate and pocket info
+      await supabase
+        .from('chamas')
+        .update({
+          gate_id: gateResult.gate_id,
+          gate_name: gateResult.gate_name,
+          pocket_id: gateResult.pocket_id,
+          pocket_name: gateResult.pocket_name,
+        })
+        .eq('id', chama.id);
+      
+      console.log('✅ Gate created:', gateResult.gate_name);
+    } else {
+      console.warn('⚠️ Failed to create gate:', gateResult.error);
+      // Continue without gate - can be retried later
+    }
+
     // Get creator's profile for adding as first member
     const { data: creatorProfile } = await supabase
       .from('profiles')
@@ -144,20 +172,52 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    const { error: membersError } = await supabase
-      .from('chama_members')
-      .insert(membersToAdd);
+    // Use service client to bypass RLS for member insertion
+    // Use upsert to handle duplicate phone numbers gracefully
+    const serviceClient = createServiceClient();
+    let insertedMembers: any[] = [];
+    let membersError: any = null;
+
+    // Insert members one by one to handle duplicates gracefully
+    for (const member of membersToAdd) {
+      const { data, error } = await serviceClient
+        .from('chama_members')
+        .upsert(member, { 
+          onConflict: 'chama_id,phone_number',
+          ignoreDuplicates: true 
+        })
+        .select()
+        .single();
+      
+      if (data) {
+        insertedMembers.push(data);
+      } else if (error && !error.message.includes('duplicate')) {
+        console.warn('⚠️ Failed to add member:', member.name, error.message);
+      }
+    }
+
+    if (insertedMembers.length === 0 && membersToAdd.length > 0) {
+      membersError = { message: 'No members could be added' };
+    }
 
     if (membersError) {
       console.error('⚠️ Failed to add members:', membersError);
+      return NextResponse.json({
+        success: true,
+        chama,
+        members_added: 0,
+        members_error: membersError.message,
+        message: 'Chama created but members failed to add',
+      });
     }
 
-    console.log('✅ Chama created:', chama.id, 'with', membersToAdd.length, 'members');
+    console.log('✅ Chama created:', chama.id, 'with', insertedMembers?.length || 0, 'members');
 
     return NextResponse.json({
       success: true,
       chama,
-      members_added: membersToAdd.length,
+      members_added: insertedMembers?.length || 0,
+      members: insertedMembers,
       message: 'Chama created successfully',
     });
 

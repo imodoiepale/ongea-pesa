@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import Layout from "@/components/kokonutui/layout"
 import {
   Shield, Eye, RefreshCw, Search, Users, Wallet, Clock, CheckCircle,
   AlertTriangle, Lock, Unlock, Target, Fingerprint, Scale, ArrowLeft,
@@ -131,177 +132,89 @@ export default function AdminEscrowsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950">
-      {/* Admin Header */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link href="/admin-analytics" className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center shadow-lg">
-                  <Eye className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Escrow Monitor</h1>
-                  <p className="text-[10px] text-zinc-500 -mt-0.5">Admin Dashboard</p>
-                </div>
-              </Link>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="p-2 rounded-lg hover:bg-zinc-100"><Bell className="w-5 h-5 text-zinc-500" /></button>
-              <Link href="/admin-analytics" className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-100 rounded-lg">
-                <ArrowLeft className="w-4 h-4" /> Back to Admin
-              </Link>
-            </div>
+    <Layout>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Escrow Monitor</h1>
+            <p className="text-xs text-zinc-500">Monitor all escrow transactions in the system</p>
           </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Title */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">All Escrows Overview</h2>
-              <p className="text-zinc-500 mt-1">Monitor and observe all escrow transactions in the system</p>
-            </div>
-            <button onClick={fetchAllEscrows} disabled={loading} className={cn("flex items-center gap-2 px-4 py-2.5 rounded-xl", "bg-white shadow-sm border border-zinc-200", "hover:bg-zinc-50")}>
-              <RefreshCw className={cn("w-5 h-5 text-zinc-600", loading && "animate-spin")} />
-              Refresh
-            </button>
-          </div>
+          <button onClick={fetchAllEscrows} disabled={loading} className={cn("p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700")}>
+            <RefreshCw className={cn("w-4 h-4 text-zinc-600", loading && "animate-spin")} />
+          </button>
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { label: "Total Escrows", value: escrows.length, icon: FileText, gradient: "from-slate-500 to-slate-600" },
+            { label: "Total", value: escrows.length, icon: FileText, gradient: "from-slate-500 to-slate-600" },
             { label: "Active", value: activeCount, icon: Zap, gradient: "from-emerald-500 to-emerald-600" },
             { label: "Pending", value: pendingCount, icon: Clock, gradient: "from-amber-500 to-amber-600" },
             { label: "Completed", value: completedCount, icon: CheckCircle, gradient: "from-blue-500 to-blue-600" },
             { label: "Disputed", value: disputedCount, icon: AlertTriangle, gradient: "from-red-500 to-red-600" },
-            { label: "Total Value", value: formatCurrency(totalValue), icon: Wallet, gradient: "from-purple-500 to-purple-600" },
+            { label: "Value", value: formatCurrency(totalValue), icon: Wallet, gradient: "from-purple-500 to-purple-600" },
           ].map((stat, i) => (
-            <div key={i} className="relative overflow-hidden p-5 rounded-2xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
-              <div className={cn("absolute top-0 right-0 w-20 h-20 -mr-6 -mt-6 rounded-full opacity-20 bg-gradient-to-br", stat.gradient)} />
-              <div className="relative">
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg", stat.gradient)}>
-                  <stat.icon className="w-5 h-5 text-white" />
+            <div key={i} className="relative overflow-hidden p-3 rounded-xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
+              <div className={cn("absolute top-0 right-0 w-12 h-12 -mr-4 -mt-4 rounded-full opacity-20 bg-gradient-to-br", stat.gradient)} />
+              <div className="flex items-center gap-2 relative">
+                <div className={cn("p-1.5 rounded-lg bg-gradient-to-br shadow", stat.gradient)}>
+                  <stat.icon className="w-3.5 h-3.5 text-white" />
                 </div>
-                <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-3">{stat.value}</p>
-                <p className="text-xs text-zinc-500 mt-1">{stat.label}</p>
+                <div>
+                  <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{stat.value}</p>
+                  <p className="text-[10px] text-zinc-500">{stat.label}</p>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Financial Summary */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-white/20 rounded-xl"><TrendingUp className="w-6 h-6" /></div>
-              <span className="text-sm font-medium opacity-90">Total Value Locked</span>
-            </div>
-            <p className="text-3xl font-bold">{formatCurrency(totalValue)}</p>
-            <p className="text-sm opacity-75 mt-1">{escrows.length} escrows</p>
+        {/* Financial Summary - Compact */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
+            <p className="text-[10px] text-emerald-600 uppercase font-medium">Total Value</p>
+            <p className="text-lg font-bold text-emerald-700">{formatCurrency(totalValue)}</p>
           </div>
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-white/20 rounded-xl"><Wallet className="w-6 h-6" /></div>
-              <span className="text-sm font-medium opacity-90">Funded Amount</span>
-            </div>
-            <p className="text-3xl font-bold">{formatCurrency(fundedValue)}</p>
-            <p className="text-sm opacity-75 mt-1">{((fundedValue / totalValue) * 100 || 0).toFixed(1)}% of total</p>
+          <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+            <p className="text-[10px] text-blue-600 uppercase font-medium">Funded</p>
+            <p className="text-lg font-bold text-blue-700">{formatCurrency(fundedValue)}</p>
           </div>
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-white/20 rounded-xl"><CheckCircle className="w-6 h-6" /></div>
-              <span className="text-sm font-medium opacity-90">Released Amount</span>
-            </div>
-            <p className="text-3xl font-bold">{formatCurrency(releasedValue)}</p>
-            <p className="text-sm opacity-75 mt-1">{((releasedValue / fundedValue) * 100 || 0).toFixed(1)}% of funded</p>
+          <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
+            <p className="text-[10px] text-purple-600 uppercase font-medium">Released</p>
+            <p className="text-lg font-bold text-purple-700">{formatCurrency(releasedValue)}</p>
           </div>
         </div>
 
-        {/* Status & Type Breakdown */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <div className="p-6 rounded-2xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-zinc-500" /> Status Breakdown
-            </h3>
-            <div className="space-y-3">
-              {Object.entries(statusCounts).map(([status, count]) => (
-                <div key={status} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className={cn("px-2.5 py-1 text-xs font-medium rounded-full capitalize", getStatusBadge(status))}>{status.replace("_", " ")}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-32 h-2 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full", status === "completed" ? "bg-emerald-500" : status === "disputed" ? "bg-red-500" : status === "pending_funding" ? "bg-amber-500" : "bg-blue-500")} style={{ width: `${(count / escrows.length) * 100 || 0}%` }} />
-                    </div>
-                    <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 w-8 text-right">{count}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Search & Filters */}
+        <div className="flex flex-wrap gap-2">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+            <Input placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 h-9 text-sm bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 rounded-lg" />
           </div>
-
-          <div className="p-6 rounded-2xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
-              <PieChart className="w-5 h-5 text-zinc-500" /> Type Distribution
-            </h3>
-            <div className="space-y-3">
-              {Object.entries(typeCounts).map(([type, count]) => (
-                <div key={type} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn("p-1.5 rounded-lg", type === "two_party" ? "bg-blue-100" : type === "multi_party" ? "bg-purple-100" : type === "milestone" ? "bg-emerald-100" : "bg-amber-100")}>
-                      {type === "two_party" ? <Users className="w-4 h-4 text-blue-600" /> : type === "multi_party" ? <Users className="w-4 h-4 text-purple-600" /> : type === "milestone" ? <Target className="w-4 h-4 text-emerald-600" /> : <Timer className="w-4 h-4 text-amber-600" />}
-                    </div>
-                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 capitalize">{type.replace("_", " ")}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-32 h-2 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full", type === "two_party" ? "bg-blue-500" : type === "multi_party" ? "bg-purple-500" : type === "milestone" ? "bg-emerald-500" : "bg-amber-500")} style={{ width: `${(count / escrows.length) * 100 || 0}%` }} />
-                    </div>
-                    <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 w-8 text-right">{count}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm mb-6">
-          <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
-              <Input placeholder="Search by title or ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-12 h-11 bg-zinc-50 border-zinc-200 rounded-xl" />
-            </div>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-zinc-50 border border-zinc-200">
-              <option value="all">All Status</option>
-              <option value="draft">Draft</option>
-              <option value="pending_funding">Pending Funding</option>
-              <option value="funded">Funded</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="disputed">Disputed</option>
-            </select>
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-zinc-50 border border-zinc-200">
-              <option value="all">All Types</option>
-              <option value="two_party">Two Party</option>
-              <option value="multi_party">Multi Party</option>
-              <option value="milestone">Milestone</option>
-              <option value="time_locked">Time Locked</option>
-            </select>
-          </div>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 rounded-lg text-xs font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+            <option value="all">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="pending_funding">Pending</option>
+            <option value="funded">Funded</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="disputed">Disputed</option>
+          </select>
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-3 py-2 rounded-lg text-xs font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+            <option value="all">All Types</option>
+            <option value="two_party">Two Party</option>
+            <option value="multi_party">Multi Party</option>
+            <option value="milestone">Milestone</option>
+            <option value="time_locked">Time Locked</option>
+          </select>
         </div>
 
         {/* Escrows Table */}
-        <div className="rounded-2xl overflow-hidden bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
-          <div className="p-5 border-b border-zinc-100 dark:border-zinc-700/50">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              All Escrows <span className="text-sm font-normal text-zinc-500 ml-2">({filteredEscrows.length})</span>
+        <div className="rounded-xl overflow-hidden bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
+          <div className="p-3 border-b border-zinc-100 dark:border-zinc-700/50">
+            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              All Escrows <span className="text-xs font-normal text-zinc-500 ml-1">({filteredEscrows.length})</span>
             </h2>
           </div>
 
@@ -378,9 +291,8 @@ export default function AdminEscrowsPage() {
             </div>
           )}
         </div>
-      </main>
 
-      {/* Detail Modal */}
+        {/* Detail Modal */}
       {showDetailModal && selectedEscrow && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 shadow-2xl">
@@ -504,6 +416,7 @@ export default function AdminEscrowsPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </Layout>
   )
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createEntityGateAndPocket } from '@/lib/services/gateService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -99,6 +100,33 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to create escrow', details: escrowError.message },
         { status: 500 }
       );
+    }
+
+    // Create Gate and Pocket for this escrow
+    console.log('🔐 Creating gate and pocket for escrow:', escrow.id);
+    const gateResult = await createEntityGateAndPocket(
+      'escrow',
+      escrow.id,
+      title,
+      description || `Escrow: ${title}`
+    );
+
+    if (gateResult.success) {
+      // Update escrow with gate and pocket info
+      await supabase
+        .from('escrows')
+        .update({
+          gate_id: gateResult.gate_id,
+          gate_name: gateResult.gate_name,
+          pocket_id: gateResult.pocket_id,
+          pocket_name: gateResult.pocket_name,
+        })
+        .eq('id', escrow.id);
+      
+      console.log('✅ Gate created:', gateResult.gate_name);
+    } else {
+      console.warn('⚠️ Failed to create gate:', gateResult.error);
+      // Continue without gate - can be retried later
     }
 
     // Add participants
