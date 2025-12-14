@@ -6,9 +6,12 @@ import { createClient } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import {
-  Users, Plus, Clock, RefreshCw, Eye, Trash2, UserPlus, Search,
-  Upload, X, Wallet, Phone, User, Calendar, Zap, Send, Shuffle,
-  Check, LogOut, Gift, PiggyBank, HandCoins, Home, Bell, Settings,
+  Users, Plus, RefreshCw, Eye, Trash2, UserPlus, Search,
+  Upload, X, Wallet, User, Calendar, Zap, Send, Shuffle,
+  Check, LogOut, Gift, PiggyBank, HandCoins, Home, Bell,
+  LayoutGrid, List, Play, Pause, TrendingUp, AlertTriangle,
+  ChevronDown, ChevronUp, Clock, ArrowUpRight, Hash, Phone,
+  Activity, Target, Ban, RotateCcw, Receipt, CreditCard,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -93,6 +96,12 @@ export default function ChamaPage() {
   const [showUserDropdown, setShowUserDropdown] = useState(false)
   const [collecting, setCollecting] = useState(false)
   const [collectionStatus, setCollectionStatus] = useState<any>(null)
+  const [stkRequests, setStkRequests] = useState<any[]>([])
+  const [showCollectionModal, setShowCollectionModal] = useState(false)
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null)
+  const [expandedStkRow, setExpandedStkRow] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<"card" | "table">("card")
+  const [statusTab, setStatusTab] = useState<"all" | "active" | "inactive">("all")
 
   const [form, setForm] = useState({
     name: "",
@@ -171,18 +180,71 @@ export default function ChamaPage() {
   const startCollection = async () => {
     if (!selectedChama) return
     setCollecting(true)
+    setShowCollectionModal(true)
+    setStkRequests([])
     const response = await fetch("/api/chama/start-collection", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chama_id: selectedChama.id }) })
     const result = await response.json()
-    if (result.success) { setCollectionStatus(result); pollCollection(result.cycle_id) }
-    else { alert(result.error); setCollecting(false) }
+    if (result.success) {
+      setCollectionStatus(result)
+      setStkRequests(result.stk_requests || [])
+      startPolling(result.cycle_id)
+    } else { 
+      alert(result.error)
+      setCollecting(false)
+      setShowCollectionModal(false)
+    }
+  }
+
+  const startPolling = (cycleId: string) => {
+    if (pollingInterval) clearInterval(pollingInterval)
+    const interval = setInterval(() => pollCollection(cycleId), 3000)
+    setPollingInterval(interval)
+    pollCollection(cycleId)
+  }
+
+  const stopPolling = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval)
+      setPollingInterval(null)
+    }
   }
 
   const pollCollection = async (cycleId: string) => {
-    const response = await fetch(`/api/chama/poll-stk?cycle_id=${cycleId}`)
-    const result = await response.json()
-    setCollectionStatus(result)
-    if (!result.all_completed && !result.all_failed) setTimeout(() => pollCollection(cycleId), 5000)
-    else setCollecting(false)
+    try {
+      const response = await fetch(`/api/chama/poll-stk?cycle_id=${cycleId}`)
+      const result = await response.json()
+      setCollectionStatus(result)
+      setStkRequests(result.stk_requests || [])
+      if (result.all_completed || result.all_failed) {
+        stopPolling()
+        setCollecting(false)
+      }
+    } catch (err) {
+      console.error("Polling error:", err)
+    }
+  }
+
+  const retryStk = async (requestId: string) => {
+    try {
+      const response = await fetch("/api/chama/retry-stk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ request_id: requestId })
+      })
+      const result = await response.json()
+      if (result.success && collectionStatus?.cycle_id) {
+        pollCollection(collectionStatus.cycle_id)
+      }
+    } catch (err) {
+      console.error("Retry error:", err)
+    }
+  }
+
+  const retryAllFailed = async () => {
+    const failedRequests = stkRequests.filter(r => r.status === "failed")
+    for (const req of failedRequests) {
+      await retryStk(req.id)
+    }
   }
 
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -206,7 +268,22 @@ export default function ChamaPage() {
 
   const filteredUsers = allUsers.filter(u => !userSearchTerm || u.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) || u.phone_number?.includes(userSearchTerm))
   const displayChamas = activeTab === "created" ? chamas : myChamas
-  const filteredChamas = displayChamas.filter(c => (statusFilter === "all" || c.status === statusFilter) && (!searchTerm || c.name.toLowerCase().includes(searchTerm.toLowerCase())))
+  const statusFilteredChamas = displayChamas.filter(c => {
+    if (statusTab === "active") return c.status === "active"
+    if (statusTab === "inactive") return ["paused", "completed", "dissolved"].includes(c.status)
+    return true
+  })
+  const filteredChamas = statusFilteredChamas.filter(c => (statusFilter === "all" || c.status === statusFilter) && (!searchTerm || c.name.toLowerCase().includes(searchTerm.toLowerCase())))
+  const activeCount = displayChamas.filter(c => c.status === "active").length
+  const inactiveCount = displayChamas.filter(c => ["paused", "completed", "dissolved"].includes(c.status)).length
+
+  const toggleChamaStatus = async (chamaId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase.from("chamas").update({ status: newStatus }).eq("id", chamaId)
+      if (error) throw error
+      fetchChamas(user?.id)
+    } catch (err) { console.error("Failed to update status:", err) }
+  }
   const formatCurrency = (n: number) => new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES" }).format(Math.ceil(n))
   const totalMembers = filteredChamas.reduce((s, c) => s + (c.members?.length || 0), 0)
   const totalCollected = filteredChamas.reduce((s, c) => s + c.total_collected, 0)
@@ -228,65 +305,145 @@ export default function ChamaPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div><h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Group Savings & Collections</h2><p className="text-zinc-500 mt-1">Manage chamas, collect contributions, distribute funds</p></div>
-          <div className="flex gap-3">
-            <button onClick={() => fetchChamas(user?.id)} className="p-3 rounded-xl bg-white shadow-sm border border-zinc-200 hover:bg-zinc-50"><RefreshCw className={cn("w-5 h-5 text-zinc-600", loading && "animate-spin")} /></button>
-            <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-lg shadow-blue-500/30 hover:scale-105 transition-all"><Plus className="w-5 h-5" />Create Chama</button>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
+          <div><h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Chama Collections</h2><p className="text-sm text-zinc-500">Manage group savings & contributions</p></div>
+          <div className="flex gap-2">
+            <button onClick={() => fetchChamas(user?.id)} className="p-2 rounded-lg bg-white shadow-sm border border-zinc-200 hover:bg-zinc-50"><RefreshCw className={cn("w-4 h-4 text-zinc-600", loading && "animate-spin")} /></button>
+            <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium shadow-md hover:shadow-lg transition-all"><Plus className="w-4 h-4" />New Chama</button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[{ label: "Total Chamas", value: filteredChamas.length, icon: Users, gradient: "from-blue-500 to-blue-600" }, { label: "Active", value: filteredChamas.filter(c => c.status === "active").length, icon: Zap, gradient: "from-emerald-500 to-emerald-600" }, { label: "Total Members", value: totalMembers, icon: UserPlus, gradient: "from-purple-500 to-purple-600" }, { label: "Total Collected", value: formatCurrency(totalCollected), icon: Wallet, gradient: "from-amber-500 to-orange-600" }].map((stat, i) => (
-            <div key={i} className="relative overflow-hidden p-6 rounded-2xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
-              <div className={cn("absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-20 bg-gradient-to-br", stat.gradient)} />
-              <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg", stat.gradient)}><stat.icon className="w-6 h-6 text-white" /></div>
-              <p className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mt-4">{stat.value}</p>
-              <p className="text-sm text-zinc-500 mt-1">{stat.label}</p>
+        {/* Compact Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-5">
+          {[
+            { label: "Total", value: displayChamas.length, icon: Users, gradient: "from-slate-500 to-slate-600" },
+            { label: "Active", value: activeCount, icon: Zap, gradient: "from-emerald-500 to-emerald-600" },
+            { label: "Inactive", value: inactiveCount, icon: Pause, gradient: "from-amber-500 to-amber-600" },
+            { label: "Members", value: totalMembers, icon: UserPlus, gradient: "from-purple-500 to-purple-600" },
+            { label: "Collected", value: formatCurrency(totalCollected), icon: Wallet, gradient: "from-blue-500 to-blue-600" },
+            { label: "Distributed", value: formatCurrency(filteredChamas.reduce((s, c) => s + c.total_distributed, 0)), icon: TrendingUp, gradient: "from-teal-500 to-teal-600" },
+          ].map((stat, i) => (
+            <div key={i} className="relative overflow-hidden p-3 rounded-xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
+              <div className={cn("absolute top-0 right-0 w-16 h-16 -mr-4 -mt-4 rounded-full opacity-20 bg-gradient-to-br", stat.gradient)} />
+              <div className="relative flex items-center gap-2">
+                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br shadow", stat.gradient)}><stat.icon className="w-4 h-4 text-white" /></div>
+                <div><p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{stat.value}</p><p className="text-[10px] text-zinc-500">{stat.label}</p></div>
+              </div>
             </div>
           ))}
         </div>
 
-        <div className="flex gap-2 p-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl w-fit mb-6">
-          <button onClick={() => setActiveTab("created")} className={cn("px-5 py-2.5 rounded-lg text-sm font-medium", activeTab === "created" ? "bg-white shadow-sm text-zinc-900" : "text-zinc-600")}>My Chamas ({chamas.length})</button>
-          <button onClick={() => setActiveTab("member")} className={cn("px-5 py-2.5 rounded-lg text-sm font-medium", activeTab === "member" ? "bg-white shadow-sm text-zinc-900" : "text-zinc-600")}>Member Of ({myChamas.length})</button>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm mb-6">
-          <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[200px]"><Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" /><Input placeholder="Search chamas..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-12 h-12 bg-zinc-50 border-zinc-200 rounded-xl" /></div>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-4 py-3 rounded-xl text-sm font-medium bg-zinc-50 border border-zinc-200"><option value="all">All Status</option><option value="active">Active</option><option value="paused">Paused</option><option value="completed">Completed</option></select>
+        {/* Tabs Row */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="flex gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
+            <button onClick={() => setActiveTab("created")} className={cn("px-3 py-1.5 rounded text-xs font-medium", activeTab === "created" ? "bg-white shadow-sm text-zinc-900" : "text-zinc-600")}>My Chamas ({chamas.length})</button>
+            <button onClick={() => setActiveTab("member")} className={cn("px-3 py-1.5 rounded text-xs font-medium", activeTab === "member" ? "bg-white shadow-sm text-zinc-900" : "text-zinc-600")}>Member Of ({myChamas.length})</button>
+          </div>
+          <div className="flex gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
+            <button onClick={() => setStatusTab("all")} className={cn("px-3 py-1.5 rounded text-xs font-medium", statusTab === "all" ? "bg-white shadow-sm text-zinc-900" : "text-zinc-600")}>All</button>
+            <button onClick={() => setStatusTab("active")} className={cn("px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1", statusTab === "active" ? "bg-emerald-500 text-white shadow-sm" : "text-zinc-600")}><Play className="w-3 h-3" />Active ({activeCount})</button>
+            <button onClick={() => setStatusTab("inactive")} className={cn("px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1", statusTab === "inactive" ? "bg-amber-500 text-white shadow-sm" : "text-zinc-600")}><Pause className="w-3 h-3" />Inactive ({inactiveCount})</button>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="relative"><Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" /><Input placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-8 h-8 w-40 text-sm bg-white border-zinc-200 rounded-lg" /></div>
+            <div className="flex p-0.5 bg-zinc-100 rounded-lg">
+              <button onClick={() => setViewMode("card")} className={cn("p-1.5 rounded", viewMode === "card" ? "bg-white shadow-sm" : "")}><LayoutGrid className="w-4 h-4 text-zinc-600" /></button>
+              <button onClick={() => setViewMode("table")} className={cn("p-1.5 rounded", viewMode === "table" ? "bg-white shadow-sm" : "")}><List className="w-4 h-4 text-zinc-600" /></button>
+            </div>
           </div>
         </div>
 
-        {loading ? <div className="flex items-center justify-center py-20"><RefreshCw className="w-10 h-10 text-blue-500 animate-spin" /></div> : filteredChamas.length === 0 ? (
-          <div className="text-center py-20 rounded-3xl bg-white border border-zinc-100">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto mb-6 shadow-lg"><Users className="w-10 h-10 text-white" /></div>
-            <h3 className="text-xl font-semibold text-zinc-900 mb-2">No chamas found</h3>
-            <p className="text-zinc-500 mb-6">Create your first chama to start collecting</p>
-            {activeTab === "created" && <button onClick={() => setShowCreateModal(true)} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold shadow-lg"><Plus className="w-5 h-5" /> Create Chama</button>}
+        {/* Content */}
+        {loading ? <div className="flex items-center justify-center py-16"><RefreshCw className="w-8 h-8 text-blue-500 animate-spin" /></div> : filteredChamas.length === 0 ? (
+          <div className="text-center py-12 rounded-xl bg-white border border-zinc-100">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-lg"><Users className="w-7 h-7 text-white" /></div>
+            <h3 className="text-lg font-semibold text-zinc-900 mb-1">No chamas found</h3>
+            <p className="text-sm text-zinc-500 mb-4">Create your first chama to start</p>
+            {activeTab === "created" && <button onClick={() => setShowCreateModal(true)} className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-sm font-medium"><Plus className="w-4 h-4" /> Create Chama</button>}
+          </div>
+        ) : viewMode === "table" ? (
+          <div className="rounded-xl overflow-hidden bg-white border border-zinc-200 shadow-sm">
+            <table className="w-full">
+              <thead className="bg-zinc-50 border-b border-zinc-200">
+                <tr>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase">#</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase">Name</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase">Type</th>
+                  <th className="px-3 py-2 text-right text-[10px] font-semibold text-zinc-500 uppercase">Contribution</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-zinc-500 uppercase">Members</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-zinc-500 uppercase">Cycle</th>
+                  <th className="px-3 py-2 text-right text-[10px] font-semibold text-zinc-500 uppercase">Collected</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-zinc-500 uppercase">Freq</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-zinc-500 uppercase">Status</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-zinc-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {filteredChamas.map((chama, idx) => {
+                  const Icon = getChamaIcon(chama.chama_type || "savings")
+                  return (
+                    <tr key={chama.id} className="hover:bg-zinc-50 cursor-pointer" onClick={() => { setSelectedChama(chama); setShowDetailModal(true) }}>
+                      <td className="px-3 py-2 text-sm text-zinc-400 font-mono">{idx + 1}</td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", chama.chama_type === "fundraising" ? "bg-purple-100" : chama.chama_type === "collection" ? "bg-blue-100" : "bg-emerald-100")}><Icon className={cn("w-3.5 h-3.5", chama.chama_type === "fundraising" ? "text-purple-600" : chama.chama_type === "collection" ? "text-blue-600" : "text-emerald-600")} /></div>
+                          <div><p className="text-sm font-medium text-zinc-900">{chama.name}</p><p className="text-[10px] text-zinc-500 truncate max-w-[150px]">{chama.description || "No description"}</p></div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2"><span className="px-2 py-0.5 text-[10px] font-medium rounded bg-zinc-100 text-zinc-600 capitalize">{chama.chama_type}</span></td>
+                      <td className="px-3 py-2 text-right text-sm font-mono text-zinc-700">{formatCurrency(chama.contribution_amount)}</td>
+                      <td className="px-3 py-2 text-center text-sm font-semibold text-zinc-900">{chama.members?.length || 0}</td>
+                      <td className="px-3 py-2 text-center text-sm text-zinc-600">{chama.current_cycle}</td>
+                      <td className="px-3 py-2 text-right text-sm font-mono text-emerald-600">{formatCurrency(chama.total_collected)}</td>
+                      <td className="px-3 py-2 text-center"><span className="text-[10px] text-zinc-500 capitalize">{chama.collection_frequency}</span></td>
+                      <td className="px-3 py-2 text-center"><span className={cn("px-2 py-0.5 text-[10px] rounded-full font-medium", getStatusBadge(chama.status))}>{chama.status}</span></td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <button onClick={() => { setSelectedChama(chama); setShowDetailModal(true) }} className="p-1.5 hover:bg-zinc-100 rounded" title="View"><Eye className="w-3.5 h-3.5 text-zinc-500" /></button>
+                          {activeTab === "created" && (
+                            chama.status === "active" 
+                              ? <button onClick={() => toggleChamaStatus(chama.id, "paused")} className="p-1.5 hover:bg-amber-50 rounded" title="Pause"><Pause className="w-3.5 h-3.5 text-amber-600" /></button>
+                              : <button onClick={() => toggleChamaStatus(chama.id, "active")} className="p-1.5 hover:bg-emerald-50 rounded" title="Activate"><Play className="w-3.5 h-3.5 text-emerald-600" /></button>
+                          )}
+                          {activeTab === "member" && <button onClick={() => requestExit(chama.id)} className="p-1.5 hover:bg-red-50 rounded" title="Exit"><LogOut className="w-3.5 h-3.5 text-red-500" /></button>}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredChamas.map((chama) => {
               const Icon = getChamaIcon(chama.chama_type || "savings")
               return (
-                <div key={chama.id} onClick={() => { setSelectedChama(chama); setShowDetailModal(true) }} className="group p-6 rounded-2xl cursor-pointer bg-white border border-zinc-100 hover:border-blue-300 hover:shadow-xl hover:-translate-y-1 transition-all">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shadow-lg", chama.chama_type === "fundraising" ? "bg-gradient-to-br from-purple-500 to-purple-600" : chama.chama_type === "collection" ? "bg-gradient-to-br from-blue-500 to-blue-600" : "bg-gradient-to-br from-emerald-500 to-emerald-600")}><Icon className="w-6 h-6 text-white" /></div>
-                      <div><h3 className="font-semibold text-zinc-900 group-hover:text-blue-600">{chama.name}</h3><p className="text-xs text-zinc-500 capitalize">{chama.chama_type || "savings"}</p></div>
+                <div key={chama.id} onClick={() => { setSelectedChama(chama); setShowDetailModal(true) }} className="group p-4 rounded-xl cursor-pointer bg-white border border-zinc-100 hover:border-blue-300 hover:shadow-lg transition-all">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shadow", chama.chama_type === "fundraising" ? "bg-gradient-to-br from-purple-500 to-purple-600" : chama.chama_type === "collection" ? "bg-gradient-to-br from-blue-500 to-blue-600" : "bg-gradient-to-br from-emerald-500 to-emerald-600")}><Icon className="w-4 h-4 text-white" /></div>
+                      <div><h3 className="text-sm font-semibold text-zinc-900 group-hover:text-blue-600">{chama.name}</h3><p className="text-[10px] text-zinc-500 capitalize">{chama.chama_type || "savings"}</p></div>
                     </div>
-                    <span className={cn("px-2.5 py-1 text-xs rounded-full font-medium", getStatusBadge(chama.status))}>{chama.status}</span>
+                    <span className={cn("px-2 py-0.5 text-[10px] rounded-full font-medium", getStatusBadge(chama.status))}>{chama.status}</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="p-3 bg-zinc-50 rounded-xl"><p className="text-[10px] text-zinc-500 uppercase">Contribution</p><p className="text-lg font-bold text-zinc-900">{formatCurrency(chama.contribution_amount)}</p></div>
-                    <div className="p-3 bg-zinc-50 rounded-xl"><p className="text-[10px] text-zinc-500 uppercase">Members</p><p className="text-lg font-bold text-zinc-900">{chama.members?.length || 0}</p></div>
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div className="p-2 bg-zinc-50 rounded-lg"><p className="text-[9px] text-zinc-500 uppercase">Contribution</p><p className="text-sm font-bold text-zinc-900">{formatCurrency(chama.contribution_amount)}</p></div>
+                    <div className="p-2 bg-zinc-50 rounded-lg"><p className="text-[9px] text-zinc-500 uppercase">Members</p><p className="text-sm font-bold text-zinc-900">{chama.members?.length || 0}</p></div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-zinc-500"><span className="capitalize">{chama.collection_frequency}</span><span>Cycle {chama.current_cycle}</span></div>
-                  {chama.next_collection_date && <div className="mt-3 flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg"><Calendar className="w-3.5 h-3.5" />Next: {new Date(chama.next_collection_date).toLocaleDateString()}</div>}
-                  {activeTab === "member" && <button onClick={(e) => { e.stopPropagation(); requestExit(chama.id) }} className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 text-xs text-red-600 bg-red-50 rounded-xl hover:bg-red-100 font-medium"><LogOut className="w-3.5 h-3.5" /> Request Exit</button>}
+                  <div className="flex items-center justify-between text-[10px] text-zinc-500 mb-2"><span className="capitalize">{chama.collection_frequency}</span><span>Cycle {chama.current_cycle}</span></div>
+                  {chama.next_collection_date && <div className="flex items-center gap-1.5 text-[10px] text-blue-600 bg-blue-50 px-2 py-1.5 rounded-lg"><Calendar className="w-3 h-3" />Next: {new Date(chama.next_collection_date).toLocaleDateString()}</div>}
+                  <div className="flex gap-1.5 mt-3 pt-3 border-t border-zinc-100" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => { setSelectedChama(chama); setShowDetailModal(true) }} className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] text-zinc-600 bg-zinc-50 rounded-lg hover:bg-zinc-100 font-medium"><Eye className="w-3 h-3" />View</button>
+                    {activeTab === "created" && (
+                      chama.status === "active"
+                        ? <button onClick={() => toggleChamaStatus(chama.id, "paused")} className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 font-medium"><Pause className="w-3 h-3" />Pause</button>
+                        : <button onClick={() => toggleChamaStatus(chama.id, "active")} className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 font-medium"><Play className="w-3 h-3" />Activate</button>
+                    )}
+                    {activeTab === "member" && <button onClick={() => requestExit(chama.id)} className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[10px] text-red-600 bg-red-50 rounded-lg hover:bg-red-100 font-medium"><LogOut className="w-3 h-3" />Exit</button>}
+                  </div>
                 </div>
               )
             })}
@@ -362,6 +519,168 @@ export default function ChamaPage() {
               {selectedChama?.chama_type === "fundraising" && <div><label className="text-xs font-medium text-zinc-700">Pledge Amount (KES)</label><Input type="number" value={newMember.pledge_amount} onChange={(e) => setNewMember(m => ({ ...m, pledge_amount: e.target.value }))} placeholder="10000" className="mt-1" /></div>}
             </div>
             <div className="flex gap-2 p-5 border-t"><button onClick={() => { setShowAddMemberModal(false); setSelectedUser(null) }} className="flex-1 py-2.5 text-sm text-zinc-600 hover:bg-zinc-100 rounded-xl">Cancel</button><button onClick={addMember} disabled={!selectedUser && (!newMember.name || !newMember.phone)} className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 text-white disabled:opacity-50">Add Member</button></div>
+          </div>
+        </div>
+      )}
+
+      {/* Collection Progress Modal */}
+      {showCollectionModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-emerald-600 to-teal-600">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                  {collecting ? <RefreshCw className="w-5 h-5 text-white animate-spin" /> : <Send className="w-5 h-5 text-white" />}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Collection Progress</h2>
+                  <p className="text-xs text-white/80">{selectedChama?.name} - Cycle {collectionStatus?.cycle_number || selectedChama?.current_cycle}</p>
+                </div>
+              </div>
+              <button onClick={() => { setShowCollectionModal(false); stopPolling() }} className="p-2 hover:bg-white/20 rounded-xl text-white"><X className="w-5 h-5" /></button>
+            </div>
+
+            {/* Stats Row */}
+            <div className="grid grid-cols-5 gap-3 p-4 bg-zinc-50 border-b">
+              {[
+                { label: "Total", value: stkRequests.length, color: "bg-slate-500", textColor: "text-slate-600" },
+                { label: "Sent", value: stkRequests.filter(r => r.status === "sent").length, color: "bg-blue-500", textColor: "text-blue-600" },
+                { label: "Pending", value: stkRequests.filter(r => ["pending", "processing"].includes(r.status)).length, color: "bg-amber-500", textColor: "text-amber-600" },
+                { label: "Completed", value: stkRequests.filter(r => r.status === "completed").length, color: "bg-emerald-500", textColor: "text-emerald-600" },
+                { label: "Failed", value: stkRequests.filter(r => r.status === "failed").length, color: "bg-red-500", textColor: "text-red-600" },
+              ].map((stat, i) => (
+                <div key={i} className="flex items-center gap-2 p-3 bg-white rounded-xl border border-zinc-200">
+                  <div className={cn("w-3 h-3 rounded-full", stat.color)} />
+                  <div>
+                    <p className={cn("text-xl font-bold", stat.textColor)}>{stat.value}</p>
+                    <p className="text-[10px] text-zinc-500">{stat.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Progress Bar */}
+            <div className="px-4 py-2 bg-zinc-50 border-b">
+              <div className="flex items-center justify-between text-xs text-zinc-500 mb-1">
+                <span>Progress</span>
+                <span>{stkRequests.filter(r => r.status === "completed").length} / {stkRequests.length} completed</span>
+              </div>
+              <div className="h-2 bg-zinc-200 rounded-full overflow-hidden flex">
+                <div className="bg-emerald-500 transition-all" style={{ width: `${(stkRequests.filter(r => r.status === "completed").length / Math.max(stkRequests.length, 1)) * 100}%` }} />
+                <div className="bg-amber-500 transition-all" style={{ width: `${(stkRequests.filter(r => ["pending", "processing", "sent"].includes(r.status)).length / Math.max(stkRequests.length, 1)) * 100}%` }} />
+                <div className="bg-red-500 transition-all" style={{ width: `${(stkRequests.filter(r => r.status === "failed").length / Math.max(stkRequests.length, 1)) * 100}%` }} />
+              </div>
+            </div>
+
+            {/* Actions Row */}
+            <div className="flex items-center justify-between px-4 py-2 bg-white border-b">
+              <div className="flex items-center gap-2">
+                {collecting && <span className="flex items-center gap-1.5 text-xs text-blue-600"><RefreshCw className="w-3 h-3 animate-spin" />Polling every 3s...</span>}
+                {!collecting && collectionStatus?.all_completed && <span className="flex items-center gap-1.5 text-xs text-emerald-600"><Check className="w-3 h-3" />All completed!</span>}
+              </div>
+              <div className="flex gap-2">
+                {stkRequests.filter(r => r.status === "failed").length > 0 && (
+                  <button onClick={retryAllFailed} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
+                    <RefreshCw className="w-3 h-3" />Retry All Failed ({stkRequests.filter(r => r.status === "failed").length})
+                  </button>
+                )}
+                {!collecting && collectionStatus?.cycle_id && (
+                  <button onClick={() => startPolling(collectionStatus.cycle_id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
+                    <RefreshCw className="w-3 h-3" />Refresh Status
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* STK Requests Table */}
+            <div className="overflow-auto max-h-[50vh]">
+              <table className="w-full">
+                <thead className="bg-zinc-50 sticky top-0">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase">#</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase">Member</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase">Phone</th>
+                    <th className="px-4 py-2 text-right text-[10px] font-semibold text-zinc-500 uppercase">Amount</th>
+                    <th className="px-4 py-2 text-center text-[10px] font-semibold text-zinc-500 uppercase">Status</th>
+                    <th className="px-4 py-2 text-center text-[10px] font-semibold text-zinc-500 uppercase">Attempts</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase">Receipt/Error</th>
+                    <th className="px-4 py-2 text-center text-[10px] font-semibold text-zinc-500 uppercase">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {stkRequests.length === 0 ? (
+                    <tr><td colSpan={8} className="px-4 py-8 text-center text-zinc-500 text-sm">
+                      {collecting ? "Sending STK pushes to members..." : "No STK requests yet"}
+                    </td></tr>
+                  ) : stkRequests.map((req, idx) => (
+                    <tr key={req.id} className={cn("hover:bg-zinc-50", req.status === "completed" && "bg-emerald-50/50", req.status === "failed" && "bg-red-50/50")}>
+                      <td className="px-4 py-2 text-sm text-zinc-400 font-mono">{idx + 1}</td>
+                      <td className="px-4 py-2">
+                        <div className="flex items-center gap-2">
+                          <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white",
+                            req.status === "completed" ? "bg-emerald-500" : req.status === "failed" ? "bg-red-500" : "bg-blue-500"
+                          )}>
+                            {req.status === "completed" ? <Check className="w-3.5 h-3.5" /> : req.status === "failed" ? <X className="w-3.5 h-3.5" /> : (req.member?.name?.[0] || "?")}
+                          </div>
+                          <span className="text-sm font-medium text-zinc-900">{req.member?.name || "Unknown"}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2 text-sm text-zinc-500 font-mono">{req.phone_number}</td>
+                      <td className="px-4 py-2 text-right text-sm font-mono text-zinc-700">{formatCurrency(req.amount)}</td>
+                      <td className="px-4 py-2 text-center">
+                        <span className={cn("px-2 py-0.5 text-[10px] font-semibold rounded-full",
+                          req.status === "completed" ? "bg-emerald-100 text-emerald-700" :
+                          req.status === "failed" ? "bg-red-100 text-red-700" :
+                          req.status === "sent" ? "bg-blue-100 text-blue-700" :
+                          req.status === "processing" ? "bg-purple-100 text-purple-700" :
+                          "bg-amber-100 text-amber-700"
+                        )}>
+                          {req.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 text-center text-sm text-zinc-500">{req.attempt_count || 1}/{req.max_attempts || 3}</td>
+                      <td className="px-4 py-2 text-xs truncate max-w-[150px]">
+                        {req.mpesa_receipt_number ? (
+                          <span className="text-emerald-600 font-mono">{req.mpesa_receipt_number}</span>
+                        ) : req.error_message ? (
+                          <span className="text-red-500" title={req.error_message}>{req.error_message}</span>
+                        ) : (
+                          <span className="text-zinc-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-center">
+                        {(req.status === "failed" || req.status === "expired" || req.status === "cancelled") && (
+                          <button onClick={() => retryStk(req.id)} className="p-1.5 hover:bg-blue-100 rounded text-blue-600" title="Retry">
+                            <RefreshCw className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {req.status === "pending" && (
+                          <span className="text-[10px] text-amber-600">Waiting...</span>
+                        )}
+                        {req.status === "processing" && (
+                          <RefreshCw className="w-3.5 h-3.5 text-purple-600 animate-spin mx-auto" />
+                        )}
+                        {req.status === "completed" && (
+                          <Check className="w-4 h-4 text-emerald-600 mx-auto" />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between p-4 border-t bg-zinc-50">
+              <div className="text-xs text-zinc-500">
+                {collectionStatus?.expected_amount && <span>Expected: <strong className="text-zinc-700">{formatCurrency(collectionStatus.expected_amount)}</strong></span>}
+                {collectionStatus?.collected_amount > 0 && <span className="ml-4">Collected: <strong className="text-emerald-600">{formatCurrency(collectionStatus.collected_amount)}</strong></span>}
+              </div>
+              <button onClick={() => { setShowCollectionModal(false); stopPolling() }} className="px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-200 rounded-lg">
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
