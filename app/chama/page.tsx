@@ -197,9 +197,10 @@ export default function ChamaPage() {
 
   const startPolling = (cycleId: string) => {
     if (pollingInterval) clearInterval(pollingInterval)
-    const interval = setInterval(() => pollCollection(cycleId), 3000)
+    // Poll immediately, then every 5 seconds
+    pollPendingStk()
+    const interval = setInterval(() => pollPendingStk(), 5000)
     setPollingInterval(interval)
-    pollCollection(cycleId)
   }
 
   const stopPolling = () => {
@@ -209,20 +210,116 @@ export default function ChamaPage() {
     }
   }
 
-  const pollCollection = async (cycleId: string) => {
+  // Poll pending STK requests - manual trigger from Check Pending button
+  const pollPendingStk = async () => {
+    if (!selectedChama) return
+    setCollecting(true)
+    
     try {
-      const response = await fetch(`/api/chama/poll-stk?cycle_id=${cycleId}`)
-      const result = await response.json()
-      setCollectionStatus(result)
-      setStkRequests(result.stk_requests || [])
-      if (result.all_completed || result.all_failed) {
-        stopPolling()
-        setCollecting(false)
+      console.log(`🔄 Manual poll for chama ${selectedChama.id}...`)
+      
+      // Poll and fetch updated data in parallel
+      const [pollResponse, stkResult] = await Promise.all([
+        fetch('/api/chama/poll-pending', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chama_id: selectedChama.id })
+        }).then(r => r.json()),
+        supabase
+          .from("chama_stk_requests")
+          .select("*")
+          .eq("chama_id", selectedChama.id)
+          .order("created_at", { ascending: false })
+      ])
+      
+      console.log(`📊 Poll: ${pollResponse.completed} completed, ${pollResponse.failed} failed, ${pollResponse.still_pending} pending`)
+      
+      // Update STK requests with member info
+      const stkData = stkResult.data || []
+      if (stkData.length > 0) {
+        const memberIds = [...new Set(stkData.map(s => s.member_id).filter(Boolean))]
+        let membersMap: Record<string, any> = {}
+        if (memberIds.length > 0) {
+          const { data: members } = await supabase.from("chama_members").select("*").in("id", memberIds)
+          if (members) membersMap = Object.fromEntries(members.map(m => [m.id, m]))
+        }
+        setStkRequests(stkData.map(stk => ({ ...stk, member: membersMap[stk.member_id] || null })))
+      }
+      
+      // Refresh chama totals if any completed
+      if (pollResponse.completed > 0 && user?.id) {
+        fetchChamas(user.id)
       }
     } catch (err) {
-      console.error("Polling error:", err)
+      console.error("Poll pending error:", err)
+    } finally {
+      setCollecting(false)
     }
   }
+
+  // Count pending STK requests
+  const pendingStkCount = stkRequests.filter(r => ['pending', 'processing', 'sent'].includes(r.status)).length
+
+  // Auto-poll when modal is open and there are pending STK requests
+  // Initial poll is done in openChamaDetail, this just continues polling
+  useEffect(() => {
+    if (!showDetailModal || !selectedChama || pendingStkCount === 0) return
+    
+    let isPolling = false
+    let isMounted = true
+    
+    const pollAndRefresh = async () => {
+      if (isPolling || !isMounted) return
+      isPolling = true
+      
+      try {
+        const response = await fetch('/api/chama/poll-pending', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chama_id: selectedChama.id })
+        })
+        
+        const result = await response.json()
+        if (!isMounted) return
+        
+        console.log(`📊 Poll: ${result.completed} completed, ${result.failed} failed, ${result.still_pending} pending`)
+        
+        if (result.success && (result.completed > 0 || result.failed > 0)) {
+          // Refresh STK history
+          const { data: stkData } = await supabase
+            .from("chama_stk_requests")
+            .select("*")
+            .eq("chama_id", selectedChama.id)
+            .order("created_at", { ascending: false })
+          
+          if (stkData && isMounted) {
+            const memberIds = [...new Set(stkData.map(s => s.member_id).filter(Boolean))]
+            let membersMap: Record<string, any> = {}
+            if (memberIds.length > 0) {
+              const { data: members } = await supabase.from("chama_members").select("*").in("id", memberIds)
+              if (members) membersMap = Object.fromEntries(members.map(m => [m.id, m]))
+            }
+            setStkRequests(stkData.map(stk => ({ ...stk, member: membersMap[stk.member_id] || null })))
+          }
+          
+          // Refresh chama data
+          if (user?.id && isMounted) fetchChamas(user.id)
+        }
+      } catch (err) {
+        console.error("Auto-poll error:", err)
+      } finally {
+        isPolling = false
+      }
+    }
+    
+    // Poll every 5 seconds (initial poll done in openChamaDetail)
+    const intervalId = setInterval(pollAndRefresh, 5000)
+    
+    return () => {
+      isMounted = false
+      clearInterval(intervalId)
+    }
+  }, [showDetailModal, selectedChama?.id, pendingStkCount])
 
   const retryStk = async (requestId: string) => {
     try {
@@ -232,8 +329,13 @@ export default function ChamaPage() {
         body: JSON.stringify({ request_id: requestId })
       })
       const result = await response.json()
-      if (result.success && collectionStatus?.cycle_id) {
-        pollCollection(collectionStatus.cycle_id)
+      if (result.success && selectedChama) {
+        // Update local state immediately instead of refetching
+        setStkRequests(prev => prev.map(r => 
+          r.id === requestId 
+            ? { ...r, status: 'sent', attempt_count: (r.attempt_count || 1) + 1, error_message: null }
+            : r
+        ))
       }
     } catch (err) {
       console.error("Retry error:", err)
@@ -284,6 +386,88 @@ export default function ChamaPage() {
       fetchChamas(user?.id)
     } catch (err) { console.error("Failed to update status:", err) }
   }
+
+  const fetchStkHistory = async (chamaId: string) => {
+    try {
+      // First get STK requests
+      const { data: stkData } = await supabase
+        .from("chama_stk_requests")
+        .select("*")
+        .eq("chama_id", chamaId)
+        .order("created_at", { ascending: false })
+      
+      if (!stkData || stkData.length === 0) {
+        setStkRequests([])
+        return
+      }
+      
+      // Get member info separately to avoid FK issues
+      const memberIds = [...new Set(stkData.map(s => s.member_id).filter(Boolean))]
+      let membersMap: Record<string, any> = {}
+      
+      if (memberIds.length > 0) {
+        const { data: members } = await supabase
+          .from("chama_members")
+          .select("*")
+          .in("id", memberIds)
+        if (members) {
+          membersMap = Object.fromEntries(members.map(m => [m.id, m]))
+        }
+      }
+      
+      // Combine data
+      const enrichedData = stkData.map(stk => ({
+        ...stk,
+        member: membersMap[stk.member_id] || null
+      }))
+      
+      setStkRequests(enrichedData)
+    } catch (err) { console.error("Failed to fetch STK history:", err) }
+  }
+
+  const openChamaDetail = async (chama: Chama) => {
+    setSelectedChama(chama)
+    setShowDetailModal(true)
+    
+    // Fetch STK history and poll pending in parallel on load
+    try {
+      const [stkResult, pollResult] = await Promise.all([
+        // Fetch STK history
+        supabase
+          .from("chama_stk_requests")
+          .select("*")
+          .eq("chama_id", chama.id)
+          .order("created_at", { ascending: false }),
+        // Poll pending immediately
+        fetch('/api/chama/poll-pending', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chama_id: chama.id })
+        }).then(r => r.json()).catch(() => null)
+      ])
+      
+      const stkData = stkResult.data || []
+      
+      // Get member info
+      if (stkData.length > 0) {
+        const memberIds = [...new Set(stkData.map(s => s.member_id).filter(Boolean))]
+        let membersMap: Record<string, any> = {}
+        if (memberIds.length > 0) {
+          const { data: members } = await supabase.from("chama_members").select("*").in("id", memberIds)
+          if (members) membersMap = Object.fromEntries(members.map(m => [m.id, m]))
+        }
+        setStkRequests(stkData.map(stk => ({ ...stk, member: membersMap[stk.member_id] || null })))
+      } else {
+        setStkRequests([])
+      }
+      
+      if (pollResult?.success) {
+        console.log(`📊 Initial poll: ${pollResult.completed} completed, ${pollResult.failed} failed, ${pollResult.still_pending} pending`)
+      }
+    } catch (err) {
+      console.error("Failed to load chama detail:", err)
+    }
+  }
   const formatCurrency = (n: number) => new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES" }).format(Math.ceil(n))
   const totalMembers = filteredChamas.reduce((s, c) => s + (c.members?.length || 0), 0)
   const totalCollected = filteredChamas.reduce((s, c) => s + c.total_collected, 0)
@@ -305,7 +489,7 @@ export default function ChamaPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
           <div><h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Chama Collections</h2><p className="text-sm text-zinc-500">Manage group savings & contributions</p></div>
@@ -384,7 +568,7 @@ export default function ChamaPage() {
                 {filteredChamas.map((chama, idx) => {
                   const Icon = getChamaIcon(chama.chama_type || "savings")
                   return (
-                    <tr key={chama.id} className="hover:bg-zinc-50 cursor-pointer" onClick={() => { setSelectedChama(chama); setShowDetailModal(true) }}>
+                    <tr key={chama.id} className="hover:bg-zinc-50 cursor-pointer" onClick={() => openChamaDetail(chama)}>
                       <td className="px-3 py-2 text-sm text-zinc-400 font-mono">{idx + 1}</td>
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-2">
@@ -401,7 +585,7 @@ export default function ChamaPage() {
                       <td className="px-3 py-2 text-center"><span className={cn("px-2 py-0.5 text-[10px] rounded-full font-medium", getStatusBadge(chama.status))}>{chama.status}</span></td>
                       <td className="px-3 py-2">
                         <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
-                          <button onClick={() => { setSelectedChama(chama); setShowDetailModal(true) }} className="p-1.5 hover:bg-zinc-100 rounded" title="View"><Eye className="w-3.5 h-3.5 text-zinc-500" /></button>
+                          <button onClick={() => openChamaDetail(chama)} className="p-1.5 hover:bg-zinc-100 rounded" title="View"><Eye className="w-3.5 h-3.5 text-zinc-500" /></button>
                           {activeTab === "created" && (
                             chama.status === "active" 
                               ? <button onClick={() => toggleChamaStatus(chama.id, "paused")} className="p-1.5 hover:bg-amber-50 rounded" title="Pause"><Pause className="w-3.5 h-3.5 text-amber-600" /></button>
@@ -421,7 +605,7 @@ export default function ChamaPage() {
             {filteredChamas.map((chama) => {
               const Icon = getChamaIcon(chama.chama_type || "savings")
               return (
-                <div key={chama.id} onClick={() => { setSelectedChama(chama); setShowDetailModal(true) }} className="group p-4 rounded-xl cursor-pointer bg-white border border-zinc-100 hover:border-blue-300 hover:shadow-lg transition-all">
+                <div key={chama.id} onClick={() => openChamaDetail(chama)} className="group p-4 rounded-xl cursor-pointer bg-white border border-zinc-100 hover:border-blue-300 hover:shadow-lg transition-all">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shadow", chama.chama_type === "fundraising" ? "bg-gradient-to-br from-purple-500 to-purple-600" : chama.chama_type === "collection" ? "bg-gradient-to-br from-blue-500 to-blue-600" : "bg-gradient-to-br from-emerald-500 to-emerald-600")}><Icon className="w-4 h-4 text-white" /></div>
@@ -495,19 +679,248 @@ export default function ChamaPage() {
         </div>
       )}
 
-      {showDetailModal && selectedChama && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl">
-            <div className={cn("flex items-center justify-between p-6 border-b", selectedChama.chama_type === "fundraising" ? "bg-gradient-to-r from-purple-600 to-purple-700" : selectedChama.chama_type === "collection" ? "bg-gradient-to-r from-blue-600 to-blue-700" : "bg-gradient-to-r from-emerald-600 to-emerald-700")}><div><h2 className="text-xl font-bold text-white">{selectedChama.name}</h2><div className="flex items-center gap-2 mt-1"><span className="px-2 py-0.5 text-xs bg-white/20 text-white rounded-full">{selectedChama.status}</span><span className="text-xs text-white/80 capitalize">{selectedChama.chama_type || "savings"}</span></div></div><button onClick={() => setShowDetailModal(false)} className="p-2 hover:bg-white/20 rounded-xl text-white"><X className="w-6 h-6" /></button></div>
-            <div className="p-6 overflow-y-auto max-h-[70vh] space-y-5">
-              <div className="grid grid-cols-4 gap-4">{[{ label: "Contribution", value: formatCurrency(selectedChama.contribution_amount), bg: "bg-zinc-50" }, { label: "Members", value: selectedChama.members?.length || 0, bg: "bg-blue-50" }, { label: "Collected", value: formatCurrency(selectedChama.total_collected), bg: "bg-emerald-50" }, { label: "Cycle", value: selectedChama.current_cycle, bg: "bg-purple-50" }].map((s, i) => <div key={i} className={cn("p-4 rounded-xl text-center", s.bg)}><p className="text-xs text-zinc-600 mb-1">{s.label}</p><p className="text-xl font-bold text-zinc-900">{s.value}</p></div>)}</div>
-              {collectionStatus && <div className="p-4 rounded-xl bg-blue-50 border border-blue-200"><div className="flex items-center justify-between mb-3"><span className="text-sm font-semibold text-blue-700">Collection in Progress</span>{collecting && <RefreshCw className="w-4 h-4 text-blue-600 animate-spin" />}</div><div className="grid grid-cols-3 gap-3 text-center">{[{ label: "Paid", value: collectionStatus.completed || 0, color: "text-emerald-600" }, { label: "Pending", value: collectionStatus.pending || 0, color: "text-amber-600" }, { label: "Failed", value: collectionStatus.failed || 0, color: "text-red-600" }].map((s, i) => <div key={i} className="p-3 bg-white rounded-lg"><p className={cn("text-2xl font-bold", s.color)}>{s.value}</p><p className="text-xs text-zinc-500">{s.label}</p></div>)}</div></div>}
-              <div><div className="flex items-center justify-between mb-3"><h4 className="text-sm font-semibold text-zinc-900">Members ({selectedChama.members?.length || 0})</h4><button onClick={() => setShowAddMemberModal(true)} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-lg font-medium"><UserPlus className="w-3 h-3" /> Add</button></div><div className="rounded-xl overflow-hidden border border-zinc-200"><table className="w-full"><thead className="bg-zinc-50"><tr><th className="px-4 py-3 text-left text-xs font-semibold text-zinc-500">#</th><th className="px-4 py-3 text-left text-xs font-semibold text-zinc-500">Name</th><th className="px-4 py-3 text-left text-xs font-semibold text-zinc-500">Phone</th><th className="px-4 py-3 text-right text-xs font-semibold text-zinc-500">{selectedChama.chama_type === "fundraising" ? "Pledge" : "Contributed"}</th><th className="px-4 py-3 text-center text-xs font-semibold text-zinc-500">Status</th><th className="px-4 py-3 text-center text-xs font-semibold text-zinc-500">Actions</th></tr></thead><tbody className="divide-y divide-zinc-100">{selectedChama.members?.map((m) => <tr key={m.id} className="hover:bg-zinc-50"><td className="px-4 py-3 text-zinc-500">{m.rotation_position}</td><td className="px-4 py-3"><div className="flex items-center gap-2"><div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white", m.has_received_payout ? "bg-emerald-500" : "bg-gradient-to-br from-blue-500 to-indigo-600")}>{m.has_received_payout ? <Check className="w-3.5 h-3.5" /> : m.name[0]}</div><span className="font-medium text-zinc-900">{m.name}</span>{m.role === "admin" && <span className="px-1.5 py-0.5 text-[9px] bg-purple-100 text-purple-600 rounded font-medium">Admin</span>}</div></td><td className="px-4 py-3 text-zinc-500">{m.phone_number}</td><td className="px-4 py-3 text-right font-mono text-zinc-600">{formatCurrency(m.pledge_amount || m.total_contributed)}</td><td className="px-4 py-3 text-center"><span className={cn("px-2 py-0.5 text-[10px] rounded-full font-medium", getStatusBadge(m.status))}>{m.status}</span></td><td className="px-4 py-3 text-center">{m.status === "exit_requested" && selectedChama.creator_id === user?.id && <button onClick={() => approveExit(m.id)} className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded-lg font-medium">Approve Exit</button>}</td></tr>)}</tbody></table></div></div>
+      {showDetailModal && selectedChama && (() => {
+        const totalRequests = stkRequests.length
+        const completedCount = stkRequests.filter(r => r.status === "completed").length
+        const failedCount = stkRequests.filter(r => r.status === "failed").length
+        const pendingCount = stkRequests.filter(r => ["pending", "processing", "sent"].includes(r.status)).length
+        const totalStkAmount = stkRequests.reduce((s, r) => s + (r.amount || 0), 0)
+        const collectedStkAmount = stkRequests.filter(r => r.status === "completed").reduce((s, r) => s + (r.amount || 0), 0)
+        const totalAttempts = stkRequests.reduce((s, r) => s + (r.attempt_count || 1), 0)
+        const avgAttempts = totalRequests > 0 ? (totalAttempts / totalRequests).toFixed(1) : "0"
+        const successRate = totalRequests > 0 ? ((completedCount / totalRequests) * 100).toFixed(1) : "0"
+        const forfeitCount = stkRequests.filter(r => r.status === "failed" && (r.attempt_count || 1) >= (r.max_attempts || 3)).length
+
+        return (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2">
+          <div className="w-full max-w-6xl h-[95vh] overflow-hidden rounded-2xl bg-zinc-50 dark:bg-zinc-900 shadow-2xl flex flex-col">
+            {/* Header */}
+            <div className={cn("flex items-center justify-between px-6 py-4", selectedChama.chama_type === "fundraising" ? "bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700" : selectedChama.chama_type === "collection" ? "bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-700" : "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600")}>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  {collecting ? <RefreshCw className="w-6 h-6 text-white animate-spin" /> : <Activity className="w-6 h-6 text-white" />}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">{selectedChama.name}</h2>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="px-2 py-0.5 text-xs bg-white/20 text-white rounded-full">{selectedChama.status}</span>
+                    <span className="text-xs text-white/80 capitalize">{selectedChama.chama_type || "savings"}</span>
+                    <span className="text-xs text-white/80">• Cycle {selectedChama.current_cycle}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {collecting && <span className="flex items-center gap-2 px-3 py-1.5 bg-white/20 rounded-lg text-sm text-white"><RefreshCw className="w-4 h-4 animate-spin" />Live</span>}
+                <button onClick={() => { setShowDetailModal(false); stopPolling(); setExpandedStkRow(null); setStkRequests([]) }} className="p-2 hover:bg-white/20 rounded-xl text-white"><X className="w-6 h-6" /></button>
+              </div>
             </div>
-            <div className="flex gap-3 p-6 border-t bg-zinc-50"><button onClick={startCollection} disabled={collecting} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold bg-gradient-to-r from-emerald-600 to-emerald-700 text-white disabled:opacity-50 shadow-lg">{collecting ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}{collecting ? "Collecting..." : "Start Collection"}</button>{selectedChama.rotation_type === "random" && <button className="px-6 py-3 bg-purple-100 text-purple-700 rounded-xl font-semibold flex items-center gap-2"><Shuffle className="w-5 h-5" /> Shuffle</button>}</div>
+
+            {/* Main Content - Scrollable */}
+            <div className="flex-1 overflow-auto p-4 space-y-4">
+              {/* Top Stats Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                {[
+                  { label: "Contribution", value: formatCurrency(selectedChama.contribution_amount), icon: Wallet, color: "from-slate-500 to-slate-600", textColor: "text-slate-600" },
+                  { label: "Members", value: selectedChama.members?.length || 0, icon: Users, color: "from-blue-500 to-blue-600", textColor: "text-blue-600" },
+                  { label: "Collected", value: formatCurrency(selectedChama.total_collected), icon: TrendingUp, color: "from-emerald-500 to-emerald-600", textColor: "text-emerald-600" },
+                  { label: "Distributed", value: formatCurrency(selectedChama.total_distributed), icon: Send, color: "from-purple-500 to-purple-600", textColor: "text-purple-600" },
+                  { label: "STK Sent", value: totalRequests, icon: CreditCard, color: "from-cyan-500 to-cyan-600", textColor: "text-cyan-600" },
+                  { label: "Paid", value: completedCount, icon: Check, color: "from-green-500 to-green-600", textColor: "text-green-600" },
+                  { label: "Failed", value: failedCount, icon: AlertTriangle, color: "from-red-500 to-red-600", textColor: "text-red-600" },
+                  { label: "Success Rate", value: `${successRate}%`, icon: Target, color: "from-amber-500 to-amber-600", textColor: "text-amber-600" },
+                ].map((stat, i) => (
+                  <div key={i} className="relative overflow-hidden p-3 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                    <div className={cn("absolute top-0 right-0 w-12 h-12 -mr-3 -mt-3 rounded-full opacity-20 bg-gradient-to-br", stat.color)} />
+                    <div className="relative">
+                      <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-br mb-2", stat.color)}>
+                        <stat.icon className="w-3.5 h-3.5 text-white" />
+                      </div>
+                      <p className={cn("text-lg font-bold", stat.textColor)}>{stat.value}</p>
+                      <p className="text-[9px] text-zinc-500 uppercase tracking-wide">{stat.label}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Charts & Members Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Pie Chart - Status Distribution */}
+                <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                  <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-3">STK Status Distribution</h4>
+                  {totalRequests > 0 ? (
+                    <div className="flex items-center gap-4">
+                      <div className="relative w-20 h-20">
+                        <svg viewBox="0 0 36 36" className="w-20 h-20 transform -rotate-90">
+                          <circle cx="18" cy="18" r="16" fill="none" stroke="#e5e7eb" strokeWidth="3" />
+                          <circle cx="18" cy="18" r="16" fill="none" stroke="#10b981" strokeWidth="3" strokeDasharray={`${(completedCount / Math.max(totalRequests, 1)) * 100} 100`} strokeLinecap="round" />
+                          <circle cx="18" cy="18" r="16" fill="none" stroke="#f59e0b" strokeWidth="3" strokeDasharray={`${(pendingCount / Math.max(totalRequests, 1)) * 100} 100`} strokeDashoffset={`-${(completedCount / Math.max(totalRequests, 1)) * 100}`} strokeLinecap="round" />
+                          <circle cx="18" cy="18" r="16" fill="none" stroke="#ef4444" strokeWidth="3" strokeDasharray={`${(failedCount / Math.max(totalRequests, 1)) * 100} 100`} strokeDashoffset={`-${((completedCount + pendingCount) / Math.max(totalRequests, 1)) * 100}`} strokeLinecap="round" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center"><span className="text-lg font-bold text-zinc-700">{totalRequests}</span></div>
+                      </div>
+                      <div className="flex-1 space-y-1.5">
+                        <div className="flex items-center justify-between text-xs"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" />Completed</span><span className="font-semibold">{completedCount}</span></div>
+                        <div className="flex items-center justify-between text-xs"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500" />Pending</span><span className="font-semibold">{pendingCount}</span></div>
+                        <div className="flex items-center justify-between text-xs"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500" />Failed</span><span className="font-semibold">{failedCount}</span></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-zinc-400 text-sm">No STK requests yet</div>
+                  )}
+                </div>
+
+                {/* Collection Progress */}
+                <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                  <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-3">Collection Progress</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-xs mb-1"><span className="text-zinc-500">Expected</span><span className="font-semibold text-zinc-700">{formatCurrency(totalStkAmount || selectedChama.contribution_amount * (selectedChama.members?.length || 0))}</span></div>
+                      <div className="h-2 bg-zinc-200 rounded-full overflow-hidden"><div className="h-full bg-zinc-400" style={{ width: "100%" }} /></div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs mb-1"><span className="text-zinc-500">Collected</span><span className="font-semibold text-emerald-600">{formatCurrency(collectedStkAmount || selectedChama.total_collected)}</span></div>
+                      <div className="h-2 bg-zinc-200 rounded-full overflow-hidden"><div className="h-full bg-emerald-500" style={{ width: `${(collectedStkAmount / Math.max(totalStkAmount || 1, 1)) * 100}%` }} /></div>
+                    </div>
+                    <div className="pt-2 border-t border-zinc-200 flex justify-between text-xs">
+                      <span className="text-zinc-500">Avg Attempts</span><span className="font-semibold text-purple-600">{avgAttempts}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-zinc-500">Forfeited</span><span className="font-semibold text-red-600">{forfeitCount} members</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Members Quick View */}
+                <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Members ({selectedChama.members?.length || 0})</h4>
+                    <button onClick={() => setShowAddMemberModal(true)} className="flex items-center gap-1 px-2 py-1 text-[10px] bg-blue-100 text-blue-700 rounded font-medium"><UserPlus className="w-3 h-3" />Add</button>
+                  </div>
+                  <div className="space-y-2 max-h-32 overflow-auto">
+                    {selectedChama.members?.slice(0, 5).map((m, i) => (
+                      <div key={m.id} className="flex items-center gap-2 text-xs">
+                        <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white", m.has_received_payout ? "bg-emerald-500" : "bg-blue-500")}>{m.has_received_payout ? <Check className="w-3 h-3" /> : i + 1}</div>
+                        <span className="flex-1 truncate font-medium">{m.name}</span>
+                        <span className="text-zinc-500">{formatCurrency(m.total_contributed || 0)}</span>
+                      </div>
+                    ))}
+                    {(selectedChama.members?.length || 0) > 5 && <p className="text-[10px] text-zinc-400 text-center">+{(selectedChama.members?.length || 0) - 5} more</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* STK History Section */}
+              <div className="rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800">
+                  <div className="flex items-center gap-3">
+                    <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">STK Push History</h4>
+                    <span className="text-xs text-zinc-500">({stkRequests.length} requests)</span>
+                    {pendingCount > 0 && <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded-full"><Clock className="w-3 h-3 animate-pulse" />{pendingCount} pending</span>}
+                  </div>
+                  <div className="flex gap-2">
+                    {pendingCount > 0 && (
+                      <button onClick={pollPendingStk} disabled={collecting} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 disabled:opacity-50">
+                        <RefreshCw className={cn("w-3 h-3", collecting && "animate-spin")} />
+                        {collecting ? "Checking..." : "Check Pending"}
+                      </button>
+                    )}
+                    {failedCount > 0 && <button onClick={retryAllFailed} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-100 text-red-700 rounded-lg hover:bg-red-200"><RotateCcw className="w-3 h-3" />Retry Failed ({failedCount})</button>}
+                    <button onClick={() => fetchStkHistory(selectedChama.id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-zinc-100 text-zinc-700 rounded-lg hover:bg-zinc-200"><RefreshCw className="w-3 h-3" />Refresh</button>
+                  </div>
+                </div>
+
+                {/* STK Table */}
+                <div className="max-h-64 overflow-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-zinc-100 dark:bg-zinc-700 sticky top-0">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-semibold text-zinc-600">#</th>
+                        <th className="px-3 py-2 text-left font-semibold text-zinc-600">Member</th>
+                        <th className="px-3 py-2 text-left font-semibold text-zinc-600">Phone</th>
+                        <th className="px-3 py-2 text-right font-semibold text-zinc-600">Amount</th>
+                        <th className="px-3 py-2 text-center font-semibold text-zinc-600">Status</th>
+                        <th className="px-3 py-2 text-center font-semibold text-zinc-600">Attempts</th>
+                        <th className="px-3 py-2 text-left font-semibold text-zinc-600">Account #</th>
+                        <th className="px-3 py-2 text-left font-semibold text-zinc-600">Receipt</th>
+                        <th className="px-3 py-2 text-center font-semibold text-zinc-600">Action</th>
+                        <th className="px-3 py-2 w-6"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stkRequests.length === 0 ? (
+                        <tr><td colSpan={10} className="px-4 py-8 text-center text-zinc-400">No STK requests. Start a collection to send STK pushes.</td></tr>
+                      ) : stkRequests.map((req, idx) => (
+                        <>
+                          <tr key={req.id} onClick={() => setExpandedStkRow(expandedStkRow === req.id ? null : req.id)} className={cn(
+                            "cursor-pointer transition-colors border-b border-zinc-100",
+                            req.status === "completed" && "bg-emerald-50/50",
+                            req.status === "failed" && "bg-red-50/50",
+                            expandedStkRow === req.id && "bg-blue-50 border-blue-200",
+                            "hover:bg-blue-50/50"
+                          )}>
+                            <td className="px-3 py-2 font-mono text-zinc-400">{idx + 1}</td>
+                            <td className="px-3 py-2 font-medium">{req.member?.name || "Unknown"}</td>
+                            <td className="px-3 py-2 font-mono text-zinc-600">{req.phone_number}</td>
+                            <td className="px-3 py-2 text-right font-mono font-semibold">{formatCurrency(req.amount)}</td>
+                            <td className="px-3 py-2 text-center">
+                              <span className={cn("px-2 py-0.5 text-[10px] font-semibold rounded-full",
+                                req.status === "completed" ? "bg-emerald-100 text-emerald-700" :
+                                req.status === "failed" ? "bg-red-100 text-red-700" :
+                                req.status === "sent" ? "bg-blue-100 text-blue-700" :
+                                "bg-amber-100 text-amber-700"
+                              )}>{req.status}</span>
+                            </td>
+                            <td className="px-3 py-2 text-center"><span className={cn((req.attempt_count || 1) >= 3 ? "text-red-600 font-semibold" : "text-zinc-600")}>{req.attempt_count || 1}/{req.max_attempts || 3}</span></td>
+                            <td className="px-3 py-2 font-mono text-[10px] text-zinc-500">{req.account_number || "—"}</td>
+                            <td className="px-3 py-2 font-mono text-[10px] text-emerald-600">{req.mpesa_receipt_number || "—"}</td>
+                            <td className="px-3 py-2 text-center">
+                              {(req.status === "failed") && <button onClick={(e) => { e.stopPropagation(); retryStk(req.id) }} className="p-1 hover:bg-blue-100 rounded text-blue-600"><RotateCcw className="w-3 h-3" /></button>}
+                              {req.status === "completed" && <Check className="w-4 h-4 text-emerald-600 mx-auto" />}
+                              {req.status === "pending" && <Clock className="w-3 h-3 text-amber-500 mx-auto" />}
+                            </td>
+                            <td className="px-3 py-2">{expandedStkRow === req.id ? <ChevronUp className="w-3 h-3 text-zinc-400" /> : <ChevronDown className="w-3 h-3 text-zinc-400" />}</td>
+                          </tr>
+                          {expandedStkRow === req.id && (
+                            <tr className="bg-blue-50/70 border-b border-blue-200">
+                              <td colSpan={10} className="px-4 py-3">
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 text-xs">
+                                  <div><p className="text-zinc-500 mb-1">Request ID</p><p className="font-mono text-[9px] break-all">{req.id}</p></div>
+                                  <div><p className="text-zinc-500 mb-1">Checkout ID</p><p className="font-mono text-[9px] break-all">{req.checkout_request_id || "—"}</p></div>
+                                  <div><p className="text-zinc-500 mb-1">Account #</p><p className="font-mono">{req.account_number || "—"}</p></div>
+                                  <div><p className="text-zinc-500 mb-1">Receipt</p><p className="font-mono text-emerald-600">{req.mpesa_receipt_number || "—"}</p></div>
+                                  <div><p className="text-zinc-500 mb-1">Created</p><p>{req.created_at ? new Date(req.created_at).toLocaleString() : "—"}</p></div>
+                                  <div><p className="text-zinc-500 mb-1">Last Attempt</p><p>{req.last_attempt_at ? new Date(req.last_attempt_at).toLocaleString() : "—"}</p></div>
+                                  {req.error_message && <div className="col-span-2"><p className="text-zinc-500 mb-1">Error</p><p className="text-red-600">{req.error_message}</p></div>}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700">
+              <div className="flex items-center gap-4 text-xs text-zinc-500">
+                <span>Total Collected: <strong className="text-emerald-600">{formatCurrency(selectedChama.total_collected)}</strong></span>
+                <span>Distributed: <strong className="text-purple-600">{formatCurrency(selectedChama.total_distributed)}</strong></span>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={startCollection} disabled={collecting} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 text-white disabled:opacity-50 shadow-lg hover:shadow-xl transition-all">
+                  {collecting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {collecting ? "Collecting..." : "Start Collection"}
+                </button>
+                <button onClick={() => { setShowDetailModal(false); stopPolling(); setExpandedStkRow(null); setStkRequests([]) }} className="px-4 py-2 text-sm font-medium bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg">Close</button>
+              </div>
+            </div>
           </div>
         </div>
-      )}
+        )
+      })()}
 
       {showAddMemberModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
@@ -523,167 +936,276 @@ export default function ChamaPage() {
         </div>
       )}
 
-      {/* Collection Progress Modal */}
-      {showCollectionModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-emerald-600 to-teal-600">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                  {collecting ? <RefreshCw className="w-5 h-5 text-white animate-spin" /> : <Send className="w-5 h-5 text-white" />}
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-white">Collection Progress</h2>
-                  <p className="text-xs text-white/80">{selectedChama?.name} - Cycle {collectionStatus?.cycle_number || selectedChama?.current_cycle}</p>
-                </div>
-              </div>
-              <button onClick={() => { setShowCollectionModal(false); stopPolling() }} className="p-2 hover:bg-white/20 rounded-xl text-white"><X className="w-5 h-5" /></button>
-            </div>
+      {/* Collection Dashboard Modal - Full Screen */}
+      {showCollectionModal && (() => {
+        const totalRequests = stkRequests.length
+        const completedCount = stkRequests.filter(r => r.status === "completed").length
+        const failedCount = stkRequests.filter(r => r.status === "failed").length
+        const pendingCount = stkRequests.filter(r => ["pending", "processing", "sent"].includes(r.status)).length
+        const totalAmount = stkRequests.reduce((s, r) => s + (r.amount || 0), 0)
+        const collectedAmount = stkRequests.filter(r => r.status === "completed").reduce((s, r) => s + (r.amount || 0), 0)
+        const totalAttempts = stkRequests.reduce((s, r) => s + (r.attempt_count || 1), 0)
+        const avgAttempts = totalRequests > 0 ? (totalAttempts / totalRequests).toFixed(1) : "0"
+        const successRate = totalRequests > 0 ? ((completedCount / totalRequests) * 100).toFixed(1) : "0"
+        const forfeitCount = stkRequests.filter(r => r.status === "failed" && (r.attempt_count || 1) >= (r.max_attempts || 3)).length
 
-            {/* Stats Row */}
-            <div className="grid grid-cols-5 gap-3 p-4 bg-zinc-50 border-b">
-              {[
-                { label: "Total", value: stkRequests.length, color: "bg-slate-500", textColor: "text-slate-600" },
-                { label: "Sent", value: stkRequests.filter(r => r.status === "sent").length, color: "bg-blue-500", textColor: "text-blue-600" },
-                { label: "Pending", value: stkRequests.filter(r => ["pending", "processing"].includes(r.status)).length, color: "bg-amber-500", textColor: "text-amber-600" },
-                { label: "Completed", value: stkRequests.filter(r => r.status === "completed").length, color: "bg-emerald-500", textColor: "text-emerald-600" },
-                { label: "Failed", value: stkRequests.filter(r => r.status === "failed").length, color: "bg-red-500", textColor: "text-red-600" },
-              ].map((stat, i) => (
-                <div key={i} className="flex items-center gap-2 p-3 bg-white rounded-xl border border-zinc-200">
-                  <div className={cn("w-3 h-3 rounded-full", stat.color)} />
+        return (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[70] p-2">
+            <div className="w-full max-w-6xl h-[95vh] overflow-hidden rounded-2xl bg-zinc-50 dark:bg-zinc-900 shadow-2xl flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    {collecting ? <RefreshCw className="w-6 h-6 text-white animate-spin" /> : <Activity className="w-6 h-6 text-white" />}
+                  </div>
                   <div>
-                    <p className={cn("text-xl font-bold", stat.textColor)}>{stat.value}</p>
-                    <p className="text-[10px] text-zinc-500">{stat.label}</p>
+                    <h2 className="text-xl font-bold text-white">Collection Dashboard</h2>
+                    <p className="text-sm text-white/80">{selectedChama?.name} • Cycle {collectionStatus?.cycle_number || selectedChama?.current_cycle} • {new Date().toLocaleDateString()}</p>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="flex items-center gap-3">
+                  {collecting && <span className="flex items-center gap-2 px-3 py-1.5 bg-white/20 rounded-lg text-sm text-white"><RefreshCw className="w-4 h-4 animate-spin" />Live Polling</span>}
+                  <button onClick={() => { setShowCollectionModal(false); stopPolling() }} className="p-2 hover:bg-white/20 rounded-xl text-white"><X className="w-6 h-6" /></button>
+                </div>
+              </div>
 
-            {/* Progress Bar */}
-            <div className="px-4 py-2 bg-zinc-50 border-b">
-              <div className="flex items-center justify-between text-xs text-zinc-500 mb-1">
-                <span>Progress</span>
-                <span>{stkRequests.filter(r => r.status === "completed").length} / {stkRequests.length} completed</span>
-              </div>
-              <div className="h-2 bg-zinc-200 rounded-full overflow-hidden flex">
-                <div className="bg-emerald-500 transition-all" style={{ width: `${(stkRequests.filter(r => r.status === "completed").length / Math.max(stkRequests.length, 1)) * 100}%` }} />
-                <div className="bg-amber-500 transition-all" style={{ width: `${(stkRequests.filter(r => ["pending", "processing", "sent"].includes(r.status)).length / Math.max(stkRequests.length, 1)) * 100}%` }} />
-                <div className="bg-red-500 transition-all" style={{ width: `${(stkRequests.filter(r => r.status === "failed").length / Math.max(stkRequests.length, 1)) * 100}%` }} />
-              </div>
-            </div>
-
-            {/* Actions Row */}
-            <div className="flex items-center justify-between px-4 py-2 bg-white border-b">
-              <div className="flex items-center gap-2">
-                {collecting && <span className="flex items-center gap-1.5 text-xs text-blue-600"><RefreshCw className="w-3 h-3 animate-spin" />Polling every 3s...</span>}
-                {!collecting && collectionStatus?.all_completed && <span className="flex items-center gap-1.5 text-xs text-emerald-600"><Check className="w-3 h-3" />All completed!</span>}
-              </div>
-              <div className="flex gap-2">
-                {stkRequests.filter(r => r.status === "failed").length > 0 && (
-                  <button onClick={retryAllFailed} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
-                    <RefreshCw className="w-3 h-3" />Retry All Failed ({stkRequests.filter(r => r.status === "failed").length})
-                  </button>
-                )}
-                {!collecting && collectionStatus?.cycle_id && (
-                  <button onClick={() => startPolling(collectionStatus.cycle_id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
-                    <RefreshCw className="w-3 h-3" />Refresh Status
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* STK Requests Table */}
-            <div className="overflow-auto max-h-[50vh]">
-              <table className="w-full">
-                <thead className="bg-zinc-50 sticky top-0">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase">#</th>
-                    <th className="px-4 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase">Member</th>
-                    <th className="px-4 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase">Phone</th>
-                    <th className="px-4 py-2 text-right text-[10px] font-semibold text-zinc-500 uppercase">Amount</th>
-                    <th className="px-4 py-2 text-center text-[10px] font-semibold text-zinc-500 uppercase">Status</th>
-                    <th className="px-4 py-2 text-center text-[10px] font-semibold text-zinc-500 uppercase">Attempts</th>
-                    <th className="px-4 py-2 text-left text-[10px] font-semibold text-zinc-500 uppercase">Receipt/Error</th>
-                    <th className="px-4 py-2 text-center text-[10px] font-semibold text-zinc-500 uppercase">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100">
-                  {stkRequests.length === 0 ? (
-                    <tr><td colSpan={8} className="px-4 py-8 text-center text-zinc-500 text-sm">
-                      {collecting ? "Sending STK pushes to members..." : "No STK requests yet"}
-                    </td></tr>
-                  ) : stkRequests.map((req, idx) => (
-                    <tr key={req.id} className={cn("hover:bg-zinc-50", req.status === "completed" && "bg-emerald-50/50", req.status === "failed" && "bg-red-50/50")}>
-                      <td className="px-4 py-2 text-sm text-zinc-400 font-mono">{idx + 1}</td>
-                      <td className="px-4 py-2">
-                        <div className="flex items-center gap-2">
-                          <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white",
-                            req.status === "completed" ? "bg-emerald-500" : req.status === "failed" ? "bg-red-500" : "bg-blue-500"
-                          )}>
-                            {req.status === "completed" ? <Check className="w-3.5 h-3.5" /> : req.status === "failed" ? <X className="w-3.5 h-3.5" /> : (req.member?.name?.[0] || "?")}
-                          </div>
-                          <span className="text-sm font-medium text-zinc-900">{req.member?.name || "Unknown"}</span>
+              {/* Analytics Section */}
+              <div className="p-4 bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                  {[
+                    { label: "Total Members", value: totalRequests, icon: Users, color: "from-slate-500 to-slate-600", textColor: "text-slate-600" },
+                    { label: "Completed", value: completedCount, icon: Check, color: "from-emerald-500 to-emerald-600", textColor: "text-emerald-600" },
+                    { label: "Pending", value: pendingCount, icon: Clock, color: "from-amber-500 to-amber-600", textColor: "text-amber-600" },
+                    { label: "Failed", value: failedCount, icon: AlertTriangle, color: "from-red-500 to-red-600", textColor: "text-red-600" },
+                    { label: "Success Rate", value: `${successRate}%`, icon: Target, color: "from-blue-500 to-blue-600", textColor: "text-blue-600" },
+                    { label: "Avg Attempts", value: avgAttempts, icon: RotateCcw, color: "from-purple-500 to-purple-600", textColor: "text-purple-600" },
+                    { label: "Forfeited", value: forfeitCount, icon: Ban, color: "from-rose-500 to-rose-600", textColor: "text-rose-600" },
+                    { label: "Collected", value: formatCurrency(collectedAmount), icon: Wallet, color: "from-teal-500 to-teal-600", textColor: "text-teal-600" },
+                  ].map((stat, i) => (
+                    <div key={i} className="relative overflow-hidden p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700">
+                      <div className={cn("absolute top-0 right-0 w-12 h-12 -mr-3 -mt-3 rounded-full opacity-20 bg-gradient-to-br", stat.color)} />
+                      <div className="relative">
+                        <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-br mb-2", stat.color)}>
+                          <stat.icon className="w-3.5 h-3.5 text-white" />
                         </div>
-                      </td>
-                      <td className="px-4 py-2 text-sm text-zinc-500 font-mono">{req.phone_number}</td>
-                      <td className="px-4 py-2 text-right text-sm font-mono text-zinc-700">{formatCurrency(req.amount)}</td>
-                      <td className="px-4 py-2 text-center">
-                        <span className={cn("px-2 py-0.5 text-[10px] font-semibold rounded-full",
-                          req.status === "completed" ? "bg-emerald-100 text-emerald-700" :
-                          req.status === "failed" ? "bg-red-100 text-red-700" :
-                          req.status === "sent" ? "bg-blue-100 text-blue-700" :
-                          req.status === "processing" ? "bg-purple-100 text-purple-700" :
-                          "bg-amber-100 text-amber-700"
-                        )}>
-                          {req.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2 text-center text-sm text-zinc-500">{req.attempt_count || 1}/{req.max_attempts || 3}</td>
-                      <td className="px-4 py-2 text-xs truncate max-w-[150px]">
-                        {req.mpesa_receipt_number ? (
-                          <span className="text-emerald-600 font-mono">{req.mpesa_receipt_number}</span>
-                        ) : req.error_message ? (
-                          <span className="text-red-500" title={req.error_message}>{req.error_message}</span>
-                        ) : (
-                          <span className="text-zinc-400">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2 text-center">
-                        {(req.status === "failed" || req.status === "expired" || req.status === "cancelled") && (
-                          <button onClick={() => retryStk(req.id)} className="p-1.5 hover:bg-blue-100 rounded text-blue-600" title="Retry">
-                            <RefreshCw className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        {req.status === "pending" && (
-                          <span className="text-[10px] text-amber-600">Waiting...</span>
-                        )}
-                        {req.status === "processing" && (
-                          <RefreshCw className="w-3.5 h-3.5 text-purple-600 animate-spin mx-auto" />
-                        )}
-                        {req.status === "completed" && (
-                          <Check className="w-4 h-4 text-emerald-600 mx-auto" />
-                        )}
-                      </td>
-                    </tr>
+                        <p className={cn("text-lg font-bold", stat.textColor)}>{stat.value}</p>
+                        <p className="text-[9px] text-zinc-500 uppercase tracking-wide">{stat.label}</p>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </div>
 
-            {/* Footer */}
-            <div className="flex items-center justify-between p-4 border-t bg-zinc-50">
-              <div className="text-xs text-zinc-500">
-                {collectionStatus?.expected_amount && <span>Expected: <strong className="text-zinc-700">{formatCurrency(collectionStatus.expected_amount)}</strong></span>}
-                {collectionStatus?.collected_amount > 0 && <span className="ml-4">Collected: <strong className="text-emerald-600">{formatCurrency(collectionStatus.collected_amount)}</strong></span>}
+                {/* Charts Row */}
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  {/* Pie Chart - Status Distribution */}
+                  <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700">
+                    <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-3">Status Distribution</h4>
+                    <div className="flex items-center gap-4">
+                      <div className="relative w-24 h-24">
+                        <svg viewBox="0 0 36 36" className="w-24 h-24 transform -rotate-90">
+                          <circle cx="18" cy="18" r="16" fill="none" stroke="#e5e7eb" strokeWidth="3" />
+                          <circle cx="18" cy="18" r="16" fill="none" stroke="#10b981" strokeWidth="3" strokeDasharray={`${(completedCount / Math.max(totalRequests, 1)) * 100} 100`} strokeLinecap="round" />
+                          <circle cx="18" cy="18" r="16" fill="none" stroke="#f59e0b" strokeWidth="3" strokeDasharray={`${(pendingCount / Math.max(totalRequests, 1)) * 100} 100`} strokeDashoffset={`-${(completedCount / Math.max(totalRequests, 1)) * 100}`} strokeLinecap="round" />
+                          <circle cx="18" cy="18" r="16" fill="none" stroke="#ef4444" strokeWidth="3" strokeDasharray={`${(failedCount / Math.max(totalRequests, 1)) * 100} 100`} strokeDashoffset={`-${((completedCount + pendingCount) / Math.max(totalRequests, 1)) * 100}`} strokeLinecap="round" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-lg font-bold text-zinc-700">{totalRequests}</span>
+                        </div>
+                      </div>
+                      <div className="flex-1 space-y-1.5">
+                        <div className="flex items-center justify-between text-xs"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" />Completed</span><span className="font-semibold">{completedCount}</span></div>
+                        <div className="flex items-center justify-between text-xs"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500" />Pending</span><span className="font-semibold">{pendingCount}</span></div>
+                        <div className="flex items-center justify-between text-xs"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500" />Failed</span><span className="font-semibold">{failedCount}</span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Amount Progress */}
+                  <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700">
+                    <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-3">Collection Progress</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <div className="flex justify-between text-xs mb-1"><span className="text-zinc-500">Expected</span><span className="font-semibold text-zinc-700">{formatCurrency(totalAmount)}</span></div>
+                        <div className="h-2 bg-zinc-200 rounded-full overflow-hidden"><div className="h-full bg-zinc-400" style={{ width: "100%" }} /></div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between text-xs mb-1"><span className="text-zinc-500">Collected</span><span className="font-semibold text-emerald-600">{formatCurrency(collectedAmount)}</span></div>
+                        <div className="h-2 bg-zinc-200 rounded-full overflow-hidden"><div className="h-full bg-emerald-500" style={{ width: `${(collectedAmount / Math.max(totalAmount, 1)) * 100}%` }} /></div>
+                      </div>
+                      <div className="pt-2 border-t border-zinc-200">
+                        <div className="flex justify-between text-xs"><span className="text-zinc-500">Outstanding</span><span className="font-semibold text-red-600">{formatCurrency(totalAmount - collectedAmount)}</span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Retry Analytics */}
+                  <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700">
+                    <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-3">Retry Analytics</h4>
+                    <div className="space-y-2">
+                      {[1, 2, 3].map(attempt => {
+                        const count = stkRequests.filter(r => (r.attempt_count || 1) === attempt).length
+                        return (
+                          <div key={attempt} className="flex items-center gap-2">
+                            <span className="text-[10px] text-zinc-500 w-16">Attempt {attempt}</span>
+                            <div className="flex-1 h-4 bg-zinc-200 rounded overflow-hidden">
+                              <div className={cn("h-full", attempt === 1 ? "bg-blue-500" : attempt === 2 ? "bg-amber-500" : "bg-red-500")} style={{ width: `${(count / Math.max(totalRequests, 1)) * 100}%` }} />
+                            </div>
+                            <span className="text-xs font-semibold w-8 text-right">{count}</span>
+                          </div>
+                        )
+                      })}
+                      <div className="pt-2 border-t border-zinc-200 flex justify-between text-xs">
+                        <span className="text-zinc-500">Max Retries Reached</span>
+                        <span className="font-semibold text-rose-600">{forfeitCount} members</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <button onClick={() => { setShowCollectionModal(false); stopPolling() }} className="px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-200 rounded-lg">
-                Close
-              </button>
+
+              {/* Actions Bar */}
+              <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-zinc-500">Showing {stkRequests.length} STK requests</span>
+                  {!collecting && collectionStatus?.all_completed && <span className="flex items-center gap-1.5 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium"><Check className="w-3 h-3" />All Completed!</span>}
+                </div>
+                <div className="flex gap-2">
+                  {failedCount > 0 && (
+                    <button onClick={retryAllFailed} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
+                      <RotateCcw className="w-3.5 h-3.5" />Retry All Failed ({failedCount})
+                    </button>
+                  )}
+                  {!collecting && collectionStatus?.cycle_id && (
+                    <button onClick={() => startPolling(collectionStatus.cycle_id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
+                      <RefreshCw className="w-3.5 h-3.5" />Refresh Status
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Detailed Table */}
+              <div className="flex-1 overflow-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-zinc-100 dark:bg-zinc-800 sticky top-0 z-10">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">#</th>
+                      <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Member</th>
+                      <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Phone</th>
+                      <th className="px-3 py-2 text-right font-semibold text-zinc-600 dark:text-zinc-400">Amount</th>
+                      <th className="px-3 py-2 text-center font-semibold text-zinc-600 dark:text-zinc-400">Status</th>
+                      <th className="px-3 py-2 text-center font-semibold text-zinc-600 dark:text-zinc-400">Attempts</th>
+                      <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Account #</th>
+                      <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Transaction ID</th>
+                      <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Receipt</th>
+                      <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Last Updated</th>
+                      <th className="px-3 py-2 text-center font-semibold text-zinc-600 dark:text-zinc-400">Actions</th>
+                      <th className="px-3 py-2 w-8"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stkRequests.length === 0 ? (
+                      <tr><td colSpan={12} className="px-4 py-12 text-center text-zinc-500">
+                        {collecting ? <div className="flex flex-col items-center gap-2"><RefreshCw className="w-8 h-8 animate-spin text-blue-500" /><span>Sending STK pushes to members...</span></div> : "No STK requests yet. Start a collection to see data here."}
+                      </td></tr>
+                    ) : stkRequests.map((req, idx) => (
+                      <>
+                        <tr key={req.id} onClick={() => setExpandedStkRow(expandedStkRow === req.id ? null : req.id)} className={cn(
+                          "cursor-pointer transition-colors border-b border-zinc-100 dark:border-zinc-800",
+                          idx % 2 === 0 ? "bg-white dark:bg-zinc-900/50" : "bg-zinc-50/50 dark:bg-zinc-800/30",
+                          req.status === "completed" && "bg-emerald-50/50 dark:bg-emerald-900/10",
+                          req.status === "failed" && "bg-red-50/50 dark:bg-red-900/10",
+                          expandedStkRow === req.id && "bg-blue-50 dark:bg-blue-900/20 border-blue-200",
+                          "hover:bg-blue-50/50 dark:hover:bg-blue-900/10"
+                        )}>
+                          <td className="px-3 py-2 font-mono text-zinc-400">{idx + 1}</td>
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white",
+                                req.status === "completed" ? "bg-emerald-500" : req.status === "failed" ? "bg-red-500" : "bg-blue-500"
+                              )}>
+                                {req.status === "completed" ? <Check className="w-3.5 h-3.5" /> : req.status === "failed" ? <X className="w-3.5 h-3.5" /> : (req.member?.name?.[0] || "?")}
+                              </div>
+                              <div>
+                                <p className="font-medium text-zinc-900 dark:text-zinc-100">{req.member?.name || "Unknown"}</p>
+                                {req.member?.role === "admin" && <span className="text-[9px] px-1 py-0.5 bg-purple-100 text-purple-600 rounded">Admin</span>}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 font-mono text-zinc-600">{req.phone_number}</td>
+                          <td className="px-3 py-2 text-right font-mono font-semibold text-zinc-700">{formatCurrency(req.amount)}</td>
+                          <td className="px-3 py-2 text-center">
+                            <span className={cn("px-2 py-0.5 text-[10px] font-semibold rounded-full",
+                              req.status === "completed" ? "bg-emerald-100 text-emerald-700" :
+                              req.status === "failed" ? "bg-red-100 text-red-700" :
+                              req.status === "sent" ? "bg-blue-100 text-blue-700" :
+                              req.status === "processing" ? "bg-purple-100 text-purple-700" :
+                              "bg-amber-100 text-amber-700"
+                            )}>{req.status}</span>
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            <span className={cn("font-semibold", (req.attempt_count || 1) >= (req.max_attempts || 3) ? "text-red-600" : "text-zinc-600")}>
+                              {req.attempt_count || 1}/{req.max_attempts || 3}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 font-mono text-[10px] text-zinc-500">{req.account_number || "—"}</td>
+                          <td className="px-3 py-2 font-mono text-[10px] text-zinc-500 truncate max-w-[100px]" title={req.checkout_request_id}>{req.checkout_request_id || "—"}</td>
+                          <td className="px-3 py-2 font-mono text-[10px] text-emerald-600">{req.mpesa_receipt_number || "—"}</td>
+                          <td className="px-3 py-2 text-zinc-500 whitespace-nowrap">{req.updated_at ? new Date(req.updated_at).toLocaleTimeString() : "—"}</td>
+                          <td className="px-3 py-2 text-center">
+                            {(req.status === "failed" || req.status === "expired" || req.status === "cancelled") && (
+                              <button onClick={(e) => { e.stopPropagation(); retryStk(req.id) }} className="p-1.5 hover:bg-blue-100 rounded text-blue-600" title="Retry STK">
+                                <RotateCcw className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            {req.status === "processing" && <RefreshCw className="w-3.5 h-3.5 text-purple-600 animate-spin mx-auto" />}
+                            {req.status === "completed" && <Check className="w-4 h-4 text-emerald-600 mx-auto" />}
+                            {req.status === "pending" && <Clock className="w-3.5 h-3.5 text-amber-500 mx-auto" />}
+                          </td>
+                          <td className="px-3 py-2">{expandedStkRow === req.id ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}</td>
+                        </tr>
+                        {expandedStkRow === req.id && (
+                          <tr className="bg-blue-50/70 dark:bg-blue-900/20 border-b border-blue-200">
+                            <td colSpan={12} className="px-4 py-3">
+                              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-xs">
+                                <div><p className="text-zinc-500 mb-1">Request ID</p><p className="font-mono text-[10px] text-zinc-900 break-all">{req.id}</p></div>
+                                <div><p className="text-zinc-500 mb-1">Member ID</p><p className="font-mono text-[10px] text-zinc-900 break-all">{req.member_id || "—"}</p></div>
+                                <div><p className="text-zinc-500 mb-1">Cycle ID</p><p className="font-mono text-[10px] text-zinc-900 break-all">{req.cycle_id || "—"}</p></div>
+                                <div><p className="text-zinc-500 mb-1">Checkout Request ID</p><p className="font-mono text-[10px] text-zinc-900 break-all">{req.checkout_request_id || "—"}</p></div>
+                                <div><p className="text-zinc-500 mb-1">Account Number</p><p className="font-mono text-zinc-900">{req.account_number || "—"}</p></div>
+                                <div><p className="text-zinc-500 mb-1">M-Pesa Receipt</p><p className="font-mono text-emerald-600">{req.mpesa_receipt_number || "—"}</p></div>
+                                <div><p className="text-zinc-500 mb-1">Created At</p><p className="text-zinc-900">{req.created_at ? new Date(req.created_at).toLocaleString() : "—"}</p></div>
+                                <div><p className="text-zinc-500 mb-1">Last Attempt</p><p className="text-zinc-900">{req.last_attempt_at ? new Date(req.last_attempt_at).toLocaleString() : "—"}</p></div>
+                                <div><p className="text-zinc-500 mb-1">Next Retry</p><p className="text-zinc-900">{req.next_retry_at ? new Date(req.next_retry_at).toLocaleString() : "—"}</p></div>
+                                <div><p className="text-zinc-500 mb-1">Attempt Count</p><p className={cn("font-semibold", (req.attempt_count || 1) >= 3 ? "text-red-600" : "text-zinc-900")}>{req.attempt_count || 1} of {req.max_attempts || 3}</p></div>
+                                <div className="col-span-2"><p className="text-zinc-500 mb-1">Error Message</p><p className="text-red-600">{req.error_message || "No errors"}</p></div>
+                                {req.stk_history && (
+                                  <div className="col-span-full"><p className="text-zinc-500 mb-1">STK History (JSON)</p><pre className="text-[10px] bg-zinc-100 p-2 rounded overflow-auto max-h-24">{JSON.stringify(req.stk_history, null, 2)}</pre></div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700">
+                <div className="flex items-center gap-4 text-xs text-zinc-500">
+                  <span>Expected: <strong className="text-zinc-700">{formatCurrency(totalAmount)}</strong></span>
+                  <span>Collected: <strong className="text-emerald-600">{formatCurrency(collectedAmount)}</strong></span>
+                  <span>Outstanding: <strong className="text-red-600">{formatCurrency(totalAmount - collectedAmount)}</strong></span>
+                </div>
+                <button onClick={() => { setShowCollectionModal(false); stopPolling(); setExpandedStkRow(null) }} className="px-4 py-2 text-sm font-medium bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg">
+                  Close Dashboard
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }

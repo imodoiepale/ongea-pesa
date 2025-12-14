@@ -60,18 +60,35 @@ export default function AdminChamasPage() {
   const fetchAllChamas = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
+      // Fetch chamas without FK join
+      const { data: chamaData, error } = await supabase
         .from("chamas")
-        .select(`
-          *,
-          members:chama_members(*),
-          cycles:chama_cycles(*),
-          creator:profiles!chamas_creator_id_fkey(email, phone_number)
-        `)
+        .select(`*, members:chama_members(*), cycles:chama_cycles(*)`)
         .order("created_at", { ascending: false })
 
       if (error) throw error
-      setChamas(data || [])
+      
+      // Get creator profiles separately
+      const creatorIds = [...new Set((chamaData || []).map(c => c.creator_id).filter(Boolean))]
+      let creatorsMap: Record<string, any> = {}
+      
+      if (creatorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, email, phone_number, full_name")
+          .in("id", creatorIds)
+        if (profiles) {
+          creatorsMap = Object.fromEntries(profiles.map(p => [p.id, p]))
+        }
+      }
+      
+      // Combine data
+      const enrichedChamas = (chamaData || []).map(c => ({
+        ...c,
+        creator: creatorsMap[c.creator_id] || null
+      }))
+      
+      setChamas(enrichedChamas)
     } catch (err) {
       console.error("Error fetching chamas:", err)
     } finally {

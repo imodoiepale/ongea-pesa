@@ -62,18 +62,35 @@ export default function AdminEscrowsPage() {
   const fetchAllEscrows = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
+      // Fetch escrows without FK join
+      const { data: escrowData, error } = await supabase
         .from("escrows")
-        .select(`
-          *,
-          participants:escrow_participants(*),
-          milestones:escrow_milestones(*),
-          creator:profiles!escrows_creator_id_fkey(email, phone_number)
-        `)
+        .select(`*, participants:escrow_participants(*), milestones:escrow_milestones(*)`)
         .order("created_at", { ascending: false })
 
       if (error) throw error
-      setEscrows(data || [])
+      
+      // Get creator profiles separately
+      const creatorIds = [...new Set((escrowData || []).map(e => e.creator_id).filter(Boolean))]
+      let creatorsMap: Record<string, any> = {}
+      
+      if (creatorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, email, phone_number, full_name")
+          .in("id", creatorIds)
+        if (profiles) {
+          creatorsMap = Object.fromEntries(profiles.map(p => [p.id, p]))
+        }
+      }
+      
+      // Combine data
+      const enrichedEscrows = (escrowData || []).map(e => ({
+        ...e,
+        creator: creatorsMap[e.creator_id] || null
+      }))
+      
+      setEscrows(enrichedEscrows)
     } catch (err) {
       console.error("Error fetching escrows:", err)
     } finally {
