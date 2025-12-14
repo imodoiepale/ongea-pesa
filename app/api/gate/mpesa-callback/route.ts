@@ -144,22 +144,26 @@ export async function POST(request: NextRequest) {
         };
 
         if (isSuccess) {
-          updateData.status = 'completed';
-          updateData.mpesa_transaction_id = mpesa_receipt || MpesaReceiptNumber;
-
-          // NOTE: Balance is credited by verify-transaction endpoint when polling
-          // Do NOT credit here to avoid double crediting
-          console.log('✅ Transaction marked as completed');
-          console.log('   Balance will be credited when user verifies transaction');
+          // Check if already completed to prevent double-crediting via DB trigger
+          if (existingTx.status === 'completed') {
+            console.log('⚠️ Transaction already completed, skipping update to prevent double-credit');
+          } else {
+            updateData.status = 'completed';
+            updateData.mpesa_transaction_id = mpesa_receipt || MpesaReceiptNumber;
+            console.log('✅ Transaction will be marked as completed');
+            console.log('   Balance will be credited automatically by DB trigger');
+          }
         } else if (isFailed) {
           updateData.status = 'failed';
           updateData.error_message = message || Message || 'Payment failed';
         }
 
+        // Only update if not already completed (to prevent DB trigger from firing twice)
         const { error: updateError } = await supabase
           .from('transactions')
           .update(updateData)
-          .eq('id', txId);
+          .eq('id', txId)
+          .neq('status', 'completed'); // Prevent update if already completed
 
         if (updateError) {
           console.error('❌ Failed to update transaction:', updateError);

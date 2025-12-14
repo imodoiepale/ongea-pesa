@@ -543,7 +543,7 @@ export default function Content() {
             <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quick Actions</h2>
           </div>
         </div>
-        <div className="p-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div className="p-3 grid grid-cols-1 md:grid-cols-4 gap-2">
           <Link href="/admin-analytics/revenue">
             <div className="flex items-center gap-3 p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors duration-200">
               <div className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
@@ -580,6 +580,28 @@ export default function Content() {
               <ArrowRight className="w-3.5 h-3.5 text-purple-400" />
             </div>
           </Link>
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch('/api/gate/poll-pending', { method: 'POST' })
+                const data = await res.json()
+                alert(`Polled ${data.processed || 0} pending transactions.\nCompleted: ${data.completed || 0}\nFailed: ${data.failed || 0}\nStill Pending: ${data.still_pending || 0}`)
+                fetchStats()
+              } catch (err) {
+                alert('Failed to poll pending transactions')
+              }
+            }}
+            className="flex items-center gap-3 p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors duration-200"
+          >
+            <div className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+              <RefreshCw className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-300">Poll Pending</p>
+              <p className="text-[10px] text-amber-600 dark:text-amber-400">Check pending transaction status</p>
+            </div>
+            <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+          </button>
         </div>
       </div>
     </div>

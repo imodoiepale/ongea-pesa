@@ -69,8 +69,9 @@ export async function POST(request: NextRequest) {
     console.log('📊 Transaction status:', statusData);
 
     // Update transaction in database based on status
+    // NOTE: Use .neq('status', 'completed') to prevent double-crediting via DB trigger
     if (statusData.status === 'success' || statusData.Status === 'Success') {
-      await supabase
+      const { error: updateError } = await supabase
         .from('transactions')
         .update({
           status: 'completed',
@@ -78,7 +79,12 @@ export async function POST(request: NextRequest) {
           metadata: statusData
         })
         .eq('user_id', user.id)
-        .eq('id', transaction_id);
+        .eq('id', transaction_id)
+        .neq('status', 'completed'); // Prevent double-crediting
+
+      if (updateError) {
+        console.log('⚠️ Transaction update skipped (likely already completed)');
+      }
 
       return NextResponse.json({
         status: 'completed',
@@ -94,7 +100,8 @@ export async function POST(request: NextRequest) {
           metadata: statusData
         })
         .eq('user_id', user.id)
-        .eq('id', transaction_id);
+        .eq('id', transaction_id)
+        .neq('status', 'completed'); // Don't update if already completed
 
       return NextResponse.json({
         status: 'failed',

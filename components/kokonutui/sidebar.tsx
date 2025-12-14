@@ -91,13 +91,10 @@ export default function Sidebar() {
                     Home
                   </NavItem>
                   <NavItem href="/admin-analytics" icon={BarChart2}>
-                    Analytics
-                  </NavItem>
-                  <NavItem href="/admin" icon={Building2}>
-                    Revenue Dashboard
+                    Dashboard
                   </NavItem>
                   <NavItem href="/admin-analytics/revenue" icon={CreditCard}>
-                    Revenue & Partners
+                    Revenue
                   </NavItem>
                 </div>
               </div>

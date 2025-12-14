@@ -1,6 +1,6 @@
 "use client"
 
-import { Mic, Send, Camera, Calendar, BarChart3, Settings, TestTube, Moon, Sun, LogOut, Wallet, Plus } from "lucide-react"
+import { Mic, Send, Camera, Calendar, BarChart3, Settings, TestTube, Moon, Sun, LogOut, Wallet, Plus, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -22,6 +22,13 @@ interface MainDashboardProps {
   onVoiceActivate?: () => void;
 }
 
+// Admin emails list
+const ADMIN_EMAILS = [
+  'ijepale@gmail.com',
+  'admin@ongeapesa.com',
+  'ongeapesa.kenya@gmail.com',
+]
+
 export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashboardProps) {
   const { user, signOut } = useAuth()
   const { theme, setTheme } = useTheme()
@@ -32,6 +39,9 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
   const [isBalanceSheetOpen, setIsBalanceSheetOpen] = useState(false)
   const [showVoiceInterface, setShowVoiceInterface] = useState(false)
   const supabase = createClient()
+  
+  // Check if user is admin
+  const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email)
 
   useEffect(() => {
     setMounted(true)
@@ -137,6 +147,18 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
           <p className="text-sm text-gray-600 dark:text-gray-300">Voice-First Financial Companion</p>
         </div>
         <div className="flex items-center space-x-2">
+          {/* Admin Analytics Button - Only visible for admins */}
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => router.push("/admin-analytics")}
+              className="rounded-full border-emerald-400 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 backdrop-blur-sm hover:bg-emerald-100 dark:hover:bg-emerald-900/50"
+              title="Admin Analytics"
+            >
+              <Shield className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            </Button>
+          )}
           <Button
             variant="outline"
             size="icon"

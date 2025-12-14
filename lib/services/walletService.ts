@@ -128,6 +128,15 @@ export class WalletService {
 
   /**
    * Load money to wallet (C2S - from M-Pesa)
+   * NOTE: This method should NOT be used for STK push deposits.
+   * STK push deposits are handled by:
+   * 1. /api/gate/deposit - creates pending transaction
+   * 2. /api/gate/mpesa-callback OR /api/gate/verify-transaction - updates to completed
+   * 3. Database trigger automatically credits wallet when status changes to 'completed'
+   * 
+   * This method is DEPRECATED and only kept for backward compatibility.
+   * It creates a completed transaction which triggers the DB balance update.
+   * DO NOT manually update wallet_balance here to avoid double-crediting.
    */
   async loadMoney(
     userId: string,
@@ -140,7 +149,8 @@ export class WalletService {
     // Calculate fees (no platform fee for loading)
     const fees = this.calculateFees(amount, true);
     
-    // Create transaction record
+    // Create transaction record with status 'completed'
+    // The database trigger will automatically credit the wallet balance
     const { data: transaction, error: txError } = await this.supabase
       .from('transactions')
       .insert({
@@ -158,19 +168,19 @@ export class WalletService {
 
     if (txError) throw txError;
 
-    // Update wallet balance
-    const newBalance = wallet.available_balance + amount;
-    const { error: updateError } = await this.supabase
+    // DO NOT manually update wallet_balance here!
+    // The database trigger handles this automatically when transaction is created with status='completed'
+    
+    // Fetch the updated balance (after trigger has run)
+    const { data: updatedProfile } = await this.supabase
       .from('profiles')
-      .update({
-        wallet_balance: newBalance,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', userId);
+      .select('wallet_balance')
+      .eq('id', userId)
+      .single();
+    
+    const newBalance = parseFloat(String(updatedProfile?.wallet_balance || 0));
 
-    if (updateError) throw updateError;
-
-    console.log(`💰 Loaded KES ${amount} to wallet. New balance: KES ${newBalance}`);
+    console.log(`💰 Loaded KES ${amount} to wallet. New balance: KES ${newBalance} (via DB trigger)`);
 
     return {
       success: true,

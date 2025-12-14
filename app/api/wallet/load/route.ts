@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { WalletService } from '@/lib/services/walletService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,14 +68,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const walletService = new WalletService(supabase);
-    const fees = walletService.calculateFees(parseFloat(amount), true);
+    // Calculate M-Pesa fees inline (no WalletService needed)
+    const MPESA_FEE_BRACKETS = [
+      { min: 1, max: 100, fee: 0 },
+      { min: 101, max: 500, fee: 5 },
+      { min: 501, max: 1000, fee: 10 },
+      { min: 1001, max: 1500, fee: 15 },
+      { min: 1501, max: 2500, fee: 20 },
+      { min: 2501, max: 3500, fee: 25 },
+      { min: 3501, max: 5000, fee: 30 },
+      { min: 5001, max: 7500, fee: 35 },
+      { min: 7501, max: 10000, fee: 40 },
+      { min: 10001, max: 15000, fee: 45 },
+      { min: 15001, max: 20000, fee: 50 },
+      { min: 20001, max: 35000, fee: 60 },
+      { min: 35001, max: 50000, fee: 70 },
+    ];
+    
+    let mpesaFee = 105; // Default for amounts above 50k
+    for (const bracket of MPESA_FEE_BRACKETS) {
+      if (parseFloat(amount) >= bracket.min && parseFloat(amount) <= bracket.max) {
+        mpesaFee = bracket.fee;
+        break;
+      }
+    }
+    const totalDebit = parseFloat(amount) + mpesaFee;
 
     console.log('💳 Initiating wallet load:', {
       user_id: user.id,
       phone: formattedPhone,
       amount: amount,
-      fees: fees,
+      mpesaFee: mpesaFee,
+      totalDebit: totalDebit,
     });
 
     // TODO: Integrate with M-Pesa STK Push
@@ -114,8 +137,8 @@ export async function POST(request: NextRequest) {
       status: 'pending',
       message: `STK push sent to ${formattedPhone}. Please enter your M-Pesa PIN to complete the transaction.`,
       amount: parseFloat(amount),
-      mpesa_fee: fees.mpesaFee,
-      total_debit: fees.totalDebit,
+      mpesa_fee: mpesaFee,
+      total_debit: totalDebit,
       instructions: [
         '1. Check your phone for M-Pesa prompt',
         '2. Enter your M-Pesa PIN',
@@ -171,17 +194,30 @@ export async function PUT(request: NextRequest) {
 
     // Check if M-Pesa payment was successful (result_code 0 = success)
     if (result_code === 0) {
-      // Use wallet service to credit the wallet
-      const walletService = new WalletService(supabase);
-      const result = await walletService.loadMoney(
-        transaction.user_id,
-        parseFloat(transaction.amount),
-        mpesa_transaction_id || mpesa_receipt_number,
-        phone_number || transaction.phone
-      );
+      // Check if transaction is already completed to prevent double-crediting
+      if (transaction.status === 'completed') {
+        console.log('⚠️ Transaction already completed, skipping to prevent double-credit');
+        
+        // Get current balance
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('wallet_balance')
+          .eq('id', transaction.user_id)
+          .single();
+        
+        return NextResponse.json({
+          success: true,
+          message: 'Transaction was already completed',
+          transaction_id: transaction_id,
+          amount: parseFloat(transaction.amount),
+          new_balance: parseFloat(String(profile?.wallet_balance || 0)),
+        });
+      }
 
       // Update transaction to completed
-      await supabase
+      // NOTE: Database trigger will automatically credit the wallet balance
+      // Do NOT manually update wallet_balance to avoid double-crediting
+      const { error: updateError } = await supabase
         .from('transactions')
         .update({
           status: 'completed',
@@ -189,14 +225,29 @@ export async function PUT(request: NextRequest) {
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .eq('id', transaction_id);
+        .eq('id', transaction_id)
+        .neq('status', 'completed'); // Only update if not already completed
 
-      console.log('✅ Wallet load completed:', result);
+      if (updateError) {
+        console.error('⚠️ Failed to update transaction:', updateError);
+      }
+
+      // Get updated balance (after DB trigger has run)
+      const { data: updatedProfile } = await supabase
+        .from('profiles')
+        .select('wallet_balance')
+        .eq('id', transaction.user_id)
+        .single();
+
+      const newBalance = parseFloat(String(updatedProfile?.wallet_balance || 0));
+      console.log('✅ Wallet load completed via DB trigger. New balance:', newBalance);
 
       return NextResponse.json({
         success: true,
         message: 'Wallet loaded successfully',
-        ...result,
+        transaction_id: transaction_id,
+        amount: parseFloat(transaction.amount),
+        new_balance: newBalance,
       });
     } else {
       // Payment failed

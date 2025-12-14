@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Plus, TrendingUp, TrendingDown, Clock, Check, XCircle } from "lucide-react"
+import { X, Plus, TrendingUp, TrendingDown, Clock, Check, XCircle, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -40,6 +40,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'failed'>('all')
   const [indexPayGateBalance, setIndexPayGateBalance] = useState<number | null>(null)
   const [indexPayPocketBalance, setIndexPayPocketBalance] = useState<number | null>(null)
+  const [isPollingPending, setIsPollingPending] = useState(false)
   const supabase = createClient()
 
   // Check if current user is admin (ijepale@gmail.com)
@@ -108,6 +109,59 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
       supabase.removeChannel(profileChannel)
     }
   }, [isOpen, user?.id, supabase, onBalanceUpdate])
+
+  // Count pending deposits for auto-poll trigger
+  const pendingDepositCount = transactions.filter(tx => tx.status === 'pending' && tx.type === 'deposit').length
+
+  // Auto-poll pending transactions every 10 seconds when there are pending deposits (silent/background)
+  // Skip auto-poll if we're actively verifying a deposit (to avoid double updates)
+  useEffect(() => {
+    if (!isOpen || !user?.id || pendingDepositCount === 0) return
+    // Don't auto-poll while actively verifying a new deposit
+    if (depositStatus === 'verifying' || depositStatus === 'waiting' || depositStatus === 'sending') return
+    
+    let isPolling = false
+    
+    // Poll function - runs silently in background
+    const pollNow = async () => {
+      if (isPolling) return
+      
+      isPolling = true
+      try {
+        const response = await fetch('/api/gate/poll-pending', { method: 'POST' })
+        const data = await response.json()
+        
+        if (data.success && (data.completed > 0 || data.failed > 0)) {
+          // Silently refresh transactions and balance
+          fetchTransactions()
+          
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('wallet_balance')
+            .eq('id', user?.id)
+            .single()
+          
+          if (profile) {
+            onBalanceUpdate(profile.wallet_balance || 0)
+          }
+        }
+      } catch (err) {
+        // Silent error - don't show to user
+      } finally {
+        isPolling = false
+      }
+    }
+    
+    // Poll immediately
+    pollNow()
+    
+    // Then poll every 10 seconds (reduced frequency)
+    const intervalId = setInterval(pollNow, 10000)
+    
+    return () => {
+      clearInterval(intervalId)
+    }
+  }, [isOpen, user?.id, pendingDepositCount, depositStatus, supabase, onBalanceUpdate])
 
   const fetchTransactions = async () => {
     if (!user?.id) return
@@ -396,6 +450,43 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
 
   const quickAmounts = [100, 500, 1000, 5000, 10000]
 
+  // Poll pending transactions for this user
+  const pollPendingTransactions = async () => {
+    if (isPollingPending) return
+    
+    setIsPollingPending(true)
+    try {
+      const response = await fetch('/api/gate/poll-pending', { method: 'POST' })
+      const data = await response.json()
+      
+      if (data.success) {
+        // Refresh transactions and balance
+        fetchTransactions()
+        
+        // Fetch updated balance
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('wallet_balance')
+          .eq('id', user?.id)
+          .single()
+        
+        if (profile) {
+          onBalanceUpdate(profile.wallet_balance || 0)
+        }
+        
+        // Show result
+        if (data.completed > 0 || data.failed > 0) {
+          setDepositSuccess(`✅ Updated ${data.completed} completed, ${data.failed} failed transactions`)
+          setTimeout(() => setDepositSuccess(''), 5000)
+        }
+      }
+    } catch (err) {
+      console.error('Poll pending error:', err)
+    } finally {
+      setIsPollingPending(false)
+    }
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
@@ -619,7 +710,22 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
-              <span className="text-xs text-gray-500">{filteredTransactions.length} of {transactions.length}</span>
+              <div className="flex items-center gap-2">
+                {/* Poll Pending Button - shows when there are pending transactions */}
+                {transactions.some(tx => tx.status === 'pending') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={pollPendingTransactions}
+                    disabled={isPollingPending}
+                    className="text-xs h-7 px-2 bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
+                  >
+                    <RefreshCw className={`h-3 w-3 mr-1 ${isPollingPending ? 'animate-spin' : ''}`} />
+                    {isPollingPending ? 'Checking...' : 'Check Pending'}
+                  </Button>
+                )}
+                <span className="text-xs text-gray-500">{filteredTransactions.length} of {transactions.length}</span>
+              </div>
             </div>
 
             {/* Filter Pills */}
