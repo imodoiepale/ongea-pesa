@@ -11,7 +11,7 @@ import {
   Check, LogOut, Gift, PiggyBank, HandCoins, Home, Bell,
   LayoutGrid, List, Play, Pause, TrendingUp, AlertTriangle,
   ChevronDown, ChevronUp, Clock, ArrowUpRight, Hash, Phone,
-  Activity, Target, Ban, RotateCcw, Receipt, CreditCard,
+  Activity, Target, Ban, RotateCcw, Receipt, CreditCard, StopCircle,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -346,6 +346,58 @@ export default function ChamaPage() {
     const failedRequests = stkRequests.filter(r => r.status === "failed")
     for (const req of failedRequests) {
       await retryStk(req.id)
+    }
+  }
+
+  const stopCollection = async () => {
+    if (!selectedChama) return
+    if (!confirm("Are you sure you want to stop this collection? All pending STKs will be cancelled.")) return
+    
+    try {
+      const response = await fetch("/api/chama/stop-collection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chama_id: selectedChama.id })
+      })
+      const result = await response.json()
+      if (result.success) {
+        setStkRequests(prev => prev.map(r => 
+          ['pending', 'sent', 'processing'].includes(r.status) 
+            ? { ...r, status: 'cancelled', error_message: 'Collection stopped by admin' }
+            : r
+        ))
+        setCollecting(false)
+        stopPolling()
+        if (user?.id) fetchChamas(user.id)
+      } else {
+        alert(result.error)
+      }
+    } catch (err) {
+      console.error("Stop collection error:", err)
+    }
+  }
+
+  const resendAllStk = async () => {
+    if (!selectedChama) return
+    setCollecting(true)
+    
+    try {
+      const response = await fetch("/api/chama/resend-all-stk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chama_id: selectedChama.id })
+      })
+      const result = await response.json()
+      if (result.success) {
+        // Refresh STK requests
+        pollPendingStk()
+      } else {
+        alert(result.error)
+      }
+    } catch (err) {
+      console.error("Resend all STK error:", err)
+    } finally {
+      setCollecting(false)
     }
   }
 
@@ -1070,13 +1122,23 @@ export default function ChamaPage() {
                   {!collecting && collectionStatus?.all_completed && <span className="flex items-center gap-1.5 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium"><Check className="w-3 h-3" />All Completed!</span>}
                 </div>
                 <div className="flex gap-2">
+                  {stkRequests.length > 0 && stkRequests.some(r => r.status !== 'completed') && (
+                    <button onClick={resendAllStk} disabled={collecting} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 disabled:opacity-50">
+                      <Send className="w-3.5 h-3.5" />Resend All STK
+                    </button>
+                  )}
                   {failedCount > 0 && (
-                    <button onClick={retryAllFailed} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
-                      <RotateCcw className="w-3.5 h-3.5" />Retry All Failed ({failedCount})
+                    <button onClick={retryAllFailed} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200">
+                      <RotateCcw className="w-3.5 h-3.5" />Retry Failed ({failedCount})
+                    </button>
+                  )}
+                  {stkRequests.length > 0 && (
+                    <button onClick={stopCollection} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
+                      <StopCircle className="w-3.5 h-3.5" />Stop Collection
                     </button>
                   )}
                   {!collecting && collectionStatus?.cycle_id && (
-                    <button onClick={() => startPolling(collectionStatus.cycle_id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
+                    <button onClick={() => startPolling(collectionStatus.cycle_id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-zinc-100 text-zinc-700 rounded-lg hover:bg-zinc-200">
                       <RefreshCw className="w-3.5 h-3.5" />Refresh Status
                     </button>
                   )}

@@ -107,48 +107,54 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create collection cycle' }, { status: 500 });
     }
 
-    // Send STK push to each member
-    const stkResults: any[] = [];
-    const stkRequests: any[] = [];
+    // Prepare members with valid amounts
+    const membersToCharge = activeMembers
+      .map((member: any) => ({
+        member,
+        amount: isFundraising 
+          ? Math.ceil(member.pledge_amount || 0) 
+          : Math.ceil(chama.contribution_amount),
+      }))
+      .filter(({ amount }: { amount: number }) => amount > 0);
 
-    for (const member of activeMembers) {
-      console.log(`📱 Sending STK to ${member.name} (${member.phone_number})`);
+    if (membersToCharge.length === 0) {
+      return NextResponse.json({ error: 'No members with valid amounts to collect' }, { status: 400 });
+    }
 
-      // Determine amount for this member (pledge for fundraising, fixed for others)
-      const memberAmount = isFundraising 
-        ? Math.ceil(member.pledge_amount || 0) 
-        : Math.ceil(chama.contribution_amount);
+    console.log(`📱 Sending STK to ${membersToCharge.length} members simultaneously...`);
 
-      if (memberAmount <= 0) {
-        console.log(`⚠️ Skipping ${member.name} - no amount set`);
-        continue;
-      }
+    // Create all STK request records first
+    const stkRecordsToInsert = membersToCharge.map(({ member, amount }: { member: any; amount: number }) => ({
+      chama_id,
+      cycle_id: cycle.id,
+      member_id: member.id,
+      phone_number: member.phone_number,
+      amount,
+      status: 'pending',
+      attempt_count: 1,
+      last_attempt_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    }));
 
-      // Create STK request record first
-      const { data: stkRecord } = await supabase
-        .from('chama_stk_requests')
-        .insert({
-          chama_id,
-          cycle_id: cycle.id,
-          member_id: member.id,
-          phone_number: member.phone_number,
-          amount: memberAmount,
-          status: 'pending',
-          attempt_count: 1,
-          last_attempt_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+    const { data: stkRecords } = await supabase
+      .from('chama_stk_requests')
+      .insert(stkRecordsToInsert)
+      .select();
 
-      // Initiate STK push
+    // Map records by member_id for easy lookup
+    const stkRecordMap = new Map(stkRecords?.map(r => [r.member_id, r]) || []);
+
+    // Send all STK pushes in parallel using Promise.all
+    const stkPromises = membersToCharge.map(async ({ member, amount }: { member: any; amount: number }) => {
+      const stkRecord = stkRecordMap.get(member.id);
+      
       try {
         const formData = new FormData();
         formData.append('user_email', 'info@nsait.co.ke');
         formData.append('request', '1');
         formData.append('transaction_intent', 'Deposit');
         formData.append('phone', member.phone_number.replace(/\s/g, ''));
-        formData.append('amount', memberAmount.toString());
+        formData.append('amount', amount.toString());
         formData.append('currency', 'KES');
         formData.append('gate_name', 'ongeapesa');
         formData.append('pocket_name', `chama_${chama_id}`);
@@ -193,14 +199,14 @@ export async function POST(request: NextRequest) {
             .eq('id', stkRecord.id);
         }
 
-        stkResults.push({
+        return {
           member_id: member.id,
           member_name: member.name,
           phone: member.phone_number,
           success,
           account_number: accountNumber,
           stk_id: stkRecord?.id,
-        });
+        };
 
       } catch (stkError: any) {
         console.error(`❌ STK failed for ${member.name}:`, stkError.message);
@@ -216,18 +222,18 @@ export async function POST(request: NextRequest) {
             .eq('id', stkRecord.id);
         }
 
-        stkResults.push({
+        return {
           member_id: member.id,
           member_name: member.name,
           phone: member.phone_number,
           success: false,
           error: stkError.message,
-        });
+        };
       }
+    });
 
-      // Small delay between STK pushes to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
+    // Wait for all STK pushes to complete
+    const stkResults = await Promise.all(stkPromises);
 
     // Update cycle with initial results
     const successCount = stkResults.filter(r => r.success).length;
