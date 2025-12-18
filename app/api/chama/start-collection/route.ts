@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { chama_id, project_id } = await request.json();
+    const { chama_id, project_id, include_admin = true, selected_member_ids } = await request.json();
 
     if (!chama_id) {
       return NextResponse.json({ error: 'Missing chama_id' }, { status: 400 });
@@ -39,19 +39,57 @@ export async function POST(request: NextRequest) {
     // Check if there's already an active collection
     const { data: activeCycle } = await supabase
       .from('chama_cycles')
-      .select('*')
+      .select('*, stk_requests:chama_stk_requests(*)')
       .eq('chama_id', chama_id)
       .in('status', ['collecting', 'collected'])
       .single();
 
     if (activeCycle) {
-      return NextResponse.json({ 
-        error: 'There is already an active collection cycle',
-        cycle_id: activeCycle.id 
-      }, { status: 400 });
+      // Check if all STKs in the cycle have failed/cancelled - if so, close it and allow new collection
+      const stkRequests = activeCycle.stk_requests || [];
+      const allFailed = stkRequests.length > 0 && stkRequests.every((s: any) => 
+        ['failed', 'cancelled', 'expired'].includes(s.status)
+      );
+      const allCompleted = stkRequests.length > 0 && stkRequests.every((s: any) => 
+        s.status === 'completed'
+      );
+
+      if (allFailed) {
+        // Auto-close the failed cycle
+        await supabase
+          .from('chama_cycles')
+          .update({ status: 'failed', updated_at: new Date().toISOString() })
+          .eq('id', activeCycle.id);
+        console.log('🔄 Auto-closed failed cycle:', activeCycle.id);
+      } else if (allCompleted) {
+        // Auto-close the completed cycle
+        await supabase
+          .from('chama_cycles')
+          .update({ status: 'completed', updated_at: new Date().toISOString() })
+          .eq('id', activeCycle.id);
+        console.log('✅ Auto-closed completed cycle:', activeCycle.id);
+      } else {
+        // There are still pending/sent STKs - block new collection
+        return NextResponse.json({ 
+          error: 'There is already an active collection cycle',
+          cycle_id: activeCycle.id 
+        }, { status: 400 });
+      }
     }
 
-    const activeMembers = chama.members?.filter((m: any) => m.status === 'active') || [];
+    // Filter members based on status (allow both active and pending - they have valid phone numbers)
+    let activeMembers = chama.members?.filter((m: any) => m.status === 'active' || m.status === 'pending') || [];
+    
+    // Optionally exclude admin from collection
+    if (!include_admin) {
+      activeMembers = activeMembers.filter((m: any) => m.role !== 'admin');
+    }
+    
+    // Filter by selected member IDs if provided (for per-member selection)
+    if (selected_member_ids && Array.isArray(selected_member_ids) && selected_member_ids.length > 0) {
+      const selectedSet = new Set(selected_member_ids);
+      activeMembers = activeMembers.filter((m: any) => selectedSet.has(m.id));
+    }
     
     if (activeMembers.length === 0) {
       return NextResponse.json({ error: 'No active members to collect from' }, { status: 400 });

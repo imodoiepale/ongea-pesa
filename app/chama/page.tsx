@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Fragment } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
@@ -80,6 +80,7 @@ export default function ChamaPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [user, setUser] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<{ phone_number?: string; mpesa_number?: string; email?: string } | null>(null)
   const [chamas, setChamas] = useState<Chama[]>([])
   const [myChamas, setMyChamas] = useState<Chama[]>([])
   const [allUsers, setAllUsers] = useState<UserProfile[]>([])
@@ -102,6 +103,8 @@ export default function ChamaPage() {
   const [expandedStkRow, setExpandedStkRow] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"card" | "table">("card")
   const [statusTab, setStatusTab] = useState<"all" | "active" | "inactive">("all")
+  const [includeAdmin, setIncludeAdmin] = useState(true)
+  const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set())
 
   const [form, setForm] = useState({
     name: "",
@@ -114,6 +117,7 @@ export default function ChamaPage() {
     rotation_type: "sequential",
     total_cycles: "",
     members: [] as { name: string; phone: string; email: string; pledge_amount?: string }[],
+    include_admin_in_collection: true,
   })
 
   const [newMember, setNewMember] = useState({ name: "", phone: "", email: "", pledge_amount: "" })
@@ -125,6 +129,9 @@ export default function ChamaPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push("/login"); return }
     setUser(user)
+    // Fetch user profile to get admin's phone for conflict detection
+    const { data: profile } = await supabase.from("profiles").select("phone_number, mpesa_number, email").eq("id", user.id).single()
+    setUserProfile(profile)
     await Promise.all([fetchChamas(user.id), fetchAllUsers()])
   }
 
@@ -179,10 +186,22 @@ export default function ChamaPage() {
 
   const startCollection = async () => {
     if (!selectedChama) return
+    if (selectedMemberIds.size === 0) {
+      alert("Please select at least one member for collection")
+      return
+    }
     setCollecting(true)
     setShowCollectionModal(true)
     setStkRequests([])
-    const response = await fetch("/api/chama/start-collection", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chama_id: selectedChama.id }) })
+    const response = await fetch("/api/chama/start-collection", { 
+      method: "POST", 
+      headers: { "Content-Type": "application/json" }, 
+      body: JSON.stringify({ 
+        chama_id: selectedChama.id, 
+        include_admin: includeAdmin,
+        selected_member_ids: Array.from(selectedMemberIds)
+      }) 
+    })
     const result = await response.json()
     if (result.success) {
       setCollectionStatus(result)
@@ -379,13 +398,21 @@ export default function ChamaPage() {
 
   const resendAllStk = async () => {
     if (!selectedChama) return
+    
+    // Get cycle_id from existing STK requests to resend to same cycle
+    const cycleId = stkRequests[0]?.cycle_id || collectionStatus?.cycle_id
+    if (!cycleId) {
+      alert("No active collection cycle found. Start a new collection first.")
+      return
+    }
+    
     setCollecting(true)
     
     try {
       const response = await fetch("/api/chama/resend-all-stk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chama_id: selectedChama.id })
+        body: JSON.stringify({ chama_id: selectedChama.id, cycle_id: cycleId })
       })
       const result = await response.json()
       if (result.success) {
@@ -418,7 +445,7 @@ export default function ChamaPage() {
     reader.readAsText(file)
   }
 
-  const resetForm = () => { setForm({ name: "", description: "", chama_type: "savings", contribution_amount: "", currency: "KES", collection_frequency: "monthly", collection_day: 25, rotation_type: "sequential", total_cycles: "", members: [] }); setCreateStep(1) }
+  const resetForm = () => { setForm({ name: "", description: "", chama_type: "savings", contribution_amount: "", currency: "KES", collection_frequency: "monthly", collection_day: 25, rotation_type: "sequential", total_cycles: "", members: [], include_admin_in_collection: true }); setCreateStep(1) }
 
   const filteredUsers = allUsers.filter(u => !userSearchTerm || u.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) || u.phone_number?.includes(userSearchTerm))
   const displayChamas = activeTab === "created" ? chamas : myChamas
@@ -480,6 +507,9 @@ export default function ChamaPage() {
   const openChamaDetail = async (chama: Chama) => {
     setSelectedChama(chama)
     setShowDetailModal(true)
+    // Initialize all selectable members (active + pending) as selected for collection
+    const selectableMembers = chama.members?.filter(m => m.status === 'active' || m.status === 'pending') || []
+    setSelectedMemberIds(new Set(selectableMembers.map(m => m.id)))
     
     // Fetch STK history and poll pending in parallel on load
     try {
@@ -706,7 +736,25 @@ export default function ChamaPage() {
                 <div className="space-y-5">
                   <div className="flex items-center justify-between"><div><h3 className="text-sm font-medium text-zinc-900">Add Members</h3><p className="text-xs text-zinc-500">Select from Ongea Pesa or upload CSV</p></div><div className="flex gap-2"><input type="file" ref={fileInputRef} onChange={handleCSVUpload} accept=".csv" className="hidden" /><button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-zinc-100 rounded-lg hover:bg-zinc-200 font-medium"><Upload className="w-3 h-3" /> Upload CSV</button></div></div>
                   <div className="relative"><div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" /><input type="text" placeholder="Search Ongea Pesa users..." value={userSearchTerm} onChange={(e) => { setUserSearchTerm(e.target.value); setShowUserDropdown(true) }} className="w-full pl-10 pr-3 py-3 rounded-xl text-sm border border-zinc-200 bg-white" /></div>{showUserDropdown && userSearchTerm && <div className="absolute z-50 w-full mt-2 rounded-xl overflow-hidden bg-white border border-zinc-200 shadow-xl max-h-48 overflow-y-auto">{filteredUsers.slice(0, 10).map(u => <div key={u.id} onClick={() => { const phone = u.phone_number || u.mpesa_number || ""; if (phone && !form.members.find(m => m.phone === phone)) setForm(f => ({ ...f, members: [...f.members, { name: u.email || "User", phone, email: u.email || "", pledge_amount: "" }] })); setUserSearchTerm(""); setShowUserDropdown(false) }} className="flex items-center gap-3 p-3 hover:bg-zinc-50 cursor-pointer"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-medium text-white">{(u.email?.[0] || "U").toUpperCase()}</div><div className="flex-1"><p className="text-sm font-medium text-zinc-900">{u.email || "No email"}</p><p className="text-xs text-zinc-500">{u.phone_number || u.mpesa_number}</p></div><Plus className="w-4 h-4 text-blue-600" /></div>)}</div>}</div>
-                  <div className="flex gap-2"><Input placeholder="Name" value={newMember.name} onChange={(e) => setNewMember(m => ({ ...m, name: e.target.value }))} className="flex-1" /><Input placeholder="Phone" value={newMember.phone} onChange={(e) => setNewMember(m => ({ ...m, phone: e.target.value }))} className="w-32" />{form.chama_type === "fundraising" && <Input type="number" placeholder="Pledge" value={newMember.pledge_amount} onChange={(e) => setNewMember(m => ({ ...m, pledge_amount: e.target.value }))} className="w-24" />}<button onClick={() => { if (newMember.name && newMember.phone) { setForm(f => ({ ...f, members: [...f.members, { ...newMember }] })); setNewMember({ name: "", phone: "", email: "", pledge_amount: "" }) } }} className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg"><Plus className="w-4 h-4" /></button></div>
+                  <div className="flex gap-2"><Input placeholder="Name" value={newMember.name} onChange={(e) => setNewMember(m => ({ ...m, name: e.target.value }))} className="flex-1" /><Input placeholder="Phone" value={newMember.phone} onChange={(e) => setNewMember(m => ({ ...m, phone: e.target.value }))} className="w-32" />{form.chama_type === "fundraising" && <Input type="number" placeholder="Pledge" value={newMember.pledge_amount} onChange={(e) => setNewMember(m => ({ ...m, pledge_amount: e.target.value }))} className="w-24" />}<button onClick={() => { 
+                    if (newMember.name && newMember.phone) { 
+                      const normalizedPhone = newMember.phone.replace(/\s/g, '')
+                      const isDuplicate = form.members.some(m => m.phone.replace(/\s/g, '') === normalizedPhone)
+                      if (isDuplicate) {
+                        alert(`Phone ${newMember.phone} is already added`)
+                        return
+                      }
+                      // Check for admin phone conflict
+                      const adminPhones = [userProfile?.phone_number, userProfile?.mpesa_number].filter(Boolean).map(p => p?.replace(/\s/g, ''))
+                      if (adminPhones.includes(normalizedPhone)) {
+                        if (!confirm(`This phone (${newMember.phone}) matches your admin phone. You will be auto-added as admin.\n\nAdd anyway? (duplicate will be handled in review)`)) {
+                          return
+                        }
+                      }
+                      setForm(f => ({ ...f, members: [...f.members, { ...newMember, phone: normalizedPhone }] }))
+                      setNewMember({ name: "", phone: "", email: "", pledge_amount: "" }) 
+                    } 
+                  }} className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg"><Plus className="w-4 h-4" /></button></div>
                   <div className="rounded-xl overflow-hidden border border-zinc-200"><div className="p-3 bg-zinc-50 border-b border-zinc-200"><span className="text-xs font-medium text-zinc-600">{form.members.length} members added</span></div><div className="max-h-48 overflow-y-auto">{form.members.length === 0 ? <div className="p-4 text-center text-zinc-500 text-sm">No members added yet</div> : form.members.map((m, i) => <div key={i} className="flex items-center gap-3 p-3 border-b border-zinc-100 last:border-0"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-bold text-white">{i + 1}</div><div className="flex-1"><p className="text-sm font-medium text-zinc-900">{m.name}</p><p className="text-xs text-zinc-500">{m.phone}</p></div>{m.pledge_amount && <span className="text-sm font-mono text-purple-600">{formatCurrency(parseFloat(m.pledge_amount))}</span>}<button onClick={() => setForm(f => ({ ...f, members: f.members.filter((_, j) => j !== i) }))} className="p-1 text-red-500 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4" /></button></div>)}</div></div>
                 </div>
               )}
@@ -719,10 +767,127 @@ export default function ChamaPage() {
                       <div><p className="text-zinc-500">Type</p><p className="font-semibold text-zinc-900 capitalize">{form.chama_type}</p></div>
                       {form.chama_type !== "fundraising" && <div><p className="text-zinc-500">Contribution</p><p className="font-semibold text-zinc-900">{form.contribution_amount ? formatCurrency(parseFloat(form.contribution_amount)) : "—"}</p></div>}
                       <div><p className="text-zinc-500">Frequency</p><p className="font-semibold text-zinc-900 capitalize">{form.collection_frequency}</p></div>
-                      <div><p className="text-zinc-500">Members</p><p className="font-semibold text-zinc-900">{form.members.length}</p></div>
-                      <div><p className="text-zinc-500">Expected per Cycle</p><p className="font-bold text-emerald-600 text-lg">{form.chama_type === "fundraising" ? formatCurrency(form.members.reduce((s, m) => s + (m.pledge_amount ? parseFloat(m.pledge_amount) : 0), 0)) : form.contribution_amount && form.members.length ? formatCurrency(parseFloat(form.contribution_amount) * (form.members.length + 1)) : "—"}</p></div>
+                      <div>
+                        <p className="text-zinc-500">Members</p>
+                        <p className="font-semibold text-zinc-900">
+                          {form.members.length} added {form.include_admin_in_collection && <span className="text-purple-600">+ You (Admin)</span>}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-zinc-500">Expected per Cycle</p>
+                        <p className="font-bold text-emerald-600 text-lg">
+                          {form.chama_type === "fundraising" 
+                            ? formatCurrency(form.members.reduce((s, m) => s + (m.pledge_amount ? parseFloat(m.pledge_amount) : 0), 0)) 
+                            : form.contribution_amount 
+                              ? formatCurrency(parseFloat(form.contribution_amount) * (form.members.length + (form.include_admin_in_collection ? 1 : 0))) 
+                              : "—"}
+                        </p>
+                      </div>
                     </div>
                   </div>
+                  
+                  {/* Admin Collection Option */}
+                  <div className="p-4 rounded-xl bg-purple-50 border border-purple-200">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={form.include_admin_in_collection} 
+                        onChange={(e) => setForm(f => ({ ...f, include_admin_in_collection: e.target.checked }))}
+                        className="w-4 h-4 rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-purple-900">Include You (Admin) in Collections</p>
+                        <p className="text-xs text-purple-600">When enabled, you will also receive STK pushes during collection cycles</p>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Admin Phone Conflict Warning */}
+                  {(() => {
+                    const adminPhones = [userProfile?.phone_number, userProfile?.mpesa_number].filter(Boolean).map(p => p?.replace(/\s/g, ''))
+                    const conflictingMembers = form.members.filter(m => adminPhones.includes(m.phone.replace(/\s/g, '')))
+                    
+                    if (conflictingMembers.length > 0) {
+                      return (
+                        <div className="p-4 rounded-xl bg-red-50 border border-red-200 space-y-3">
+                          <div>
+                            <p className="text-sm font-medium text-red-800 flex items-center gap-2">
+                              <AlertTriangle className="w-4 h-4" />
+                              Admin Phone Conflict Detected
+                            </p>
+                            <p className="text-xs text-red-600 mt-1">
+                              You added <strong>{conflictingMembers.map(m => m.name).join(", ")}</strong> with phone <strong>{conflictingMembers[0]?.phone}</strong> which matches your admin phone.
+                            </p>
+                            <p className="text-xs text-red-500 mt-1">
+                              You will be automatically added as admin. This member entry is a duplicate.
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => {
+                                const adminPhonesSet = new Set(adminPhones)
+                                setForm(f => ({ 
+                                  ...f, 
+                                  members: f.members.filter(m => !adminPhonesSet.has(m.phone.replace(/\s/g, ''))) 
+                                }))
+                              }}
+                              className="px-3 py-1.5 text-xs font-medium bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
+                            >
+                              Remove Duplicate
+                            </button>
+                            <button 
+                              onClick={() => {
+                                // Keep in list but mark - API will handle deduplication
+                              }}
+                              className="px-3 py-1.5 text-xs font-medium bg-zinc-100 text-zinc-600 rounded-lg hover:bg-zinc-200"
+                            >
+                              Keep (API will deduplicate)
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    }
+                    return null
+                  })()}
+
+                  {/* Duplicate Phone Warning */}
+                  {(() => {
+                    const phones = form.members.map(m => m.phone.replace(/\s/g, ''))
+                    const duplicates = phones.filter((p, i) => phones.indexOf(p) !== i)
+                    if (duplicates.length > 0) {
+                      return (
+                        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-3">
+                          <div>
+                            <p className="text-sm font-medium text-amber-800 flex items-center gap-2">
+                              <AlertTriangle className="w-4 h-4" />
+                              Duplicate phone numbers in member list
+                            </p>
+                            <p className="text-xs text-amber-600 mt-1">
+                              {[...new Set(duplicates)].join(", ")} appears multiple times
+                            </p>
+                          </div>
+                          <button 
+                            onClick={() => {
+                              const seen = new Set<string>()
+                              setForm(f => ({
+                                ...f,
+                                members: f.members.filter(m => {
+                                  const phone = m.phone.replace(/\s/g, '')
+                                  if (seen.has(phone)) return false
+                                  seen.add(phone)
+                                  return true
+                                })
+                              }))
+                            }}
+                            className="px-3 py-1.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200"
+                          >
+                            Remove Duplicates (keep first)
+                          </button>
+                        </div>
+                      )
+                    }
+                    return null
+                  })()}
                 </div>
               )}
             </div>
@@ -842,21 +1007,57 @@ export default function ChamaPage() {
                   </div>
                 </div>
 
-                {/* Members Quick View */}
+                {/* Members Quick View with Selection */}
                 <div className="p-4 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Members ({selectedChama.members?.length || 0})</h4>
-                    <button onClick={() => setShowAddMemberModal(true)} className="flex items-center gap-1 px-2 py-1 text-[10px] bg-blue-100 text-blue-700 rounded font-medium"><UserPlus className="w-3 h-3" />Add</button>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Members ({selectedChama.members?.length || 0})</h4>
+                      <span className="text-[10px] text-blue-600 font-medium">{selectedMemberIds.size} selected</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => {
+                          const selectableMembers = selectedChama.members?.filter(m => m.status === 'active' || m.status === 'pending') || []
+                          if (selectedMemberIds.size === selectableMembers.length) {
+                            setSelectedMemberIds(new Set())
+                          } else {
+                            setSelectedMemberIds(new Set(selectableMembers.map(m => m.id)))
+                          }
+                        }} 
+                        className="text-[10px] text-blue-600 hover:underline"
+                      >
+                        {selectedMemberIds.size === (selectedChama.members?.filter(m => m.status === 'active' || m.status === 'pending').length || 0) ? "Deselect All" : "Select All"}
+                      </button>
+                      <button onClick={() => setShowAddMemberModal(true)} className="flex items-center gap-1 px-2 py-1 text-[10px] bg-blue-100 text-blue-700 rounded font-medium"><UserPlus className="w-3 h-3" />Add</button>
+                    </div>
                   </div>
-                  <div className="space-y-2 max-h-32 overflow-auto">
-                    {selectedChama.members?.slice(0, 5).map((m, i) => (
-                      <div key={m.id} className="flex items-center gap-2 text-xs">
-                        <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white", m.has_received_payout ? "bg-emerald-500" : "bg-blue-500")}>{m.has_received_payout ? <Check className="w-3 h-3" /> : i + 1}</div>
+                  <div className="space-y-1.5 max-h-40 overflow-auto">
+                    {selectedChama.members?.map((m, i) => (
+                      <div key={m.id} className={cn("flex items-center gap-2 text-xs p-1.5 rounded-lg transition-colors", (m.status === 'exited' || m.status === 'exit_requested') && "opacity-50")}>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedMemberIds.has(m.id)} 
+                          disabled={m.status === 'exited' || m.status === 'exit_requested'}
+                          onChange={(e) => {
+                            const newSet = new Set(selectedMemberIds)
+                            if (e.target.checked) {
+                              newSet.add(m.id)
+                            } else {
+                              newSet.delete(m.id)
+                            }
+                            setSelectedMemberIds(newSet)
+                          }}
+                          className="w-3.5 h-3.5 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white", m.role === 'admin' ? "bg-purple-500" : m.has_received_payout ? "bg-emerald-500" : "bg-blue-500")}>
+                          {m.has_received_payout ? <Check className="w-3 h-3" /> : m.role === 'admin' ? "A" : i + 1}
+                        </div>
                         <span className="flex-1 truncate font-medium">{m.name}</span>
+                        {m.role === 'admin' && <span className="text-[9px] px-1 py-0.5 bg-purple-100 text-purple-600 rounded">Admin</span>}
+                        {m.status !== 'active' && <span className="text-[9px] px-1 py-0.5 bg-zinc-100 text-zinc-500 rounded">{m.status}</span>}
                         <span className="text-zinc-500">{formatCurrency(m.total_contributed || 0)}</span>
                       </div>
                     ))}
-                    {(selectedChama.members?.length || 0) > 5 && <p className="text-[10px] text-zinc-400 text-center">+{(selectedChama.members?.length || 0) - 5} more</p>}
                   </div>
                 </div>
               </div>
@@ -902,8 +1103,8 @@ export default function ChamaPage() {
                       {stkRequests.length === 0 ? (
                         <tr><td colSpan={10} className="px-4 py-8 text-center text-zinc-400">No STK requests. Start a collection to send STK pushes.</td></tr>
                       ) : stkRequests.map((req, idx) => (
-                        <>
-                          <tr key={req.id} onClick={() => setExpandedStkRow(expandedStkRow === req.id ? null : req.id)} className={cn(
+                        <Fragment key={req.id}>
+                          <tr onClick={() => setExpandedStkRow(expandedStkRow === req.id ? null : req.id)} className={cn(
                             "cursor-pointer transition-colors border-b border-zinc-100",
                             req.status === "completed" && "bg-emerald-50/50",
                             req.status === "failed" && "bg-red-50/50",
@@ -947,7 +1148,7 @@ export default function ChamaPage() {
                               </td>
                             </tr>
                           )}
-                        </>
+                        </Fragment>
                       ))}
                     </tbody>
                   </table>
@@ -960,11 +1161,12 @@ export default function ChamaPage() {
               <div className="flex items-center gap-4 text-xs text-zinc-500">
                 <span>Total Collected: <strong className="text-emerald-600">{formatCurrency(selectedChama.total_collected)}</strong></span>
                 <span>Distributed: <strong className="text-purple-600">{formatCurrency(selectedChama.total_distributed)}</strong></span>
+                <span className="text-blue-600 font-medium">{selectedMemberIds.size} member{selectedMemberIds.size !== 1 ? 's' : ''} selected for collection</span>
               </div>
-              <div className="flex gap-2">
-                <button onClick={startCollection} disabled={collecting} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 text-white disabled:opacity-50 shadow-lg hover:shadow-xl transition-all">
+              <div className="flex items-center gap-3">
+                <button onClick={startCollection} disabled={collecting || selectedMemberIds.size === 0} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 text-white disabled:opacity-50 shadow-lg hover:shadow-xl transition-all">
                   {collecting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  {collecting ? "Collecting..." : "Start Collection"}
+                  {collecting ? "Collecting..." : `Collect from ${selectedMemberIds.size}`}
                 </button>
                 <button onClick={() => { setShowDetailModal(false); stopPolling(); setExpandedStkRow(null); setStkRequests([]) }} className="px-4 py-2 text-sm font-medium bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg">Close</button>
               </div>
@@ -1170,8 +1372,8 @@ export default function ChamaPage() {
                         {collecting ? <div className="flex flex-col items-center gap-2"><RefreshCw className="w-8 h-8 animate-spin text-blue-500" /><span>Sending STK pushes to members...</span></div> : "No STK requests yet. Start a collection to see data here."}
                       </td></tr>
                     ) : stkRequests.map((req, idx) => (
-                      <>
-                        <tr key={req.id} onClick={() => setExpandedStkRow(expandedStkRow === req.id ? null : req.id)} className={cn(
+                      <Fragment key={req.id}>
+                        <tr onClick={() => setExpandedStkRow(expandedStkRow === req.id ? null : req.id)} className={cn(
                           "cursor-pointer transition-colors border-b border-zinc-100 dark:border-zinc-800",
                           idx % 2 === 0 ? "bg-white dark:bg-zinc-900/50" : "bg-zinc-50/50 dark:bg-zinc-800/30",
                           req.status === "completed" && "bg-emerald-50/50 dark:bg-emerald-900/10",
@@ -1247,7 +1449,7 @@ export default function ChamaPage() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>
