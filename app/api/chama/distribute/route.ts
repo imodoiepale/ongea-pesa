@@ -124,28 +124,33 @@ export async function POST(request: NextRequest) {
     const memberCount = cycle.chama.members?.length || 1;
     const newRotationIndex = (cycle.chama.current_rotation_index + 1) % memberCount;
 
-    // Calculate next collection date
-    const nextCollectionDate = new Date();
-    switch (cycle.chama.collection_frequency) {
-      case 'daily':
-        nextCollectionDate.setDate(nextCollectionDate.getDate() + 1);
-        break;
-      case 'weekly':
-        nextCollectionDate.setDate(nextCollectionDate.getDate() + 7);
-        break;
-      case 'biweekly':
-        nextCollectionDate.setDate(nextCollectionDate.getDate() + 14);
-        break;
-      case 'monthly':
-        nextCollectionDate.setMonth(nextCollectionDate.getMonth() + 1);
-        break;
-      case 'custom':
-        nextCollectionDate.setDate(nextCollectionDate.getDate() + (cycle.chama.custom_frequency_days || 14));
-        break;
+    // Calculate next collection date (skip for one-time collections)
+    let nextCollectionDate: Date | null = null;
+    const isOneTime = cycle.chama.collection_frequency === 'one-time';
+    
+    if (!isOneTime) {
+      nextCollectionDate = new Date();
+      switch (cycle.chama.collection_frequency) {
+        case 'daily':
+          nextCollectionDate.setDate(nextCollectionDate.getDate() + 1);
+          break;
+        case 'weekly':
+          nextCollectionDate.setDate(nextCollectionDate.getDate() + 7);
+          break;
+        case 'biweekly':
+          nextCollectionDate.setDate(nextCollectionDate.getDate() + 14);
+          break;
+        case 'monthly':
+          nextCollectionDate.setMonth(nextCollectionDate.getMonth() + 1);
+          break;
+        case 'custom':
+          nextCollectionDate.setDate(nextCollectionDate.getDate() + (cycle.chama.custom_frequency_days || 14));
+          break;
+      }
     }
 
-    // Check if chama is complete (all cycles done)
-    const chamaComplete = cycle.chama.total_cycles && newCycle > cycle.chama.total_cycles;
+    // Check if chama is complete (all cycles done or one-time collection finished)
+    const chamaComplete = isOneTime || (cycle.chama.total_cycles && newCycle > cycle.chama.total_cycles);
 
     await supabase
       .from('chamas')
@@ -153,7 +158,7 @@ export async function POST(request: NextRequest) {
         current_cycle: chamaComplete ? cycle.chama.current_cycle : newCycle,
         current_rotation_index: newRotationIndex,
         total_distributed: (cycle.chama.total_distributed || 0) + cycle.collected_amount,
-        next_collection_date: chamaComplete ? null : nextCollectionDate.toISOString(),
+        next_collection_date: chamaComplete || !nextCollectionDate ? null : nextCollectionDate.toISOString(),
         status: chamaComplete ? 'completed' : 'active',
         updated_at: new Date().toISOString(),
       })
@@ -176,7 +181,7 @@ export async function POST(request: NextRequest) {
       },
       chama_completed: chamaComplete,
       next_cycle: chamaComplete ? null : newCycle,
-      next_collection_date: chamaComplete ? null : nextCollectionDate.toISOString(),
+      next_collection_date: chamaComplete || !nextCollectionDate ? null : nextCollectionDate.toISOString(),
     });
 
   } catch (error: any) {

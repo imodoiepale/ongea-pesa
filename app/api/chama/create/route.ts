@@ -28,6 +28,9 @@ export async function POST(request: NextRequest) {
       allow_partial_payments = true,
       require_all_before_payout = true,
       members = [],
+      schedule_type = 'manual',
+      scheduled_date,
+      scheduled_time,
     } = body;
 
     // For fundraising type, contribution_amount can be 0
@@ -45,30 +48,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🏦 Creating chama:', { name, contribution_amount, collection_frequency });
+    console.log('🏦 Creating chama:', { name, contribution_amount, collection_frequency, schedule_type });
 
-    // Calculate next collection date based on frequency
+    // Calculate next collection date based on frequency and schedule
     const now = new Date();
-    let nextCollectionDate = new Date(now);
+    let nextCollectionDate: Date | null = null;
     
-    switch (collection_frequency) {
-      case 'daily':
-        nextCollectionDate.setDate(nextCollectionDate.getDate() + 1);
-        break;
-      case 'weekly':
-        const daysUntilCollectionDay = ((collection_day || 1) - now.getDay() + 7) % 7 || 7;
-        nextCollectionDate.setDate(nextCollectionDate.getDate() + daysUntilCollectionDay);
-        break;
-      case 'biweekly':
-        nextCollectionDate.setDate(nextCollectionDate.getDate() + 14);
-        break;
-      case 'monthly':
-        nextCollectionDate.setMonth(nextCollectionDate.getMonth() + 1);
-        nextCollectionDate.setDate(collection_day || 1);
-        break;
-      case 'custom':
-        nextCollectionDate.setDate(nextCollectionDate.getDate() + (custom_frequency_days || 14));
-        break;
+    // Handle scheduling
+    if (schedule_type === 'now') {
+      // Will start collection immediately after creation
+      nextCollectionDate = new Date(now);
+    } else if (schedule_type === 'later' && scheduled_date) {
+      // Use the scheduled date/time
+      nextCollectionDate = new Date(scheduled_date);
+      if (scheduled_time) {
+        const [hours, minutes] = scheduled_time.split(':').map(Number);
+        nextCollectionDate.setHours(hours, minutes, 0, 0);
+      }
+    } else if (collection_frequency === 'one-time') {
+      // One-time collections are manual by default
+      nextCollectionDate = null;
+    } else {
+      // Calculate next collection date based on frequency
+      nextCollectionDate = new Date(now);
+      switch (collection_frequency) {
+        case 'daily':
+          nextCollectionDate.setDate(nextCollectionDate.getDate() + 1);
+          break;
+        case 'weekly':
+          const daysUntilCollectionDay = ((collection_day || 1) - now.getDay() + 7) % 7 || 7;
+          nextCollectionDate.setDate(nextCollectionDate.getDate() + daysUntilCollectionDay);
+          break;
+        case 'biweekly':
+          nextCollectionDate.setDate(nextCollectionDate.getDate() + 14);
+          break;
+        case 'monthly':
+          nextCollectionDate.setMonth(nextCollectionDate.getMonth() + 1);
+          nextCollectionDate.setDate(collection_day || 1);
+          break;
+        case 'custom':
+          nextCollectionDate.setDate(nextCollectionDate.getDate() + (custom_frequency_days || 14));
+          break;
+        default:
+          // Manual - no scheduled date
+          nextCollectionDate = null;
+      }
     }
 
     // Create chama
@@ -92,7 +116,7 @@ export async function POST(request: NextRequest) {
         require_all_before_payout,
         status: 'active',
         current_cycle: 1,
-        next_collection_date: nextCollectionDate.toISOString(),
+        next_collection_date: nextCollectionDate ? nextCollectionDate.toISOString() : null,
         created_at: new Date().toISOString(),
       })
       .select()

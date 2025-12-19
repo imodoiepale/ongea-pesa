@@ -4,6 +4,11 @@ import { useState, useEffect, useRef, Fragment } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
+import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import {
   Users, Plus, RefreshCw, Eye, Trash2, UserPlus, Search,
@@ -69,10 +74,17 @@ const CHAMA_TYPES = [
 ]
 
 const FREQUENCIES = [
-  { id: "daily", label: "Daily" },
-  { id: "weekly", label: "Weekly" },
-  { id: "biweekly", label: "Bi-Weekly" },
-  { id: "monthly", label: "Monthly" },
+  { id: "one-time", label: "One-Time", desc: "Single collection" },
+  { id: "daily", label: "Daily", desc: "Every day" },
+  { id: "weekly", label: "Weekly", desc: "Every week" },
+  { id: "biweekly", label: "Bi-Weekly", desc: "Every 2 weeks" },
+  { id: "monthly", label: "Monthly", desc: "Every month" },
+]
+
+const SCHEDULE_OPTIONS = [
+  { id: "now", label: "Collect Now", desc: "Start collection immediately after creating" },
+  { id: "later", label: "Schedule for Later", desc: "Choose a specific date and time" },
+  { id: "manual", label: "Manual", desc: "Start collections manually when ready" },
 ]
 
 export default function ChamaPage() {
@@ -119,6 +131,9 @@ export default function ChamaPage() {
     total_cycles: "",
     members: [] as { name: string; phone: string; email: string; pledge_amount?: string }[],
     include_admin_in_collection: true,
+    schedule_type: "manual" as "now" | "later" | "manual",
+    scheduled_date: "",
+    scheduled_time: "",
   })
 
   const [newMember, setNewMember] = useState({ name: "", phone: "", email: "", pledge_amount: "" })
@@ -538,7 +553,7 @@ export default function ChamaPage() {
     reader.readAsText(file)
   }
 
-  const resetForm = () => { setForm({ name: "", description: "", chama_type: "savings", contribution_amount: "", currency: "KES", collection_frequency: "monthly", collection_day: 25, rotation_type: "sequential", total_cycles: "", members: [], include_admin_in_collection: true }); setCreateStep(1) }
+  const resetForm = () => { setForm({ name: "", description: "", chama_type: "savings", contribution_amount: "", currency: "KES", collection_frequency: "monthly", collection_day: 25, rotation_type: "sequential", total_cycles: "", members: [], include_admin_in_collection: true, schedule_type: "manual", scheduled_date: "", scheduled_time: "" }); setCreateStep(1) }
 
   const filteredUsers = allUsers.filter(u => !userSearchTerm || u.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) || u.phone_number?.includes(userSearchTerm))
   const displayChamas = activeTab === "created" ? chamas : myChamas
@@ -818,11 +833,132 @@ export default function ChamaPage() {
             <div className="p-6 overflow-y-auto max-h-[60vh]">
               {createStep === 1 && (
                 <div className="space-y-5">
-                  <div><label className="text-sm font-medium text-zinc-700 mb-3 block">Chama Type</label><div className="grid grid-cols-3 gap-3">{CHAMA_TYPES.map(t => <div key={t.id} onClick={() => setForm(f => ({ ...f, chama_type: t.id as any }))} className={cn("p-4 rounded-xl cursor-pointer text-center border-2", form.chama_type === t.id ? "border-blue-500 bg-blue-50" : "border-zinc-200")}><t.icon className={cn("w-8 h-8 mx-auto mb-2", form.chama_type === t.id ? "text-blue-600" : "text-zinc-400")} /><p className="font-semibold text-zinc-900">{t.label}</p><p className="text-xs text-zinc-500">{t.desc}</p></div>)}</div></div>
+                  {/* Chama Type */}
+                  <div>
+                    <label className="text-sm font-medium text-zinc-700 mb-3 block">Chama Type</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {CHAMA_TYPES.map(t => (
+                        <div 
+                          key={t.id} 
+                          onClick={() => setForm(f => ({ ...f, chama_type: t.id as any }))} 
+                          className={cn("p-4 rounded-xl cursor-pointer text-center border-2", form.chama_type === t.id ? "border-blue-500 bg-blue-50" : "border-zinc-200")}
+                        >
+                          <t.icon className={cn("w-8 h-8 mx-auto mb-2", form.chama_type === t.id ? "text-blue-600" : "text-zinc-400")} />
+                          <p className="font-semibold text-zinc-900">{t.label}</p>
+                          <p className="text-xs text-zinc-500">{t.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Name & Description */}
                   <div><label className="text-sm font-medium text-zinc-700">Chama Name</label><Input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g., Office Savings Group" className="mt-2 h-12" /></div>
                   <div><label className="text-sm font-medium text-zinc-700">Description</label><textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Describe your chama..." rows={2} className="w-full mt-2 px-4 py-3 rounded-xl text-sm border border-zinc-200 bg-white" /></div>
-                  {form.chama_type !== "fundraising" && <div className="grid grid-cols-2 gap-4"><div><label className="text-sm font-medium text-zinc-700">Contribution (KES)</label><Input type="number" value={form.contribution_amount} onChange={(e) => setForm(f => ({ ...f, contribution_amount: e.target.value }))} placeholder="5000" className="mt-2 h-12" /></div><div><label className="text-sm font-medium text-zinc-700">Frequency</label><select value={form.collection_frequency} onChange={(e) => setForm(f => ({ ...f, collection_frequency: e.target.value }))} className="w-full mt-2 h-12 px-4 rounded-xl border border-zinc-200 bg-white">{FREQUENCIES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}</select></div></div>}
-                  {form.chama_type === "fundraising" && <div className="p-4 bg-purple-50 rounded-xl border border-purple-200"><p className="text-sm text-purple-700 flex items-center gap-2"><Gift className="w-5 h-5" />Fundraising: Each member pledges their own amount.</p></div>}
+                  
+                  {/* Contribution Amount */}
+                  {form.chama_type !== "fundraising" && (
+                    <div><label className="text-sm font-medium text-zinc-700">Contribution Amount (KES)</label><Input type="number" value={form.contribution_amount} onChange={(e) => setForm(f => ({ ...f, contribution_amount: e.target.value }))} placeholder="5000" className="mt-2 h-12" /></div>
+                  )}
+                  
+                  {/* Frequency Selection */}
+                  <div>
+                    <label className="text-sm font-medium text-zinc-700 mb-3 block">Collection Frequency</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                      {FREQUENCIES.map(f => (
+                        <div 
+                          key={f.id} 
+                          onClick={() => setForm(prev => ({ ...prev, collection_frequency: f.id }))} 
+                          className={cn(
+                            "p-3 rounded-xl cursor-pointer text-center border-2 transition-all",
+                            form.collection_frequency === f.id 
+                              ? "border-blue-500 bg-blue-50" 
+                              : "border-zinc-200 hover:border-zinc-300"
+                          )}
+                        >
+                          <p className={cn("font-medium text-sm", form.collection_frequency === f.id ? "text-blue-600" : "text-zinc-700")}>{f.label}</p>
+                          <p className="text-xs text-zinc-500">{f.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Schedule Options */}
+                  <div>
+                    <label className="text-sm font-medium text-zinc-700 mb-3 block">When to Start Collection</label>
+                    <RadioGroup 
+                      value={form.schedule_type} 
+                      onValueChange={(value) => setForm(f => ({ ...f, schedule_type: value as any }))}
+                      className="space-y-2"
+                    >
+                      {SCHEDULE_OPTIONS.map(opt => (
+                        <div 
+                          key={opt.id}
+                          className={cn(
+                            "flex items-center space-x-3 p-3 rounded-xl border-2 cursor-pointer transition-all",
+                            form.schedule_type === opt.id 
+                              ? "border-blue-500 bg-blue-50" 
+                              : "border-zinc-200 hover:border-zinc-300"
+                          )}
+                          onClick={() => setForm(f => ({ ...f, schedule_type: opt.id as any }))}
+                        >
+                          <RadioGroupItem value={opt.id} id={opt.id} />
+                          <Label htmlFor={opt.id} className="flex-1 cursor-pointer">
+                            <span className={cn("font-medium", form.schedule_type === opt.id ? "text-blue-600" : "text-zinc-700")}>{opt.label}</span>
+                            <p className="text-xs text-zinc-500">{opt.desc}</p>
+                          </Label>
+                          {opt.id === "now" && <Zap className="w-4 h-4 text-amber-500" />}
+                          {opt.id === "later" && <Calendar className="w-4 h-4 text-blue-500" />}
+                          {opt.id === "manual" && <Play className="w-4 h-4 text-zinc-400" />}
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                  
+                  {/* Date/Time Picker for Schedule Later */}
+                  {form.schedule_type === "later" && (
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 space-y-3">
+                      <p className="text-sm font-medium text-blue-700 flex items-center gap-2">
+                        <Calendar className="w-4 h-4" /> Schedule Collection
+                      </p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs font-medium text-zinc-600">Date</label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className="w-full mt-1 h-10 px-3 rounded-lg border border-zinc-200 bg-white text-left text-sm flex items-center justify-between">
+                                {form.scheduled_date ? format(new Date(form.scheduled_date), "PPP") : "Pick date"}
+                                <Calendar className="w-4 h-4 text-zinc-400" />
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <CalendarComponent
+                                mode="single"
+                                selected={form.scheduled_date ? new Date(form.scheduled_date) : undefined}
+                                onSelect={(date: Date | undefined) => setForm(f => ({ ...f, scheduled_date: date ? date.toISOString() : "" }))}
+                                disabled={(date: Date) => date < new Date()}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-zinc-600">Time</label>
+                          <Input 
+                            type="time" 
+                            value={form.scheduled_time} 
+                            onChange={(e) => setForm(f => ({ ...f, scheduled_time: e.target.value }))} 
+                            className="mt-1 h-10" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {form.chama_type === "fundraising" && (
+                    <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                      <p className="text-sm text-purple-700 flex items-center gap-2"><Gift className="w-5 h-5" />Fundraising: Each member pledges their own amount.</p>
+                    </div>
+                  )}
                 </div>
               )}
               {createStep === 2 && (
@@ -984,7 +1120,18 @@ export default function ChamaPage() {
                   </div>
                 </div>
               )}
-              {createStep === 3 && (
+              {createStep === 3 && (() => {
+                // Check if admin's phone is already in the members list
+                const adminPhones = [userProfile?.phone_number, userProfile?.mpesa_number].filter(Boolean).map(p => p?.replace(/[\s\-]/g, ''))
+                const adminInList = form.members.some(m => {
+                  const memberPhone = m.phone.replace(/[\s\-]/g, '')
+                  return adminPhones.some(ap => ap === memberPhone || ap?.endsWith(memberPhone.slice(-9)) || memberPhone.endsWith(ap?.slice(-9) || ''))
+                })
+                const effectiveMemberCount = adminInList 
+                  ? form.members.length 
+                  : form.members.length + (form.include_admin_in_collection ? 1 : 0)
+                
+                return (
                 <div className="space-y-5">
                   <h3 className="text-sm font-medium text-zinc-900">Review & Create</h3>
                   <div className="p-5 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
@@ -992,11 +1139,16 @@ export default function ChamaPage() {
                       <div><p className="text-zinc-500">Name</p><p className="font-semibold text-zinc-900">{form.name || "—"}</p></div>
                       <div><p className="text-zinc-500">Type</p><p className="font-semibold text-zinc-900 capitalize">{form.chama_type}</p></div>
                       {form.chama_type !== "fundraising" && <div><p className="text-zinc-500">Contribution</p><p className="font-semibold text-zinc-900">{form.contribution_amount ? formatCurrency(parseFloat(form.contribution_amount)) : "—"}</p></div>}
-                      <div><p className="text-zinc-500">Frequency</p><p className="font-semibold text-zinc-900 capitalize">{form.collection_frequency}</p></div>
+                      <div><p className="text-zinc-500">Frequency</p><p className="font-semibold text-zinc-900 capitalize">{form.collection_frequency.replace('-', ' ')}</p></div>
                       <div>
                         <p className="text-zinc-500">Members</p>
                         <p className="font-semibold text-zinc-900">
-                          {form.members.length} added {form.include_admin_in_collection && <span className="text-purple-600">+ You (Admin)</span>}
+                          {form.members.length} added 
+                          {adminInList ? (
+                            <span className="text-emerald-600 ml-1">(You included)</span>
+                          ) : form.include_admin_in_collection ? (
+                            <span className="text-purple-600 ml-1">+ You (Admin)</span>
+                          ) : null}
                         </p>
                       </div>
                       <div>
@@ -1005,14 +1157,25 @@ export default function ChamaPage() {
                           {form.chama_type === "fundraising" 
                             ? formatCurrency(form.members.reduce((s, m) => s + (m.pledge_amount ? parseFloat(m.pledge_amount) : 0), 0)) 
                             : form.contribution_amount 
-                              ? formatCurrency(parseFloat(form.contribution_amount) * (form.members.length + (form.include_admin_in_collection ? 1 : 0))) 
+                              ? formatCurrency(parseFloat(form.contribution_amount) * effectiveMemberCount) 
                               : "—"}
                         </p>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Admin Collection Option */}
+                  {/* Admin Collection Option - Only show if admin not already in list */}
+                  {adminInList ? (
+                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                      <div className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-emerald-600" />
+                        <div>
+                          <p className="text-sm font-medium text-emerald-900">You're Already in the Members List</p>
+                          <p className="text-xs text-emerald-600">Your phone number was detected in the members. You'll receive STK pushes automatically.</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
                   <div className="p-4 rounded-xl bg-purple-50 border border-purple-200">
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input 
@@ -1027,6 +1190,7 @@ export default function ChamaPage() {
                       </div>
                     </label>
                   </div>
+                  )}
 
                   {/* Admin Phone Conflict Warning */}
                   {(() => {
@@ -1115,7 +1279,7 @@ export default function ChamaPage() {
                     return null
                   })()}
                 </div>
-              )}
+              )})()}
             </div>
             <div className="flex items-center justify-between p-6 border-t bg-zinc-50"><button onClick={() => createStep > 1 ? setCreateStep(s => s - 1) : (setShowCreateModal(false), resetForm())} className="px-5 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-200 rounded-xl">{createStep > 1 ? "Back" : "Cancel"}</button><button onClick={() => createStep < 3 ? setCreateStep(s => s + 1) : createChama()} disabled={createStep === 1 && (!form.name || (form.chama_type !== "fundraising" && !form.contribution_amount))} className="px-8 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 text-white disabled:opacity-50 shadow-lg">{createStep < 3 ? "Continue" : "Create Chama"}</button></div>
           </div>
