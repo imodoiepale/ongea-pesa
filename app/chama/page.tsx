@@ -12,6 +12,7 @@ import {
   LayoutGrid, List, Play, Pause, TrendingUp, AlertTriangle,
   ChevronDown, ChevronUp, Clock, ArrowUpRight, Hash, Phone,
   Activity, Target, Ban, RotateCcw, Receipt, CreditCard, StopCircle,
+  Contact, Smartphone,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -122,6 +123,73 @@ export default function ChamaPage() {
 
   const [newMember, setNewMember] = useState({ name: "", phone: "", email: "", pledge_amount: "" })
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null)
+  const [contactPickerSupported, setContactPickerSupported] = useState(false)
+
+  // Check if Contact Picker API is supported (PWA on mobile)
+  useEffect(() => {
+    if ('contacts' in navigator && 'ContactsManager' in window) {
+      setContactPickerSupported(true)
+    }
+  }, [])
+
+  // Pick contacts from device (PWA Contact Picker API)
+  const pickContacts = async () => {
+    try {
+      if (!('contacts' in navigator)) {
+        alert('Contact picker not supported. Please use a mobile device with PWA installed.')
+        return
+      }
+      
+      const props = ['name', 'tel']
+      const opts = { multiple: true }
+      
+      // @ts-ignore - Contact Picker API types not in standard lib
+      const contacts = await navigator.contacts.select(props, opts)
+      
+      if (contacts && contacts.length > 0) {
+        const newMembers: { name: string; phone: string; email: string; pledge_amount?: string }[] = []
+        const existingPhones = new Set(form.members.map(m => m.phone.replace(/\s/g, '')))
+        const adminPhones = new Set([userProfile?.phone_number, userProfile?.mpesa_number].filter(Boolean).map(p => p?.replace(/\s/g, '')))
+        
+        for (const contact of contacts) {
+          const name = contact.name?.[0] || 'Unknown'
+          const phones = contact.tel || []
+          
+          for (const phone of phones) {
+            // Normalize phone number
+            let normalizedPhone = phone.replace(/[\s\-\(\)]/g, '')
+            // Convert +254 to 0 format
+            if (normalizedPhone.startsWith('+254')) {
+              normalizedPhone = '0' + normalizedPhone.slice(4)
+            } else if (normalizedPhone.startsWith('254')) {
+              normalizedPhone = '0' + normalizedPhone.slice(3)
+            }
+            
+            // Skip if already added or is admin phone
+            if (existingPhones.has(normalizedPhone)) continue
+            if (adminPhones.has(normalizedPhone)) {
+              console.log(`Skipping admin phone: ${normalizedPhone}`)
+              continue
+            }
+            
+            existingPhones.add(normalizedPhone)
+            newMembers.push({ name, phone: normalizedPhone, email: '', pledge_amount: '' })
+            break // Only add first phone per contact
+          }
+        }
+        
+        if (newMembers.length > 0) {
+          setForm(f => ({ ...f, members: [...f.members, ...newMembers] }))
+        }
+        
+        console.log(`📱 Added ${newMembers.length} contacts from device`)
+      }
+    } catch (err: any) {
+      if (err.name !== 'InvalidStateError') {
+        console.error('Contact picker error:', err)
+      }
+    }
+  }
 
   useEffect(() => { checkAuth() }, [])
 
@@ -216,10 +284,22 @@ export default function ChamaPage() {
 
   const startPolling = (cycleId: string) => {
     if (pollingInterval) clearInterval(pollingInterval)
-    // Poll immediately, then every 5 seconds
-    pollPendingStk()
-    const interval = setInterval(() => pollPendingStk(), 5000)
-    setPollingInterval(interval)
+    // Poll immediately, then every 5 seconds - stop when all final
+    pollPendingStk().then(allFinal => {
+      if (allFinal) {
+        console.log('🛑 All STK requests have final status - not starting poll interval')
+        return
+      }
+      const interval = setInterval(async () => {
+        const shouldStop = await pollPendingStk()
+        if (shouldStop) {
+          console.log('🛑 All STK requests have final status - stopping polling')
+          clearInterval(interval)
+          setPollingInterval(null)
+        }
+      }, 5000)
+      setPollingInterval(interval)
+    })
   }
 
   const stopPolling = () => {
@@ -230,8 +310,8 @@ export default function ChamaPage() {
   }
 
   // Poll pending STK requests - manual trigger from Check Pending button
-  const pollPendingStk = async () => {
-    if (!selectedChama) return
+  const pollPendingStk = async (): Promise<boolean> => {
+    if (!selectedChama) return true // Stop if no chama
     setCollecting(true)
     
     try {
@@ -251,7 +331,7 @@ export default function ChamaPage() {
           .order("created_at", { ascending: false })
       ])
       
-      console.log(`📊 Poll: ${pollResponse.completed} completed, ${pollResponse.failed} failed, ${pollResponse.still_pending} pending`)
+      console.log(`📊 Poll: ${pollResponse.completed} completed, ${pollResponse.failed} failed, ${pollResponse.still_pending} pending${pollResponse.all_final ? ' - ALL FINAL' : ''}`)
       
       // Update STK requests with member info
       const stkData = stkResult.data || []
@@ -269,8 +349,12 @@ export default function ChamaPage() {
       if (pollResponse.completed > 0 && user?.id) {
         fetchChamas(user.id)
       }
+      
+      // Return true if all final (should stop polling)
+      return pollResponse.all_final === true
     } catch (err) {
       console.error("Poll pending error:", err)
+      return false
     } finally {
       setCollecting(false)
     }
@@ -281,11 +365,13 @@ export default function ChamaPage() {
 
   // Auto-poll when modal is open and there are pending STK requests
   // Initial poll is done in openChamaDetail, this just continues polling
+  // Stops automatically when all requests reach final status
   useEffect(() => {
     if (!showDetailModal || !selectedChama || pendingStkCount === 0) return
     
     let isPolling = false
     let isMounted = true
+    let intervalId: NodeJS.Timeout | null = null
     
     const pollAndRefresh = async () => {
       if (isPolling || !isMounted) return
@@ -301,7 +387,14 @@ export default function ChamaPage() {
         const result = await response.json()
         if (!isMounted) return
         
-        console.log(`📊 Poll: ${result.completed} completed, ${result.failed} failed, ${result.still_pending} pending`)
+        console.log(`📊 Poll: ${result.completed} completed, ${result.failed} failed, ${result.still_pending} pending${result.all_final ? ' - ALL FINAL' : ''}`)
+        
+        // Stop polling if all requests have final status
+        if (result.all_final && intervalId) {
+          console.log('🛑 All STK requests have final status - stopping auto-poll')
+          clearInterval(intervalId)
+          intervalId = null
+        }
         
         if (result.success && (result.completed > 0 || result.failed > 0)) {
           // Refresh STK history
@@ -332,11 +425,11 @@ export default function ChamaPage() {
     }
     
     // Poll every 5 seconds (initial poll done in openChamaDetail)
-    const intervalId = setInterval(pollAndRefresh, 5000)
+    intervalId = setInterval(pollAndRefresh, 5000)
     
     return () => {
       isMounted = false
-      clearInterval(intervalId)
+      if (intervalId) clearInterval(intervalId)
     }
   }, [showDetailModal, selectedChama?.id, pendingStkCount])
 
@@ -734,28 +827,161 @@ export default function ChamaPage() {
               )}
               {createStep === 2 && (
                 <div className="space-y-5">
-                  <div className="flex items-center justify-between"><div><h3 className="text-sm font-medium text-zinc-900">Add Members</h3><p className="text-xs text-zinc-500">Select from Ongea Pesa or upload CSV</p></div><div className="flex gap-2"><input type="file" ref={fileInputRef} onChange={handleCSVUpload} accept=".csv" className="hidden" /><button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-zinc-100 rounded-lg hover:bg-zinc-200 font-medium"><Upload className="w-3 h-3" /> Upload CSV</button></div></div>
-                  <div className="relative"><div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" /><input type="text" placeholder="Search Ongea Pesa users..." value={userSearchTerm} onChange={(e) => { setUserSearchTerm(e.target.value); setShowUserDropdown(true) }} className="w-full pl-10 pr-3 py-3 rounded-xl text-sm border border-zinc-200 bg-white" /></div>{showUserDropdown && userSearchTerm && <div className="absolute z-50 w-full mt-2 rounded-xl overflow-hidden bg-white border border-zinc-200 shadow-xl max-h-48 overflow-y-auto">{filteredUsers.slice(0, 10).map(u => <div key={u.id} onClick={() => { const phone = u.phone_number || u.mpesa_number || ""; if (phone && !form.members.find(m => m.phone === phone)) setForm(f => ({ ...f, members: [...f.members, { name: u.email || "User", phone, email: u.email || "", pledge_amount: "" }] })); setUserSearchTerm(""); setShowUserDropdown(false) }} className="flex items-center gap-3 p-3 hover:bg-zinc-50 cursor-pointer"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-medium text-white">{(u.email?.[0] || "U").toUpperCase()}</div><div className="flex-1"><p className="text-sm font-medium text-zinc-900">{u.email || "No email"}</p><p className="text-xs text-zinc-500">{u.phone_number || u.mpesa_number}</p></div><Plus className="w-4 h-4 text-blue-600" /></div>)}</div>}</div>
-                  <div className="flex gap-2"><Input placeholder="Name" value={newMember.name} onChange={(e) => setNewMember(m => ({ ...m, name: e.target.value }))} className="flex-1" /><Input placeholder="Phone" value={newMember.phone} onChange={(e) => setNewMember(m => ({ ...m, phone: e.target.value }))} className="w-32" />{form.chama_type === "fundraising" && <Input type="number" placeholder="Pledge" value={newMember.pledge_amount} onChange={(e) => setNewMember(m => ({ ...m, pledge_amount: e.target.value }))} className="w-24" />}<button onClick={() => { 
-                    if (newMember.name && newMember.phone) { 
-                      const normalizedPhone = newMember.phone.replace(/\s/g, '')
-                      const isDuplicate = form.members.some(m => m.phone.replace(/\s/g, '') === normalizedPhone)
-                      if (isDuplicate) {
-                        alert(`Phone ${newMember.phone} is already added`)
-                        return
-                      }
-                      // Check for admin phone conflict
-                      const adminPhones = [userProfile?.phone_number, userProfile?.mpesa_number].filter(Boolean).map(p => p?.replace(/\s/g, ''))
-                      if (adminPhones.includes(normalizedPhone)) {
-                        if (!confirm(`This phone (${newMember.phone}) matches your admin phone. You will be auto-added as admin.\n\nAdd anyway? (duplicate will be handled in review)`)) {
-                          return
-                        }
-                      }
-                      setForm(f => ({ ...f, members: [...f.members, { ...newMember, phone: normalizedPhone }] }))
-                      setNewMember({ name: "", phone: "", email: "", pledge_amount: "" }) 
-                    } 
-                  }} className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg"><Plus className="w-4 h-4" /></button></div>
-                  <div className="rounded-xl overflow-hidden border border-zinc-200"><div className="p-3 bg-zinc-50 border-b border-zinc-200"><span className="text-xs font-medium text-zinc-600">{form.members.length} members added</span></div><div className="max-h-48 overflow-y-auto">{form.members.length === 0 ? <div className="p-4 text-center text-zinc-500 text-sm">No members added yet</div> : form.members.map((m, i) => <div key={i} className="flex items-center gap-3 p-3 border-b border-zinc-100 last:border-0"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-bold text-white">{i + 1}</div><div className="flex-1"><p className="text-sm font-medium text-zinc-900">{m.name}</p><p className="text-xs text-zinc-500">{m.phone}</p></div>{m.pledge_amount && <span className="text-sm font-mono text-purple-600">{formatCurrency(parseFloat(m.pledge_amount))}</span>}<button onClick={() => setForm(f => ({ ...f, members: f.members.filter((_, j) => j !== i) }))} className="p-1 text-red-500 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4" /></button></div>)}</div></div>
+                  {/* Header with title */}
+                  <div>
+                    <h3 className="text-sm font-medium text-zinc-900">Add Members</h3>
+                    <p className="text-xs text-zinc-500">Add members from your contacts, Ongea Pesa, or manually</p>
+                  </div>
+                  
+                  {/* Quick Add Buttons - Mobile Friendly */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <button 
+                      onClick={pickContacts}
+                      className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 font-medium text-sm shadow-lg shadow-emerald-500/25 transition-all"
+                    >
+                      <Contact className="w-4 h-4" />
+                      <span className="hidden sm:inline">From Contacts</span>
+                      <span className="sm:hidden">Contacts</span>
+                    </button>
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center justify-center gap-2 px-4 py-3 bg-zinc-100 text-zinc-700 rounded-xl hover:bg-zinc-200 font-medium text-sm"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span className="hidden sm:inline">Upload CSV</span>
+                      <span className="sm:hidden">CSV</span>
+                    </button>
+                    <input type="file" ref={fileInputRef} onChange={handleCSVUpload} accept=".csv" className="hidden" />
+                  </div>
+                  
+                  {/* Contact Picker Hint for Mobile */}
+                  {!contactPickerSupported && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                      <p className="text-xs text-amber-700 flex items-center gap-2">
+                        <Smartphone className="w-4 h-4 flex-shrink-0" />
+                        <span>Install as PWA on mobile to pick contacts directly from your phone</span>
+                      </p>
+                    </div>
+                  )}
+                  {/* Search Ongea Pesa Users */}
+                  <div className="relative">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                      <input 
+                        type="text" 
+                        placeholder="Search Ongea Pesa users..." 
+                        value={userSearchTerm} 
+                        onChange={(e) => { setUserSearchTerm(e.target.value); setShowUserDropdown(true) }} 
+                        className="w-full pl-10 pr-3 py-3 rounded-xl text-sm border border-zinc-200 bg-white" 
+                      />
+                    </div>
+                    {showUserDropdown && userSearchTerm && (
+                      <div className="absolute z-50 w-full mt-2 rounded-xl overflow-hidden bg-white border border-zinc-200 shadow-xl max-h-48 overflow-y-auto">
+                        {filteredUsers.slice(0, 10).map(u => (
+                          <div 
+                            key={u.id} 
+                            onClick={() => { 
+                              const phone = u.phone_number || u.mpesa_number || ""; 
+                              if (phone && !form.members.find(m => m.phone === phone)) {
+                                setForm(f => ({ ...f, members: [...f.members, { name: u.email || "User", phone, email: u.email || "", pledge_amount: "" }] }))
+                              }
+                              setUserSearchTerm(""); 
+                              setShowUserDropdown(false) 
+                            }} 
+                            className="flex items-center gap-3 p-3 hover:bg-zinc-50 cursor-pointer"
+                          >
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-medium text-white">
+                              {(u.email?.[0] || "U").toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-zinc-900">{u.email || "No email"}</p>
+                              <p className="text-xs text-zinc-500">{u.phone_number || u.mpesa_number}</p>
+                            </div>
+                            <Plus className="w-4 h-4 text-blue-600" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Manual Add - Mobile Friendly */}
+                  <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                    <p className="text-xs font-medium text-zinc-500 mb-2">Or add manually:</p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Input placeholder="Name" value={newMember.name} onChange={(e) => setNewMember(m => ({ ...m, name: e.target.value }))} className="flex-1" />
+                      <Input placeholder="Phone (07...)" value={newMember.phone} onChange={(e) => setNewMember(m => ({ ...m, phone: e.target.value }))} className="sm:w-32" />
+                      {form.chama_type === "fundraising" && <Input type="number" placeholder="Pledge" value={newMember.pledge_amount} onChange={(e) => setNewMember(m => ({ ...m, pledge_amount: e.target.value }))} className="sm:w-24" />}
+                      <button 
+                        onClick={() => { 
+                          if (newMember.name && newMember.phone) { 
+                            const normalizedPhone = newMember.phone.replace(/\s/g, '')
+                            const isDuplicate = form.members.some(m => m.phone.replace(/\s/g, '') === normalizedPhone)
+                            if (isDuplicate) {
+                              alert(`Phone ${newMember.phone} is already added`)
+                              return
+                            }
+                            const adminPhones = [userProfile?.phone_number, userProfile?.mpesa_number].filter(Boolean).map(p => p?.replace(/\s/g, ''))
+                            if (adminPhones.includes(normalizedPhone)) {
+                              if (!confirm(`This phone matches your admin phone. Add anyway?`)) return
+                            }
+                            setForm(f => ({ ...f, members: [...f.members, { ...newMember, phone: normalizedPhone }] }))
+                            setNewMember({ name: "", phone: "", email: "", pledge_amount: "" }) 
+                          } 
+                        }} 
+                        className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg flex items-center gap-1 font-medium text-sm whitespace-nowrap"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span className="hidden sm:inline">Add</span>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Members List */}
+                  <div className="rounded-xl overflow-hidden border border-zinc-200">
+                    <div className="p-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
+                      <span className="text-xs font-medium text-zinc-600">{form.members.length} members added</span>
+                      {form.members.length > 0 && (
+                        <button 
+                          onClick={() => setForm(f => ({ ...f, members: [] }))} 
+                          className="text-xs text-red-500 hover:text-red-700"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {form.members.length === 0 ? (
+                        <div className="p-6 text-center">
+                          <Contact className="w-10 h-10 text-zinc-300 mx-auto mb-2" />
+                          <p className="text-zinc-500 text-sm">No members added yet</p>
+                          <p className="text-zinc-400 text-xs mt-1">Use the buttons above to add members</p>
+                        </div>
+                      ) : (
+                        form.members.map((m, i) => (
+                          <div key={i} className="flex items-center gap-3 p-3 border-b border-zinc-100 last:border-0 hover:bg-zinc-50">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                              {i + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-zinc-900 truncate">{m.name}</p>
+                              <p className="text-xs text-zinc-500">{m.phone}</p>
+                            </div>
+                            {m.pledge_amount && (
+                              <span className="text-sm font-mono text-purple-600 flex-shrink-0">
+                                {formatCurrency(parseFloat(m.pledge_amount))}
+                              </span>
+                            )}
+                            <button 
+                              onClick={() => setForm(f => ({ ...f, members: f.members.filter((_, j) => j !== i) }))} 
+                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
               {createStep === 3 && (
@@ -1123,7 +1349,18 @@ export default function ChamaPage() {
                                 "bg-amber-100 text-amber-700"
                               )}>{req.status}</span>
                             </td>
-                            <td className="px-3 py-2 text-center"><span className={cn((req.attempt_count || 1) >= 3 ? "text-red-600 font-semibold" : "text-zinc-600")}>{req.attempt_count || 1}/{req.max_attempts || 3}</span></td>
+                            <td className="px-3 py-2 text-center">
+                              <span className={cn("font-medium", (req.attempt_count || 1) >= 3 ? "text-red-600" : "text-zinc-600")}>
+                                {req.attempt_count || 1}/3
+                              </span>
+                              {req.status === "sent" && (req.attempt_count || 1) < 3 && (() => {
+                                const lastAttempt = new Date(req.last_attempt_at || req.created_at)
+                                const nextRetry = new Date(lastAttempt.getTime() + 10 * 60 * 1000)
+                                const now = new Date()
+                                const minsLeft = Math.max(0, Math.ceil((nextRetry.getTime() - now.getTime()) / 60000))
+                                return minsLeft > 0 ? <span className="block text-[9px] text-amber-600">retry in {minsLeft}m</span> : <span className="block text-[9px] text-blue-600">retrying...</span>
+                              })()}
+                            </td>
                             <td className="px-3 py-2 font-mono text-[10px] text-zinc-500">{req.account_number || "—"}</td>
                             <td className="px-3 py-2 font-mono text-[10px] text-emerald-600">{req.mpesa_receipt_number || "—"}</td>
                             <td className="px-3 py-2 text-center">
@@ -1407,9 +1644,16 @@ export default function ChamaPage() {
                             )}>{req.status}</span>
                           </td>
                           <td className="px-3 py-2 text-center">
-                            <span className={cn("font-semibold", (req.attempt_count || 1) >= (req.max_attempts || 3) ? "text-red-600" : "text-zinc-600")}>
-                              {req.attempt_count || 1}/{req.max_attempts || 3}
+                            <span className={cn("font-medium", (req.attempt_count || 1) >= 3 ? "text-red-600" : "text-zinc-600")}>
+                              {req.attempt_count || 1}/3
                             </span>
+                            {req.status === "sent" && (req.attempt_count || 1) < 3 && (() => {
+                              const lastAttempt = new Date(req.last_attempt_at || req.created_at)
+                              const nextRetry = new Date(lastAttempt.getTime() + 10 * 60 * 1000)
+                              const now = new Date()
+                              const minsLeft = Math.max(0, Math.ceil((nextRetry.getTime() - now.getTime()) / 60000))
+                              return minsLeft > 0 ? <span className="block text-[9px] text-amber-600">retry in {minsLeft}m</span> : <span className="block text-[9px] text-blue-600">retrying...</span>
+                            })()}
                           </td>
                           <td className="px-3 py-2 font-mono text-[10px] text-zinc-500">{req.account_number || "—"}</td>
                           <td className="px-3 py-2 font-mono text-[10px] text-zinc-500 truncate max-w-[100px]" title={req.checkout_request_id}>{req.checkout_request_id || "—"}</td>

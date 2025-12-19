@@ -273,33 +273,129 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Still pending - check if expired
-      const createdAt = new Date(stkRequest.created_at);
+      // Still pending - check if expired and handle auto-retry
+      const lastAttemptAt = new Date(stkRequest.last_attempt_at || stkRequest.created_at);
       const now = new Date();
-      const ageMinutes = (now.getTime() - createdAt.getTime()) / (1000 * 60);
+      const minutesSinceLastAttempt = (now.getTime() - lastAttemptAt.getTime()) / (1000 * 60);
+      const attemptCount = stkRequest.attempt_count || 1;
+      const maxAttempts = 3; // Max 3 auto-retry attempts
+      const retryGapMinutes = 10; // 10 minutes between retries
 
-      if (ageMinutes > 2 && stkRequest.status === 'sent') {
-        // Mark as failed/expired
-        console.log(`   ⏱️ STK expired (${Math.round(ageMinutes)} min old)`);
-        await supabase
-          .from('chama_stk_requests')
-          .update({
-            status: 'failed',
-            error_message: 'STK prompt expired - user did not respond',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', stkRequest.id);
+      // Check if STK has expired (2+ minutes since sent with no response)
+      if (minutesSinceLastAttempt > 2 && stkRequest.status === 'sent') {
+        // STK expired - check if we should auto-retry or mark as failed
+        if (attemptCount >= maxAttempts) {
+          // Max retries reached - mark as permanently failed
+          console.log(`   ❌ Max retries (${maxAttempts}) reached - marking as failed`);
+          await supabase
+            .from('chama_stk_requests')
+            .update({
+              status: 'failed',
+              error_message: `Failed after ${maxAttempts} attempts - user did not respond`,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', stkRequest.id);
 
-        failedCount++;
-        updatedRequests.push({ ...stkRequest, status: 'failed', error_message: 'STK prompt expired' });
+          failedCount++;
+          updatedRequests.push({ 
+            ...stkRequest, 
+            status: 'failed', 
+            error_message: `Failed after ${maxAttempts} attempts` 
+          });
+        } else if (minutesSinceLastAttempt >= retryGapMinutes) {
+          // Time for auto-retry
+          console.log(`   🔄 Auto-retrying (attempt ${attemptCount + 1}/${maxAttempts})...`);
+          
+          // Send new STK push
+          const formData = new FormData();
+          formData.append('user_email', 'info@nsait.co.ke');
+          formData.append('request', '1');
+          formData.append('transaction_intent', 'Deposit');
+          formData.append('phone', stkRequest.phone_number.replace(/\s/g, ''));
+          formData.append('amount', stkRequest.amount.toString());
+          formData.append('currency', 'KES');
+          formData.append('gate_name', gateName || 'ongeapesa');
+          formData.append('pocket_name', `chama_${stkRequest.chama_id}`);
+          formData.append('payment_mode', 'MPESA');
+
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            const retryResponse = await fetch('https://aps.co.ke/indexpay/api/gate_deposit.php', {
+              method: 'POST',
+              body: formData,
+              signal: controller.signal,
+            });
+            clearTimeout(timeoutId);
+
+            const retryData = await retryResponse.json();
+            let success = false;
+            let trxId = stkRequest.checkout_request_id;
+            let accountNumber = stkRequest.account_number;
+
+            if (retryData.mpesapayment && Array.isArray(retryData.mpesapayment)) {
+              for (const item of retryData.mpesapayment) {
+                if (item.bool_code?.toUpperCase() === 'TRUE') success = true;
+                if (item.trx_id) trxId = item.trx_id;
+                if (item.account_number) accountNumber = item.account_number;
+              }
+            }
+
+            // Update STK request with retry info
+            await supabase
+              .from('chama_stk_requests')
+              .update({
+                status: success ? 'sent' : 'failed',
+                checkout_request_id: trxId,
+                account_number: accountNumber,
+                attempt_count: attemptCount + 1,
+                last_attempt_at: new Date().toISOString(),
+                error_message: success ? null : 'Auto-retry STK push failed',
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', stkRequest.id);
+
+            if (success) {
+              console.log(`   ✅ Auto-retry STK sent (attempt ${attemptCount + 1})`);
+              stillPendingCount++;
+              updatedRequests.push({ 
+                ...stkRequest, 
+                status: 'sent', 
+                attempt_count: attemptCount + 1 
+              });
+            } else {
+              console.log(`   ⚠️ Auto-retry failed, will try again in ${retryGapMinutes} min`);
+              stillPendingCount++;
+              updatedRequests.push({ 
+                ...stkRequest, 
+                status: 'failed', 
+                attempt_count: attemptCount + 1 
+              });
+            }
+          } catch (retryError) {
+            console.error(`   ❌ Auto-retry error:`, retryError);
+            stillPendingCount++;
+            updatedRequests.push(stkRequest);
+          }
+        } else {
+          // Waiting for retry gap
+          const waitMinutes = Math.ceil(retryGapMinutes - minutesSinceLastAttempt);
+          console.log(`   ⏳ Waiting for retry (${waitMinutes} min until attempt ${attemptCount + 1}/${maxAttempts})`);
+          stillPendingCount++;
+          updatedRequests.push(stkRequest);
+        }
       } else {
-        console.log(`   ⏳ Still pending`);
+        console.log(`   ⏳ Still pending (attempt ${attemptCount}/${maxAttempts})`);
         stillPendingCount++;
         updatedRequests.push(stkRequest);
       }
     }
 
-    console.log(`📊 Poll results: ${completedCount} completed, ${failedCount} failed, ${stillPendingCount} still pending`);
+    // Check if all requests have reached final status (no more pending)
+    const allFinal = stillPendingCount === 0;
+    
+    console.log(`📊 Poll results: ${completedCount} completed, ${failedCount} failed, ${stillPendingCount} still pending${allFinal ? ' - ALL FINAL' : ''}`);
 
     return NextResponse.json({
       success: true,
@@ -307,6 +403,7 @@ export async function POST(request: NextRequest) {
       failed: failedCount,
       still_pending: stillPendingCount,
       total_checked: pendingRequests.length,
+      all_final: allFinal, // True when no more pending requests - stop polling
       stk_requests: updatedRequests,
     });
 
