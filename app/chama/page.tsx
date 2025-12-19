@@ -1416,13 +1416,82 @@ export default function ChamaPage() {
       {showAddMemberModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
           <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-            <div className="flex items-center justify-between p-5 border-b bg-gradient-to-r from-blue-600 to-indigo-600"><h3 className="font-semibold text-white">Add Member</h3><button onClick={() => { setShowAddMemberModal(false); setSelectedUser(null); setNewMember({ name: "", phone: "", email: "", pledge_amount: "" }) }} className="p-1 hover:bg-white/20 rounded text-white"><X className="w-5 h-5" /></button></div>
-            <div className="p-5 space-y-4">
-              <div className="relative"><label className="text-xs font-medium text-zinc-700 mb-1 block">Search Ongea Pesa Users</label><div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" /><input type="text" placeholder="Search by email or phone..." value={userSearchTerm} onChange={(e) => setUserSearchTerm(e.target.value)} className="w-full pl-10 pr-3 py-2.5 rounded-xl text-sm border border-zinc-200 bg-white" /></div>{userSearchTerm && <div className="absolute z-10 w-full mt-1 rounded-xl overflow-hidden bg-white border border-zinc-200 shadow-xl max-h-40 overflow-y-auto">{filteredUsers.slice(0, 5).map(u => <div key={u.id} onClick={() => { setSelectedUser(u); setUserSearchTerm("") }} className="flex items-center gap-3 p-3 hover:bg-zinc-50 cursor-pointer"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-medium text-white">{(u.email?.[0] || "U").toUpperCase()}</div><div className="flex-1"><p className="text-sm font-medium">{u.email || "No email"}</p><p className="text-xs text-zinc-500">{u.phone_number || u.mpesa_number}</p></div></div>)}</div>}</div>
-              {selectedUser ? <div className="p-3 bg-blue-50 rounded-xl flex items-center gap-3 border border-blue-200"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"><User className="w-5 h-5 text-white" /></div><div className="flex-1"><p className="font-medium text-zinc-900">{selectedUser.email}</p><p className="text-xs text-zinc-500">{selectedUser.phone_number || selectedUser.mpesa_number}</p></div><button onClick={() => setSelectedUser(null)} className="p-1 text-zinc-400 hover:text-zinc-600"><X className="w-4 h-4" /></button></div> : <><div className="text-center text-xs text-zinc-400 py-2">— or enter manually —</div><div className="space-y-3"><div><label className="text-xs font-medium text-zinc-700">Name</label><Input value={newMember.name} onChange={(e) => setNewMember(m => ({ ...m, name: e.target.value }))} placeholder="John Doe" className="mt-1" /></div><div><label className="text-xs font-medium text-zinc-700">Phone</label><Input value={newMember.phone} onChange={(e) => setNewMember(m => ({ ...m, phone: e.target.value }))} placeholder="0712345678" className="mt-1" /></div></div></>}
-              {selectedChama?.chama_type === "fundraising" && <div><label className="text-xs font-medium text-zinc-700">Pledge Amount (KES)</label><Input type="number" value={newMember.pledge_amount} onChange={(e) => setNewMember(m => ({ ...m, pledge_amount: e.target.value }))} placeholder="10000" className="mt-1" /></div>}
+            <div className="flex items-center justify-between p-5 border-b bg-gradient-to-r from-blue-600 to-indigo-600">
+              <h3 className="font-semibold text-white">Add Member</h3>
+              <button onClick={() => { setShowAddMemberModal(false); setSelectedUser(null); setNewMember({ name: "", phone: "", email: "", pledge_amount: "" }) }} className="p-1 hover:bg-white/20 rounded text-white"><X className="w-5 h-5" /></button>
             </div>
-            <div className="flex gap-2 p-5 border-t"><button onClick={() => { setShowAddMemberModal(false); setSelectedUser(null) }} className="flex-1 py-2.5 text-sm text-zinc-600 hover:bg-zinc-100 rounded-xl">Cancel</button><button onClick={addMember} disabled={!selectedUser && (!newMember.name || !newMember.phone)} className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 text-white disabled:opacity-50">Add Member</button></div>
+            <div className="p-5 space-y-4">
+              {/* Pick from Contacts - Mobile PWA */}
+              <button 
+                onClick={async () => {
+                  try {
+                    if (!('contacts' in navigator)) {
+                      alert('Contact picker not supported. Use manual entry.')
+                      return
+                    }
+                    // @ts-ignore
+                    const contacts = await navigator.contacts.select(['name', 'tel'], { multiple: false })
+                    if (contacts && contacts.length > 0) {
+                      const contact = contacts[0]
+                      let phone = contact.tel?.[0] || ''
+                      phone = phone.replace(/[\s\-\(\)]/g, '')
+                      if (phone.startsWith('+254')) phone = '0' + phone.slice(4)
+                      else if (phone.startsWith('254')) phone = '0' + phone.slice(3)
+                      setNewMember(m => ({ ...m, name: contact.name?.[0] || '', phone }))
+                      setSelectedUser(null)
+                    }
+                  } catch (err) { console.error('Contact picker:', err) }
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 font-medium text-sm shadow-lg shadow-emerald-500/25"
+              >
+                <Contact className="w-4 h-4" />
+                Pick from Contacts
+              </button>
+              
+              {/* Search Ongea Pesa */}
+              <div className="relative">
+                <label className="text-xs font-medium text-zinc-700 mb-1 block">Search Ongea Pesa Users</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                  <input type="text" placeholder="Search by email or phone..." value={userSearchTerm} onChange={(e) => setUserSearchTerm(e.target.value)} className="w-full pl-10 pr-3 py-2.5 rounded-xl text-sm border border-zinc-200 bg-white" />
+                </div>
+                {userSearchTerm && (
+                  <div className="absolute z-10 w-full mt-1 rounded-xl overflow-hidden bg-white border border-zinc-200 shadow-xl max-h-40 overflow-y-auto">
+                    {filteredUsers.slice(0, 5).map(u => (
+                      <div key={u.id} onClick={() => { setSelectedUser(u); setUserSearchTerm(""); setNewMember({ name: "", phone: "", email: "", pledge_amount: "" }) }} className="flex items-center gap-3 p-3 hover:bg-zinc-50 cursor-pointer">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-medium text-white">{(u.email?.[0] || "U").toUpperCase()}</div>
+                        <div className="flex-1"><p className="text-sm font-medium">{u.email || "No email"}</p><p className="text-xs text-zinc-500">{u.phone_number || u.mpesa_number}</p></div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Selected User or Manual Entry */}
+              {selectedUser ? (
+                <div className="p-3 bg-blue-50 rounded-xl flex items-center gap-3 border border-blue-200">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"><User className="w-5 h-5 text-white" /></div>
+                  <div className="flex-1"><p className="font-medium text-zinc-900">{selectedUser.email}</p><p className="text-xs text-zinc-500">{selectedUser.phone_number || selectedUser.mpesa_number}</p></div>
+                  <button onClick={() => setSelectedUser(null)} className="p-1 text-zinc-400 hover:text-zinc-600"><X className="w-4 h-4" /></button>
+                </div>
+              ) : (
+                <>
+                  <div className="text-center text-xs text-zinc-400 py-1">— or enter manually —</div>
+                  <div className="space-y-3">
+                    <div><label className="text-xs font-medium text-zinc-700">Name</label><Input value={newMember.name} onChange={(e) => setNewMember(m => ({ ...m, name: e.target.value }))} placeholder="John Doe" className="mt-1" /></div>
+                    <div><label className="text-xs font-medium text-zinc-700">Phone</label><Input value={newMember.phone} onChange={(e) => setNewMember(m => ({ ...m, phone: e.target.value }))} placeholder="0712345678" className="mt-1" /></div>
+                  </div>
+                </>
+              )}
+              
+              {selectedChama?.chama_type === "fundraising" && (
+                <div><label className="text-xs font-medium text-zinc-700">Pledge Amount (KES)</label><Input type="number" value={newMember.pledge_amount} onChange={(e) => setNewMember(m => ({ ...m, pledge_amount: e.target.value }))} placeholder="10000" className="mt-1" /></div>
+              )}
+            </div>
+            <div className="flex gap-2 p-5 border-t">
+              <button onClick={() => { setShowAddMemberModal(false); setSelectedUser(null) }} className="flex-1 py-2.5 text-sm text-zinc-600 hover:bg-zinc-100 rounded-xl">Cancel</button>
+              <button onClick={addMember} disabled={!selectedUser && (!newMember.name || !newMember.phone)} className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 text-white disabled:opacity-50">Add Member</button>
+            </div>
           </div>
         </div>
       )}
