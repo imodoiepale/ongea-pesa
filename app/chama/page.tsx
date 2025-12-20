@@ -148,6 +148,8 @@ export default function ChamaPage() {
   }, [])
 
   // Pick contacts from device (PWA Contact Picker API)
+  const [contactPickerMessage, setContactPickerMessage] = useState<string | null>(null)
+  
   const pickContacts = async () => {
     try {
       if (!('contacts' in navigator)) {
@@ -165,6 +167,8 @@ export default function ChamaPage() {
         const newMembers: { name: string; phone: string; email: string; pledge_amount?: string }[] = []
         const existingPhones = new Set(form.members.map(m => m.phone.replace(/\s/g, '')))
         const adminPhones = new Set([userProfile?.phone_number, userProfile?.mpesa_number].filter(Boolean).map(p => p?.replace(/\s/g, '')))
+        let skippedAdmin = 0
+        let skippedDuplicate = 0
         
         for (const contact of contacts) {
           const name = contact.name?.[0] || 'Unknown'
@@ -180,10 +184,14 @@ export default function ChamaPage() {
               normalizedPhone = '0' + normalizedPhone.slice(3)
             }
             
-            // Skip if already added or is admin phone
-            if (existingPhones.has(normalizedPhone)) continue
+            // Skip if already added
+            if (existingPhones.has(normalizedPhone)) {
+              skippedDuplicate++
+              continue
+            }
+            // Skip admin phone
             if (adminPhones.has(normalizedPhone)) {
-              console.log(`Skipping admin phone: ${normalizedPhone}`)
+              skippedAdmin++
               continue
             }
             
@@ -197,11 +205,20 @@ export default function ChamaPage() {
           setForm(f => ({ ...f, members: [...f.members, ...newMembers] }))
         }
         
+        // Show feedback message
+        let msg = `✅ Added ${newMembers.length} contact${newMembers.length !== 1 ? 's' : ''}`
+        if (skippedDuplicate > 0) msg += `, ${skippedDuplicate} duplicate${skippedDuplicate !== 1 ? 's' : ''} skipped`
+        if (skippedAdmin > 0) msg += `, ${skippedAdmin} (your number) skipped`
+        setContactPickerMessage(msg)
+        setTimeout(() => setContactPickerMessage(null), 4000)
+        
         console.log(`📱 Added ${newMembers.length} contacts from device`)
       }
     } catch (err: any) {
       if (err.name !== 'InvalidStateError') {
         console.error('Contact picker error:', err)
+        setContactPickerMessage('❌ Failed to pick contacts')
+        setTimeout(() => setContactPickerMessage(null), 3000)
       }
     }
   }
@@ -970,32 +987,40 @@ export default function ChamaPage() {
                   </div>
                   
                   {/* Quick Add Buttons - Mobile Friendly */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <button 
                       onClick={pickContacts}
-                      className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 font-medium text-sm shadow-lg shadow-emerald-500/25 transition-all"
+                      className="flex items-center justify-center gap-2 px-3 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 font-medium text-sm shadow-lg shadow-emerald-500/25 transition-all"
                     >
-                      <Contact className="w-4 h-4" />
-                      <span className="hidden sm:inline">From Contacts</span>
-                      <span className="sm:hidden">Contacts</span>
+                      <Contact className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">Pick Contacts</span>
                     </button>
                     <button 
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center justify-center gap-2 px-4 py-3 bg-zinc-100 text-zinc-700 rounded-xl hover:bg-zinc-200 font-medium text-sm"
+                      className="flex items-center justify-center gap-2 px-3 py-3 bg-zinc-100 text-zinc-700 rounded-xl hover:bg-zinc-200 font-medium text-sm"
                     >
-                      <Upload className="w-4 h-4" />
-                      <span className="hidden sm:inline">Upload CSV</span>
-                      <span className="sm:hidden">CSV</span>
+                      <Upload className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">Upload CSV</span>
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleCSVUpload} accept=".csv" className="hidden" />
                   </div>
                   
+                  {/* Contact Picker Feedback Message */}
+                  {contactPickerMessage && (
+                    <div className={cn(
+                      "p-3 rounded-xl text-sm font-medium animate-in fade-in slide-in-from-top-2",
+                      contactPickerMessage.startsWith('✅') ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"
+                    )}>
+                      {contactPickerMessage}
+                    </div>
+                  )}
+                  
                   {/* Contact Picker Hint for Mobile */}
-                  {!contactPickerSupported && (
+                  {!contactPickerSupported && !contactPickerMessage && (
                     <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
                       <p className="text-xs text-amber-700 flex items-center gap-2">
                         <Smartphone className="w-4 h-4 flex-shrink-0" />
-                        <span>Install as PWA on mobile to pick contacts directly from your phone</span>
+                        <span>Install as PWA on mobile to pick multiple contacts at once</span>
                       </p>
                     </div>
                   )}
@@ -1041,35 +1066,36 @@ export default function ChamaPage() {
                   </div>
                   
                   {/* Manual Add - Mobile Friendly */}
-                  <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
-                    <p className="text-xs font-medium text-zinc-500 mb-2">Or add manually:</p>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Input placeholder="Name" value={newMember.name} onChange={(e) => setNewMember(m => ({ ...m, name: e.target.value }))} className="flex-1" />
-                      <Input placeholder="Phone (07...)" value={newMember.phone} onChange={(e) => setNewMember(m => ({ ...m, phone: e.target.value }))} className="sm:w-32" />
-                      {form.chama_type === "fundraising" && <Input type="number" placeholder="Pledge" value={newMember.pledge_amount} onChange={(e) => setNewMember(m => ({ ...m, pledge_amount: e.target.value }))} className="sm:w-24" />}
-                      <button 
-                        onClick={() => { 
-                          if (newMember.name && newMember.phone) { 
-                            const normalizedPhone = newMember.phone.replace(/\s/g, '')
-                            const isDuplicate = form.members.some(m => m.phone.replace(/\s/g, '') === normalizedPhone)
-                            if (isDuplicate) {
-                              alert(`Phone ${newMember.phone} is already added`)
-                              return
-                            }
-                            const adminPhones = [userProfile?.phone_number, userProfile?.mpesa_number].filter(Boolean).map(p => p?.replace(/\s/g, ''))
-                            if (adminPhones.includes(normalizedPhone)) {
-                              if (!confirm(`This phone matches your admin phone. Add anyway?`)) return
-                            }
-                            setForm(f => ({ ...f, members: [...f.members, { ...newMember, phone: normalizedPhone }] }))
-                            setNewMember({ name: "", phone: "", email: "", pledge_amount: "" }) 
-                          } 
-                        }} 
-                        className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg flex items-center gap-1 font-medium text-sm whitespace-nowrap"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span className="hidden sm:inline">Add</span>
-                      </button>
+                  <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
+                    <p className="text-xs font-medium text-zinc-500">Or add manually:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input placeholder="Name" value={newMember.name} onChange={(e) => setNewMember(m => ({ ...m, name: e.target.value }))} className="col-span-2 sm:col-span-1 h-10" />
+                      <Input placeholder="Phone (07...)" value={newMember.phone} onChange={(e) => setNewMember(m => ({ ...m, phone: e.target.value }))} className="col-span-2 sm:col-span-1 h-10" />
+                      {form.chama_type === "fundraising" && <Input type="number" placeholder="Pledge amount" value={newMember.pledge_amount} onChange={(e) => setNewMember(m => ({ ...m, pledge_amount: e.target.value }))} className="col-span-2 h-10" />}
                     </div>
+                    <button 
+                      onClick={() => { 
+                        if (newMember.name && newMember.phone) { 
+                          const normalizedPhone = newMember.phone.replace(/\s/g, '')
+                          const isDuplicate = form.members.some(m => m.phone.replace(/\s/g, '') === normalizedPhone)
+                          if (isDuplicate) {
+                            alert(`Phone ${newMember.phone} is already added`)
+                            return
+                          }
+                          const adminPhones = [userProfile?.phone_number, userProfile?.mpesa_number].filter(Boolean).map(p => p?.replace(/\s/g, ''))
+                          if (adminPhones.includes(normalizedPhone)) {
+                            if (!confirm(`This phone matches your admin phone. Add anyway?`)) return
+                          }
+                          setForm(f => ({ ...f, members: [...f.members, { ...newMember, phone: normalizedPhone }] }))
+                          setNewMember({ name: "", phone: "", email: "", pledge_amount: "" }) 
+                        } 
+                      }} 
+                      disabled={!newMember.name || !newMember.phone}
+                      className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg flex items-center justify-center gap-2 font-medium text-sm disabled:opacity-50"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Member
+                    </button>
                   </div>
                   
                   {/* Members List */}
