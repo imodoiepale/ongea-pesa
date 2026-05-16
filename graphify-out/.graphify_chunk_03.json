@@ -1,0 +1,1178 @@
+{
+  "nodes": [
+    {
+      "id": "USERID_IMPLEMENTATION_userid_flow",
+      "label": "userId Implementation & Auth Flow",
+      "file_type": "document",
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "USERID_IMPLEMENTATION_usercontext",
+      "label": "UserContext (contexts/UserContext.tsx)",
+      "file_type": "document",
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md",
+      "source_location": "line 27",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "USERID_IMPLEMENTATION_get_signed_url_api",
+      "label": "API Endpoint: get-signed-url (Server-side Auth)",
+      "file_type": "document",
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md",
+      "source_location": "line 33",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "USERID_IMPLEMENTATION_voice_sessions_table",
+      "label": "voice_sessions Database Table",
+      "file_type": "document",
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md",
+      "source_location": "line 135",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "USERID_IMPLEMENTATION_guest_user_fallback",
+      "label": "Guest User Fallback (localStorage)",
+      "file_type": "rationale",
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md",
+      "source_location": "line 157",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "VAPI_N8N_vapi_voice_agent",
+      "label": "Vapi Voice Agent (Payment Assistant)",
+      "file_type": "document",
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": "line 1",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "VAPI_N8N_n8n_voice_payment_workflow",
+      "label": "n8n Voice Payment Processing Workflow",
+      "file_type": "document",
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": "line 93",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "VAPI_N8N_mpesa_stk_push",
+      "label": "M-Pesa STK Push (Safaricom API)",
+      "file_type": "document",
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": "line 214",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "VAPI_N8N_mpesa_callback_handler",
+      "label": "M-Pesa Callback Handler (n8n Workflow)",
+      "file_type": "document",
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": "line 658",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "VAPI_N8N_balance_check_workflow",
+      "label": "n8n Balance Check Workflow",
+      "file_type": "document",
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": "line 527",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ip_master_guide",
+      "label": "IP Protection Master Guide",
+      "file_type": "document",
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Legal Team",
+      "contributor": null
+    },
+    {
+      "id": "ip_master_guide_kipi",
+      "label": "Kenya Industrial Property Institute (KIPI)",
+      "file_type": "rationale",
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 107",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ip_master_guide_kecobo",
+      "label": "Kenya Copyright Board (KECOBO)",
+      "file_type": "rationale",
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 113",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ip_master_guide_aripo",
+      "label": "African Regional Intellectual Property Organization (ARIPO)",
+      "file_type": "rationale",
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 469",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ip_master_guide_wipo",
+      "label": "World Intellectual Property Organization (WIPO)",
+      "file_type": "rationale",
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 464",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ip_master_guide_trade_secrets",
+      "label": "Trade Secrets Protection (NDAs + Access Controls)",
+      "file_type": "rationale",
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 131",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ip_trademark_guide",
+      "label": "Trademark Registration Guide",
+      "file_type": "document",
+      "source_file": "docs/ip-protection/01-TRADEMARK-REGISTRATION-GUIDE.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Legal Team",
+      "contributor": null
+    },
+    {
+      "id": "ip_copyright_guide",
+      "label": "Copyright Protection Guide",
+      "file_type": "document",
+      "source_file": "docs/ip-protection/02-COPYRIGHT-PROTECTION-GUIDE.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Legal Team",
+      "contributor": null
+    },
+    {
+      "id": "ip_patent_guide",
+      "label": "Patent & Utility Models Guide",
+      "file_type": "document",
+      "source_file": "docs/ip-protection/03-PATENT-UTILITY-MODELS-GUIDE.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Legal Team",
+      "contributor": null
+    },
+    {
+      "id": "ip_international_guide",
+      "label": "International IP Protection Guide",
+      "file_type": "document",
+      "source_file": "docs/ip-protection/05-INTERNATIONAL-IP-PROTECTION.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Legal Team",
+      "contributor": null
+    },
+    {
+      "id": "ip_enforcement_guide",
+      "label": "IP Enforcement & Monitoring Guide",
+      "file_type": "document",
+      "source_file": "docs/ip-protection/06-IP-ENFORCEMENT-MONITORING.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Legal Team",
+      "contributor": null
+    },
+    {
+      "id": "ip_registry_guide",
+      "label": "IP Registry & Management Guide",
+      "file_type": "document",
+      "source_file": "docs/ip-protection/07-IP-REGISTRY-MANAGEMENT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Legal Team",
+      "contributor": null
+    },
+    {
+      "id": "ip_readme",
+      "label": "IP Protection Documentation README",
+      "file_type": "document",
+      "source_file": "docs/ip-protection/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Legal Team",
+      "contributor": null
+    },
+    {
+      "id": "nda_mutual_template",
+      "label": "Mutual NDA Template",
+      "file_type": "document",
+      "source_file": "docs/ip-protection/templates/NDA-TEMPLATE-MUTUAL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Legal Team",
+      "contributor": null
+    },
+    {
+      "id": "nda_unilateral_template",
+      "label": "Unilateral NDA Template",
+      "file_type": "document",
+      "source_file": "docs/ip-protection/templates/NDA-TEMPLATE-UNILATERAL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Legal Team",
+      "contributor": null
+    },
+    {
+      "id": "setup_gemini",
+      "label": "Gemini AI Setup Guide",
+      "file_type": "document",
+      "source_file": "docs/setup/GEMINI.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "setup_local_testing",
+      "label": "Local Testing Guide (ngrok/Webhook Tunneling)",
+      "file_type": "document",
+      "source_file": "docs/setup/LOCAL_TESTING.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "setup_guide",
+      "label": "Complete Setup Guide (ElevenLabs + n8n + Supabase)",
+      "file_type": "document",
+      "source_file": "docs/setup/SETUP_GUIDE.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "setup_voice_setup",
+      "label": "Voice Setup Documentation",
+      "file_type": "document",
+      "source_file": "docs/setup/VOICE_SETUP.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_icons_readme",
+      "label": "PWA Icons README",
+      "file_type": "document",
+      "source_file": "public/icons/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_splash_readme",
+      "label": "Apple Splash Screens README",
+      "file_type": "document",
+      "source_file": "public/splash/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "schema_db",
+      "label": "Complete Database Schema (Supabase/PostgreSQL)",
+      "file_type": "document",
+      "source_file": "schema/db.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "schema_db_profiles_table",
+      "label": "profiles Table (Supabase)",
+      "file_type": "document",
+      "source_file": "schema/db.md",
+      "source_location": "line 19",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "schema_db_transactions_table",
+      "label": "transactions Table (Supabase)",
+      "file_type": "document",
+      "source_file": "schema/db.md",
+      "source_location": "line 47",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "schema_db_voice_sessions_table",
+      "label": "voice_sessions Table (Supabase)",
+      "file_type": "document",
+      "source_file": "schema/db.md",
+      "source_location": "line 101",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "schema_db_balance_history_table",
+      "label": "balance_history Table (Supabase)",
+      "file_type": "document",
+      "source_file": "schema/db.md",
+      "source_location": "line 118",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "schema_db_mpesa_transactions_table",
+      "label": "mpesa_transactions Table (Supabase)",
+      "file_type": "document",
+      "source_file": "schema/db.md",
+      "source_location": "line 134",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "schema_db_contacts_table",
+      "label": "contacts Table (Supabase)",
+      "file_type": "document",
+      "source_file": "schema/db.md",
+      "source_location": "line 183",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "schema_db_subscriptions_table",
+      "label": "subscriptions Table (Supabase)",
+      "file_type": "document",
+      "source_file": "schema/db.md",
+      "source_location": "line 206",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "schema_db_rls",
+      "label": "Row Level Security (RLS) Policies",
+      "file_type": "rationale",
+      "source_file": "schema/db.md",
+      "source_location": "line 269",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "schema_db_update_balance_fn",
+      "label": "update_user_balance() DB Function",
+      "file_type": "document",
+      "source_file": "schema/db.md",
+      "source_location": "line 335",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ip_voice_auth_patent",
+      "label": "Voice Authentication Method (Patentable Innovation)",
+      "file_type": "rationale",
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 219",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "setup_ngrok_tunnel",
+      "label": "ngrok Webhook Tunnel (Local Dev)",
+      "file_type": "rationale",
+      "source_file": "docs/setup/LOCAL_TESTING.md",
+      "source_location": "line 9",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "setup_gemini_scanner",
+      "label": "Gemini AI Payment Scanner",
+      "file_type": "rationale",
+      "source_file": "docs/setup/GEMINI.md",
+      "source_location": "line 25",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "USERID_IMPLEMENTATION_userid_flow",
+      "target": "USERID_IMPLEMENTATION_usercontext",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md",
+      "source_location": "line 27",
+      "weight": 1.0
+    },
+    {
+      "source": "USERID_IMPLEMENTATION_userid_flow",
+      "target": "USERID_IMPLEMENTATION_get_signed_url_api",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md",
+      "source_location": "line 33",
+      "weight": 1.0
+    },
+    {
+      "source": "USERID_IMPLEMENTATION_userid_flow",
+      "target": "USERID_IMPLEMENTATION_voice_sessions_table",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md",
+      "source_location": "line 135",
+      "weight": 1.0
+    },
+    {
+      "source": "USERID_IMPLEMENTATION_userid_flow",
+      "target": "USERID_IMPLEMENTATION_guest_user_fallback",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md",
+      "source_location": "line 157",
+      "weight": 1.0
+    },
+    {
+      "source": "USERID_IMPLEMENTATION_voice_sessions_table",
+      "target": "schema_db_voice_sessions_table",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md",
+      "source_location": "line 135",
+      "weight": 1.0
+    },
+    {
+      "source": "VAPI_N8N_vapi_voice_agent",
+      "target": "VAPI_N8N_n8n_voice_payment_workflow",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": "line 6",
+      "weight": 1.0
+    },
+    {
+      "source": "VAPI_N8N_n8n_voice_payment_workflow",
+      "target": "VAPI_N8N_mpesa_stk_push",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": "line 214",
+      "weight": 1.0
+    },
+    {
+      "source": "VAPI_N8N_mpesa_stk_push",
+      "target": "VAPI_N8N_mpesa_callback_handler",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": "line 267",
+      "weight": 1.0
+    },
+    {
+      "source": "VAPI_N8N_n8n_voice_payment_workflow",
+      "target": "schema_db_transactions_table",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": "line 288",
+      "weight": 1.0
+    },
+    {
+      "source": "VAPI_N8N_balance_check_workflow",
+      "target": "schema_db_profiles_table",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": "line 557",
+      "weight": 1.0
+    },
+    {
+      "source": "VAPI_N8N_vapi_voice_agent",
+      "target": "VAPI_N8N_balance_check_workflow",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": "line 527",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_readme",
+      "target": "ip_master_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/README.md",
+      "source_location": "line 17",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_readme",
+      "target": "ip_trademark_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/README.md",
+      "source_location": "line 31",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_readme",
+      "target": "ip_copyright_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/README.md",
+      "source_location": "line 44",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_readme",
+      "target": "ip_patent_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/README.md",
+      "source_location": "line 57",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_readme",
+      "target": "ip_international_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/README.md",
+      "source_location": "line 83",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_readme",
+      "target": "ip_enforcement_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/README.md",
+      "source_location": "line 97",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_readme",
+      "target": "ip_registry_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/README.md",
+      "source_location": "line 109",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_readme",
+      "target": "nda_mutual_template",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/README.md",
+      "source_location": "line 124",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_readme",
+      "target": "nda_unilateral_template",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/README.md",
+      "source_location": "line 135",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_trademark_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 375",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_copyright_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 381",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_patent_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 387",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_international_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 399",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_enforcement_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 405",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_registry_guide",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 411",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_master_guide_kipi",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 433",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_master_guide_kecobo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 440",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_master_guide_aripo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 469",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_master_guide_wipo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 464",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_master_guide_trade_secrets",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 131",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide",
+      "target": "ip_voice_auth_patent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 219",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_patent_guide",
+      "target": "ip_master_guide_aripo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/03-PATENT-UTILITY-MODELS-GUIDE.md",
+      "source_location": "line 37",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_patent_guide",
+      "target": "ip_master_guide_kipi",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/03-PATENT-UTILITY-MODELS-GUIDE.md",
+      "source_location": "line 32",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_international_guide",
+      "target": "ip_master_guide_aripo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/05-INTERNATIONAL-IP-PROTECTION.md",
+      "source_location": "line 46",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_international_guide",
+      "target": "ip_master_guide_wipo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/05-INTERNATIONAL-IP-PROTECTION.md",
+      "source_location": "line 46",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide_trade_secrets",
+      "target": "nda_mutual_template",
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 361",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_master_guide_trade_secrets",
+      "target": "nda_unilateral_template",
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 361",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_trademark_guide",
+      "target": "ip_master_guide_kipi",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/01-TRADEMARK-REGISTRATION-GUIDE.md",
+      "source_location": "line 3",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_copyright_guide",
+      "target": "ip_master_guide_kecobo",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/02-COPYRIGHT-PROTECTION-GUIDE.md",
+      "source_location": "line 34",
+      "weight": 1.0
+    },
+    {
+      "source": "setup_guide",
+      "target": "setup_voice_setup",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "docs/setup/SETUP_GUIDE.md",
+      "source_location": "line 1",
+      "weight": 1.0
+    },
+    {
+      "source": "setup_guide",
+      "target": "setup_local_testing",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "docs/setup/SETUP_GUIDE.md",
+      "source_location": "line 1",
+      "weight": 1.0
+    },
+    {
+      "source": "setup_local_testing",
+      "target": "setup_ngrok_tunnel",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/setup/LOCAL_TESTING.md",
+      "source_location": "line 9",
+      "weight": 1.0
+    },
+    {
+      "source": "setup_guide",
+      "target": "schema_db_profiles_table",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/setup/SETUP_GUIDE.md",
+      "source_location": "line 184",
+      "weight": 1.0
+    },
+    {
+      "source": "setup_gemini",
+      "target": "setup_gemini_scanner",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/setup/GEMINI.md",
+      "source_location": "line 25",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db",
+      "target": "schema_db_profiles_table",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 19",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db",
+      "target": "schema_db_transactions_table",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 47",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db",
+      "target": "schema_db_voice_sessions_table",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 101",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db",
+      "target": "schema_db_balance_history_table",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 118",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db",
+      "target": "schema_db_mpesa_transactions_table",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 134",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db",
+      "target": "schema_db_contacts_table",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 183",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db",
+      "target": "schema_db_subscriptions_table",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 206",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db",
+      "target": "schema_db_rls",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 269",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db",
+      "target": "schema_db_update_balance_fn",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 335",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db_update_balance_fn",
+      "target": "schema_db_balance_history_table",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 365",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db_rls",
+      "target": "schema_db_profiles_table",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 279",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db_rls",
+      "target": "schema_db_transactions_table",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 288",
+      "weight": 1.0
+    },
+    {
+      "source": "schema_db_rls",
+      "target": "schema_db_voice_sessions_table",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "schema/db.md",
+      "source_location": "line 296",
+      "weight": 1.0
+    },
+    {
+      "source": "ip_voice_auth_patent",
+      "target": "ip_patent_guide",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "docs/ip-protection/00-IP-PROTECTION-MASTER-GUIDE.md",
+      "source_location": "line 219",
+      "weight": 1.0
+    },
+    {
+      "source": "USERID_IMPLEMENTATION_userid_flow",
+      "target": "USERID_IMPLEMENTATION_voice_sessions_table",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md",
+      "source_location": "line 66",
+      "weight": 1.0
+    },
+    {
+      "source": "VAPI_N8N_vapi_voice_agent",
+      "target": "USERID_IMPLEMENTATION_userid_flow",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "docs/integrations/VAPI_N8N.md",
+      "source_location": null,
+      "weight": 0.75
+    },
+    {
+      "source": "setup_voice_setup",
+      "target": "USERID_IMPLEMENTATION_userid_flow",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "docs/setup/VOICE_SETUP.md",
+      "source_location": "line 1",
+      "weight": 1.0
+    },
+    {
+      "source": "setup_guide",
+      "target": "VAPI_N8N_n8n_voice_payment_workflow",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "docs/setup/SETUP_GUIDE.md",
+      "source_location": "line 238",
+      "weight": 1.0
+    },
+    {
+      "source": "public_icons_readme",
+      "target": "public_splash_readme",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "public/icons/README.md",
+      "source_location": null,
+      "weight": 0.85
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "voice_payment_pipeline",
+      "label": "Voice-to-Payment Pipeline (Vapi/ElevenLabs → n8n → M-Pesa → Supabase)",
+      "nodes": [
+        "VAPI_N8N_vapi_voice_agent",
+        "VAPI_N8N_n8n_voice_payment_workflow",
+        "VAPI_N8N_mpesa_stk_push",
+        "schema_db_transactions_table"
+      ],
+      "relation": "implement",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/integrations/VAPI_N8N.md"
+    },
+    {
+      "id": "ip_protection_suite",
+      "label": "IP Protection Documentation Suite (Trademark, Copyright, Patent, Trade Secret)",
+      "nodes": [
+        "ip_master_guide",
+        "ip_trademark_guide",
+        "ip_copyright_guide",
+        "ip_patent_guide",
+        "ip_enforcement_guide",
+        "ip_registry_guide"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/ip-protection/README.md"
+    },
+    {
+      "id": "user_auth_session_db",
+      "label": "User Auth, Session Tracking & DB Integration (Supabase Auth + voice_sessions + userId flow)",
+      "nodes": [
+        "USERID_IMPLEMENTATION_usercontext",
+        "USERID_IMPLEMENTATION_get_signed_url_api",
+        "USERID_IMPLEMENTATION_voice_sessions_table",
+        "schema_db_voice_sessions_table"
+      ],
+      "relation": "implement",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "docs/integrations/USERID_IMPLEMENTATION.md"
+    }
+  ],
+  "input_tokens": 18500,
+  "output_tokens": 3200
+}

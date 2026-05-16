@@ -1,0 +1,1262 @@
+{
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\cleanup.ps1": {
+    "mtime": 1771584842.4997451,
+    "hash": "764eee0ee26e04e77147308ac5af5dce"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\cleanup_phase2.ps1": {
+    "mtime": 1771584842.4997451,
+    "hash": "147a502720a87eb1c2120205fe82dc7e"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database-schema.sql": {
+    "mtime": 1771584842.5651765,
+    "hash": "eadefe7fa6f6f7aeb0088a8b876712ee"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\enhanced-mcp-server.js": {
+    "mtime": 1771584842.6136777,
+    "hash": "0bdec2428213badf6ebeab5bd243a016"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\middleware.ts": {
+    "mtime": 1771584842.6342752,
+    "hash": "2d275de23a15ef371138cfdaa1eb758d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\next.config.mjs": {
+    "mtime": 1771584842.6342752,
+    "hash": "99c68c342d0ae1e8a27cab2d080cce60"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\postcss.config.mjs": {
+    "mtime": 1771584842.6342752,
+    "hash": "3507368dae6e94b0070b0a10efa15a05"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\tailwind.config.js": {
+    "mtime": 1771584842.659563,
+    "hash": "c59e054aad1d9c0ea39ca0d92015d08d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\layout.tsx": {
+    "mtime": 1771584842.4869192,
+    "hash": "3a9f9e593cb72584257936e45ebd4af2"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\manifest.ts": {
+    "mtime": 1771584842.4888394,
+    "hash": "295ee722b16a56f53c3d00b359cc3c9d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\opengraph-image.tsx": {
+    "mtime": 1771584842.489787,
+    "hash": "0429b59c5e755f6dea1db7d81fd13a76"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\page.tsx": {
+    "mtime": 1771584842.4905112,
+    "hash": "2e00fb0f3816d50a6d35f9b95121d86d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\twitter-image.tsx": {
+    "mtime": 1771584842.498628,
+    "hash": "24935ccecfccf5554a7f4489290fc56f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\(onboarding)\\layout.tsx": {
+    "mtime": 1771584842.3820076,
+    "hash": "8a9a1a0d04ba5ea0eb3c50cac5dcd76a"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\(onboarding)\\permissions\\page.tsx": {
+    "mtime": 1771584842.3828702,
+    "hash": "2d8391dc501221992a26f1719d849a97"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\(onboarding)\\profile-creation\\page.tsx": {
+    "mtime": 1771584842.3833861,
+    "hash": "e78c313a929ea0dc81c0c8b92a5782ae"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\(onboarding)\\security-setup\\page.tsx": {
+    "mtime": 1771584842.384243,
+    "hash": "4d7c3169dcd74c74e3c6b658b40a521a"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\(onboarding)\\voice-calibration\\page.tsx": {
+    "mtime": 1771584842.3850875,
+    "hash": "eba8a3fca749356c33d93ad51b57171f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\(onboarding)\\welcome\\page.tsx": {
+    "mtime": 1771584842.3850875,
+    "hash": "1794ab15bdcf2db21be268d7726e1386"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\admin\\page.tsx": {
+    "mtime": 1771584842.3952885,
+    "hash": "04a11a3c57871895516b940ff53fc1eb"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\admin-analytics\\page.tsx": {
+    "mtime": 1771584842.3880112,
+    "hash": "3b1c2500226c238f24673bc9c853219f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\admin-analytics\\chamas\\page.tsx": {
+    "mtime": 1771584842.3870535,
+    "hash": "b524f1e29ac464d0263f078f95b21b8a"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\admin-analytics\\escrows\\page.tsx": {
+    "mtime": 1771584842.3880112,
+    "hash": "d2460f4882275c7d84b038d7d6bc4d2f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\admin-analytics\\mpesa-history\\page.tsx": {
+    "mtime": 1771584842.3880112,
+    "hash": "97b31bfaf539c6799484523fc9aea707"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\admin-analytics\\revenue\\page.tsx": {
+    "mtime": 1771584842.3901472,
+    "hash": "823b4f6b4814026300b7c07f5a8d9ad0"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\admin-analytics\\settings\\page.tsx": {
+    "mtime": 1771584842.3901472,
+    "hash": "747c7afe9cd697d52e2b732cb3921313"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\admin-analytics\\transactions\\page.tsx": {
+    "mtime": 1771584842.391593,
+    "hash": "a7529bd1febaa9bd32aabfe5948a8188"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\admin-analytics\\users\\page.tsx": {
+    "mtime": 1771584842.3926053,
+    "hash": "6ca7305eb0393e5337e856a26cf925ef"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\admin-analytics\\voice-sessions\\page.tsx": {
+    "mtime": 1771584842.3937042,
+    "hash": "c7ba581d1b14a60028adee4ad2b601de"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\admin-analytics\\wallet-transfers\\page.tsx": {
+    "mtime": 1771584842.3937042,
+    "hash": "da32583d63d5bc4876109796ccb7eee9"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\analytics\\page.tsx": {
+    "mtime": 1771584842.396294,
+    "hash": "e3f275d4842f100f252aa57ee419c9b0"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\admin\\revenue\\summary\\route.ts": {
+    "mtime": 1771584842.3985925,
+    "hash": "2655f8155ff353c43e711c4ba62a0645"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\balance\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "76f0bf73cd5ff1321b2b49f097b65322"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\chama\\add-member\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "230a0c792e9ef2123f156d5e55eb465c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\chama\\add-members-bulk\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "e7649991a21ecef64a4e838b0e391f68"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\chama\\create\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "423873e9c088ff86fd0a8ddc9f6772fc"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\chama\\distribute\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "94ca8ca6524585a2a7a2a7842ce46c72"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\chama\\poll-pending\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "5096d6ec9caee412f9b26e912f82ce74"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\chama\\poll-stk\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "b4fcf746d0e899069af1c7337b595644"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\chama\\resend-all-stk\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "ef182238401bb76aeab61ddd8df94985"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\chama\\retry-stk\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "cc2a113d71ccdd21797de4ee8e15d71d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\chama\\shuffle-rotation\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "bb0aaf82501043b66232dcd4f62b88fd"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\chama\\start-collection\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "fa8dde9b089e54b2b4c20bfe13d01cef"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\chama\\stop-collection\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "f4a4b06c5dbc615095b7f1708ff373d1"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\contacts\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "bcd712a669259b5370beb54143706af1"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\contacts\\search\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "fe6dfe22c210caa3690524fd08a950f9"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\escrow\\create\\route.ts": {
+    "mtime": 1771584842.3995516,
+    "hash": "24a6a410015c6be5a56ff7bc5e199dcd"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\escrow\\dispute\\route.ts": {
+    "mtime": 1771584842.4119503,
+    "hash": "18b417d2dc5538fedfb74dd2ca22db53"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\escrow\\fund\\route.ts": {
+    "mtime": 1771584842.412958,
+    "hash": "3ededc244de4995dcb404b31ef43701c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\escrow\\release\\route.ts": {
+    "mtime": 1771584842.4144006,
+    "hash": "a08deb6a05966b29e15b9d23d9ed9488"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\backfill\\route.ts": {
+    "mtime": 1771584842.4161003,
+    "hash": "746fbf43d9b58868d69e0727c27e53f5"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\balance\\route.ts": {
+    "mtime": 1771584842.4161003,
+    "hash": "ba73e15730d5c8fbd94fc0859ca57ed3"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\check-setup\\route.ts": {
+    "mtime": 1771584842.4161003,
+    "hash": "50a1a92708c0e3192ceaf262bda512bd"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\check-status\\route.ts": {
+    "mtime": 1771584842.4161003,
+    "hash": "83029d2368fe4616fa1861f43d011294"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\create\\route.ts": {
+    "mtime": 1771584842.4161003,
+    "hash": "aef3d30787e03a2ca98848a4e577a577"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\deposit\\route.ts": {
+    "mtime": 1771584842.4161003,
+    "hash": "3d81e33fea7be6d8595a529d1943c135"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\ensure\\route.ts": {
+    "mtime": 1771584842.4161003,
+    "hash": "569f7c1dd3202fb40497bc5c2d2f74a7"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\fix-existing\\route.ts": {
+    "mtime": 1771584842.4161003,
+    "hash": "8f0dab4474f65ddc677f7c8e44328b28"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\mpesa-callback\\route.ts": {
+    "mtime": 1771584842.4161003,
+    "hash": "13bd1fb32c661d481ca5ad86b55fe146"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\poll-pending\\route.ts": {
+    "mtime": 1771584842.4619832,
+    "hash": "ac3cf2a88a2464141133105492f2fc43"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\signup\\route.ts": {
+    "mtime": 1771584842.4629903,
+    "hash": "8ffed5e868d181e12a99ee912cf5e119"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\gate\\verify-transaction\\route.ts": {
+    "mtime": 1771584842.4639902,
+    "hash": "4f45d437edb32c448e297c171c3353dc"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\get-signed-url\\route.ts": {
+    "mtime": 1771584842.465243,
+    "hash": "f5e6a76326c341a29ae09a996611c1b1"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\payments\\batch\\route.ts": {
+    "mtime": 1771584842.4665837,
+    "hash": "a40317f23f6c261e346b983010167289"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\subscription\\pay\\route.ts": {
+    "mtime": 1771584842.4677498,
+    "hash": "ca1a4ee3c2e48bcfbc00f6159eb258b0"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\transactions\\route.ts": {
+    "mtime": 1771584842.4692643,
+    "hash": "660b4a0eb4801dd814a049e021cd7c21"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\transactions\\create\\route.ts": {
+    "mtime": 1771584842.4692643,
+    "hash": "28ee869ad78a635097cd3fae66da8c52"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\transactions\\[id]\\complete\\route.ts": {
+    "mtime": 1771584842.4692643,
+    "hash": "fe3a6f157f09f7c788f98db8b071b0b3"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\user\\route.ts": {
+    "mtime": 1771584842.4713616,
+    "hash": "8cf88d8a14f0afc14c0a6d400a887ee8"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\voice\\send-scan-data\\route.ts": {
+    "mtime": 1771584842.4713616,
+    "hash": "0c8ec6fa001dc1f3c6fe1bbf320e3b2b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\voice\\webhook\\route.ts": {
+    "mtime": 1771584842.4733088,
+    "hash": "924cc171d7bdb8ac9a6acdc6495e3000"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\wallet\\load\\route.ts": {
+    "mtime": 1771584842.474145,
+    "hash": "26a8b0feb7089b86c846a8e075a852f2"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\wallet\\send\\route.ts": {
+    "mtime": 1771584842.4754083,
+    "hash": "e048fb52f296c149533658667bea769e"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\api\\wallet\\withdraw\\route.ts": {
+    "mtime": 1771584842.4754083,
+    "hash": "09271274f9e3f52d2549f952660ff202"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\auth\\callback\\route.ts": {
+    "mtime": 1771584842.4766777,
+    "hash": "5c19a81269cad7f9a67553f002205893"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\auth\\confirm\\page.tsx": {
+    "mtime": 1771584842.477668,
+    "hash": "fd03b7bcae6e8710d1f3e439830e3cac"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\chama\\page.tsx": {
+    "mtime": 1771584842.4820576,
+    "hash": "66dd3f4c70d275120e84adca9dfe8db0"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\chama\\join\\[id]\\page.tsx": {
+    "mtime": 1771584842.4796283,
+    "hash": "71ba2120de221602fa368f3a41066689"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\components\\GateEnsurer.tsx": {
+    "mtime": 1771584842.4838011,
+    "hash": "40f9050a4271d98e2ec97d7294ff619c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\dashboard\\page.tsx": {
+    "mtime": 1771584842.4845283,
+    "hash": "130c73b0457489a4f9d6052cefecc132"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\escrow\\page.tsx": {
+    "mtime": 1771584842.4854555,
+    "hash": "6cf5c9e7458fa2aebd3155ea846372dc"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\forgot-password\\page.tsx": {
+    "mtime": 1771584842.4854555,
+    "hash": "55bc709eca03c44ccac1804b9e6b7187"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\hooks\\useEnsureGate.ts": {
+    "mtime": 1771584842.4869192,
+    "hash": "a62b3a13925637303751d9ff84a9cff7"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\login\\page.tsx": {
+    "mtime": 1771584842.488097,
+    "hash": "a91ce97483eae790a1755534e7eea468"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\offline\\page.tsx": {
+    "mtime": 1771584842.489787,
+    "hash": "cf64fe3318ba9c6d0bc268e0f29ee4a0"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\payments\\page.tsx": {
+    "mtime": 1771584842.4905112,
+    "hash": "165b4a630289bdca3a98bc1c1082601b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\privacy\\page.tsx": {
+    "mtime": 1771584842.4920416,
+    "hash": "4e05ad00d93a2db48a711fededdcd454"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\reset-password\\page.tsx": {
+    "mtime": 1771584842.4927943,
+    "hash": "c78808d65703d3321dbbb056ac96e186"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\scheduler\\page.tsx": {
+    "mtime": 1771584842.4933703,
+    "hash": "191244da1c6566fa82991020470c8982"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\settings\\page.tsx": {
+    "mtime": 1771584842.4933703,
+    "hash": "d39542a1282189c031bd88f2af7f1eed"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\signup\\page.tsx": {
+    "mtime": 1771584842.4933703,
+    "hash": "9dacd0100b7700a7fb0ea6ab97c123ce"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\support\\page.tsx": {
+    "mtime": 1771584842.4952898,
+    "hash": "2b1b9836d1e76d8636cdb9991d7ca035"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\terms\\page.tsx": {
+    "mtime": 1771584842.4962952,
+    "hash": "2a4faaace4b763c62679778e92150215"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\app\\transactions\\page.tsx": {
+    "mtime": 1771584842.4982946,
+    "hash": "fd551fdc27722d22bd98789d83e8c837"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\protected-route.tsx": {
+    "mtime": 1771584842.5338802,
+    "hash": "29be3d55d3ac6b49a87b5e424dfc37f8"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\theme-provider.tsx": {
+    "mtime": 1771584842.5349686,
+    "hash": "eebd89f82208eb7ff5576b0deb97a00c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\theme-toggle.tsx": {
+    "mtime": 1771584842.5349686,
+    "hash": "1878310953c9d88e62df888f08e7a071"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\voice-provider.tsx": {
+    "mtime": 1771584842.5619552,
+    "hash": "d05aafed94100ec45756144e3c100043"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\admin\\revenue-dashboard.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "e0a9afa72657f8b7b67ecb1be0eb20e7"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\auth\\auth-layout.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "7eeecd64b8663c37cda6f5245f2580f5"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\kokonutui\\content.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "e151923517ed1e6d7f8a2c88a917c53e"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\kokonutui\\dashboard.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "cadabfca0b5d64d26c780e38d58d85ac"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\kokonutui\\layout.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "ca69d39a9d9a23f57491429b5e9c089d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\kokonutui\\list-01.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "617dfb6fbfbb59064e9bd03be2fc19d0"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\kokonutui\\list-02.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "9c39ba68d463266625141c63dde85f96"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\kokonutui\\list-03.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "088e70629e4d2a643914ff1c563fae80"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\kokonutui\\mobile-nav.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "4806969c323fc1d1b402059d2a61ed5b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\kokonutui\\profile-01.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "91d88712126a262b528000b89ade8070"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\kokonutui\\sidebar.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "5aa631b4dee87d0f2140c513382da410"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\kokonutui\\top-nav.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "9c68ce966ec39f3ade04a8158397cbe6"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\analytics-dashboard.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "8072e6e3f23ff4b207145989ac00c9b4"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\analytics.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "6801c1217005979473654232f9a73a9c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\app.tsx": {
+    "mtime": 1771584842.4997451,
+    "hash": "07ef023f05828ba26f69617b1eb7e674"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\balance-sheet.tsx": {
+    "mtime": 1771584842.511979,
+    "hash": "60447f1d9ec011256a774899370e0661"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\camera-capture.tsx": {
+    "mtime": 1771584842.5129843,
+    "hash": "5209245934a036bce24950f146d4a324"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\contact-picker.tsx": {
+    "mtime": 1771584842.5141025,
+    "hash": "540cda379be3bd6d2d5ab4d14713eb47"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\deposit-dialog.tsx": {
+    "mtime": 1771584842.5151756,
+    "hash": "c2b39a56064e0f7c1b07b7a36a49fde4"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\disambiguation-dialog.tsx": {
+    "mtime": 1771584842.5153708,
+    "hash": "4f2714539abd196786b09da8395402bd"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\global-voice-widget.tsx": {
+    "mtime": 1771584842.5153708,
+    "hash": "dd2d9061bea0352309bf94a0ff4d7346"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\main-dashboard.tsx": {
+    "mtime": 1771584842.517157,
+    "hash": "ac8c6d59b3cbd3ad59239eccbd917cfd"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\mpesa-settings-dialog.tsx": {
+    "mtime": 1771584842.5180323,
+    "hash": "1d38e4929d9200ed6d4d3a6b0ae22505"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\payment-methods.tsx": {
+    "mtime": 1771584842.5180323,
+    "hash": "1825198250fe9bc9928a8d4b182f8e6e"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\payment-scanner.tsx": {
+    "mtime": 1771584842.518726,
+    "hash": "fde12d1b094fda29e7d92058ea158069"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\permission-manager.tsx": {
+    "mtime": 1771584842.5198295,
+    "hash": "f6bfa8be51c2c1e81cd425a8a9ee1cd1"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\profile-creation.tsx": {
+    "mtime": 1771584842.5198295,
+    "hash": "36f88bacc3ad7bb6570ea8c2d7426b15"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\pwa-install-prompt.tsx": {
+    "mtime": 1771584842.5206506,
+    "hash": "2303bdfda032ab37cfd59a410b9e2d8a"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\recurring-payments.tsx": {
+    "mtime": 1771584842.5217085,
+    "hash": "28932861cd6472815b24bc0306df963b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\scheduled-payments.tsx": {
+    "mtime": 1771584842.5217085,
+    "hash": "31e17423ecc897ab61d9e7a5cdb93843"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\security-setup.tsx": {
+    "mtime": 1771584842.5217085,
+    "hash": "43a153c16487bafbd2f3088aa468bc29"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\send-money.tsx": {
+    "mtime": 1771584842.5228975,
+    "hash": "b870dc314e889966ce256d9c924a2340"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\settings.tsx": {
+    "mtime": 1771584842.5228975,
+    "hash": "d13798cbef60327573743ca59c34087f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\smart-confirmation.tsx": {
+    "mtime": 1771584842.5240352,
+    "hash": "a76783ccc81091beb3c8680e3cf0db68"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\transaction-history.tsx": {
+    "mtime": 1771584842.525554,
+    "hash": "c960731014d765ea763687120596dde7"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\voice-calibration.tsx": {
+    "mtime": 1771584842.5265143,
+    "hash": "1a857bc19abd030ac55beee4bcc0cfc7"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\voice-consent-modal.tsx": {
+    "mtime": 1771584842.5273309,
+    "hash": "436e9958bdd8dc837fa3d6ea408cd78e"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\voice-interface.tsx": {
+    "mtime": 1771584842.529348,
+    "hash": "19311c7c4219acade64c30743fb9f5ae"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\voice-test.tsx": {
+    "mtime": 1771584842.530353,
+    "hash": "64d4d82959e00973ec9abf058e9538f0"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\voice-waveform.tsx": {
+    "mtime": 1771584842.530353,
+    "hash": "0ab52917fa1ba3da3d8e63a6dd7f2242"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\wave-animation.tsx": {
+    "mtime": 1771584842.5319283,
+    "hash": "395c801800aea9f3674464a22f0de1b4"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ongea-pesa\\welcome-screen.tsx": {
+    "mtime": 1771584842.5332403,
+    "hash": "4f40863d9e09ad715ad4d8344db58a29"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\providers\\auth-provider.tsx": {
+    "mtime": 1771584842.5349686,
+    "hash": "ee0d8d4906123a45914db52f2042cc53"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\accordion.tsx": {
+    "mtime": 1771584842.5349686,
+    "hash": "569ca301be6e361d95386c49e6c1a6d8"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\alert-dialog.tsx": {
+    "mtime": 1771584842.5371988,
+    "hash": "747a0c604004e46ee8e9dd4891a35cce"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\alert.tsx": {
+    "mtime": 1771584842.5371988,
+    "hash": "59e3895ea793fed08d8d9f0f83ad13df"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\aspect-ratio.tsx": {
+    "mtime": 1771584842.5371988,
+    "hash": "9efb83cde0f9d15cbeb963c09b8a4373"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\avatar.tsx": {
+    "mtime": 1771584842.5392706,
+    "hash": "89f1b4ec930c44c54ad1e9ac169d7020"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\badge.tsx": {
+    "mtime": 1771584842.5392706,
+    "hash": "2ba8b44541085f725b216267f9feb892"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\breadcrumb.tsx": {
+    "mtime": 1771584842.5392706,
+    "hash": "dcfabfc9f457acbf1857a56cbd9bbb8f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\button.tsx": {
+    "mtime": 1771584842.5392706,
+    "hash": "55bae00127c054032e205b63a62802db"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\calendar.tsx": {
+    "mtime": 1771584842.540993,
+    "hash": "b9a44b6183b33b6ea5cf2ed3912b7354"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\card.tsx": {
+    "mtime": 1771584842.540993,
+    "hash": "b6df38eb58a41ec0235a0024dec73e8e"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\carousel.tsx": {
+    "mtime": 1771584842.5420282,
+    "hash": "b050d2c1ba497c641ad7c4c538a0bd95"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\chart.tsx": {
+    "mtime": 1771584842.5426476,
+    "hash": "d2c4e8e39cebc46c9c2abe0a1062334a"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\checkbox.tsx": {
+    "mtime": 1771584842.5426476,
+    "hash": "c6c1095ad2efdd82babcdeda23454c46"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\collapsible.tsx": {
+    "mtime": 1771584842.5426476,
+    "hash": "cb66adfc183b69da16a00c9e5ddf1fb2"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\command.tsx": {
+    "mtime": 1771584842.5440147,
+    "hash": "95664a12f18bdd63ef651829fa953105"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\context-menu.tsx": {
+    "mtime": 1771584842.5440147,
+    "hash": "d84d0ae472c83e1e947f9d6900f3dd80"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\dialog.tsx": {
+    "mtime": 1771584842.545306,
+    "hash": "907fd1afe4b7f0b4af7f9356d5806848"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\drawer.tsx": {
+    "mtime": 1771584842.545306,
+    "hash": "bc272835911b59d69572da8d995e8873"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\dropdown-menu.tsx": {
+    "mtime": 1771584842.546312,
+    "hash": "d048be0171f160f4faa01ee87e17ce28"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\form.tsx": {
+    "mtime": 1771584842.546312,
+    "hash": "54a7a5a94560097c029a0bfaa342ae73"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\hover-card.tsx": {
+    "mtime": 1771584842.5473125,
+    "hash": "461381c101e278df875cf3951961fff8"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\input-otp.tsx": {
+    "mtime": 1771584842.5473125,
+    "hash": "c9d47b73d7f8304d2ef67e9ad7f2f6c3"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\input.tsx": {
+    "mtime": 1771584842.5484617,
+    "hash": "f5c3f6115f14eb06180e98b0e302bc00"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\label.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "a82ec35cf363a42512246117aeb61897"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\menubar.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "0f4d19ca4bd4e52209cb90cce956adb8"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\navigation-menu.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "595bbede1d5900b44f8f101f40b51ae2"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\pagination.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "fbe4e3289596434c7135c536a71887d1"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\popover.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "8f2a759975424d02d19f702277c7d14f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\progress.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "3b55993b81716f20c623ac93cd3c6971"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\radio-group.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "f3f0779a8db9be7ef9c5f0f0c5e17cd1"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\resizable.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "28c4899a4b3ea88efc2440d7350b0374"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\scroll-area.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "3087f329a403714a59102c681d82a182"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\select.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "07f2301f393f867e06a0d64c34a23dd4"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\separator.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "a554485146f11e2f99567142c3eea40a"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\sheet.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "fc637f79433ea9d829e8c6b1d4df983a"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\sidebar.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "cc2938f141d89609a2ab46d3547d491f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\skeleton.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "0166abaa35206d438bd5ac705fb5dfb7"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\slider.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "bdf76093fc0ce4bc0fa48177275f5167"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\sonner.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "e40ecb252625fff691d49565a8cda281"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\switch.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "6ad4b53d64d8c73798cb71f1c6f3e1ba"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\table.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "554e91a3c4302c898342d712f80c3718"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\tabs.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "757304383216f297885d99adc3205f99"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\textarea.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "0a2b04314b2157ae2cdc03d673f0849c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\toast.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "5c7c1ac18b49d8e42f0c0c400e242a86"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\toaster.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "5a2732f0e35bf8887a394ad57c86ef0f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\toggle-group.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "40f847a670db4248dc2144a55bb0ec55"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\toggle.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "3bfc206e1e38cee0c2b954e56624f8fc"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\tooltip.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "bc2e2a293268aa7f49c511658c4f3190"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\use-mobile.tsx": {
+    "mtime": 1771584842.5493052,
+    "hash": "654e2ca2e9fddc27eb7e3954900dc48e"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\components\\ui\\use-toast.ts": {
+    "mtime": 1771584842.5619552,
+    "hash": "4fd00028cb181c44efb5b049c470426c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\contexts\\ElevenLabsContext.tsx": {
+    "mtime": 1771584842.5639634,
+    "hash": "f197b1df41c1b6a2dc7367b2bd09831b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\contexts\\UserContext.tsx": {
+    "mtime": 1771584842.5639634,
+    "hash": "1eebabe733774edb2fa396705926fcc3"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\migrations\\001_create_users_table.sql": {
+    "mtime": 1771584842.5664895,
+    "hash": "28f014eafddf381d546ccfb651de5f14"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\migrations\\002_add_gate_fields_to_profiles.sql": {
+    "mtime": 1771584842.5664895,
+    "hash": "d7d665a7e296de36ac38a6a14056e311"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\migrations\\004_add_gate_fields.sql": {
+    "mtime": 1771584842.5664895,
+    "hash": "274868906b66a550e3a32993e5b3626c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\migrations\\005_user_creation_trigger.sql": {
+    "mtime": 1771584842.569703,
+    "hash": "163077671f033d516651a5b0c7341f3c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\migrations\\006_backfill_missing_gates.sql": {
+    "mtime": 1771584842.5703795,
+    "hash": "1ee788dac787dae6fe9f1d95060be07b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\migrations\\007_enhanced_user_trigger.sql": {
+    "mtime": 1771584842.5708826,
+    "hash": "ae5790252d41ed94f03de76e18af9725"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\migrations\\008_escrow_and_chama_tables.sql": {
+    "mtime": 1771584842.5708826,
+    "hash": "00f4d6c0926e55c70441755af93388ad"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\migrations\\008_rls_for_gate_updates.sql": {
+    "mtime": 1771584842.5708826,
+    "hash": "495ac07735c1d7906399fa2050db5521"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\migrations\\009_add_gate_pocket_to_chamas_escrows.sql": {
+    "mtime": 1771584842.5729241,
+    "hash": "dabbd6c3d04488d667543badb7132564"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\migrations\\010_chama_members_rls_policies.sql": {
+    "mtime": 1771584842.5729241,
+    "hash": "e06efe9450b590116956697c13c5af43"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\migrations\\011_add_creator_fk_constraints.sql": {
+    "mtime": 1771584842.5736513,
+    "hash": "54ae4998d3a3e2cd0e2c430db4c6ea15"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\schema\\balance-sync.sql": {
+    "mtime": 1771584842.604072,
+    "hash": "7fbbe00e4a2b3bd688f30cd6f71b20f0"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\schema\\balance-trigger.sql": {
+    "mtime": 1771584842.604072,
+    "hash": "37ea8c73bf53cad2116fce96668a8d2c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\schema\\database-schema.sql": {
+    "mtime": 1771584842.6050758,
+    "hash": "eadefe7fa6f6f7aeb0088a8b876712ee"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\schema\\profile-trigger.sql": {
+    "mtime": 1771584842.606076,
+    "hash": "b664cb8381da8470043ec45461e84392"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\schema\\supabase-schema.sql": {
+    "mtime": 1771584842.607076,
+    "hash": "e5364f526218e2a6543e1ea9921776c2"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\examples\\escrow-chama-test.ts": {
+    "mtime": 1771584842.6161525,
+    "hash": "b9ae6ca9f7015a52861d21c3b4536c86"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\examples\\gate-usage-example.ts": {
+    "mtime": 1771584842.6161525,
+    "hash": "da60dca529c0434a50f4f0960a4b92ac"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\hooks\\use-annyang-wake-word.ts": {
+    "mtime": 1771584842.618132,
+    "hash": "254f638692d214c0a3a1f8237241d6dd"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\hooks\\use-audio-recorder.ts": {
+    "mtime": 1771584842.618132,
+    "hash": "42a09dcc99967ff414367c35daa73be4"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\hooks\\use-camera.ts": {
+    "mtime": 1771584842.618132,
+    "hash": "66a032e590e9b3ec016b617b916f8310"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\hooks\\use-contacts.ts": {
+    "mtime": 1771584842.618132,
+    "hash": "aec67d449584f0e9c2083c4dd1d18b7b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\hooks\\use-mobile.tsx": {
+    "mtime": 1771584842.618132,
+    "hash": "654e2ca2e9fddc27eb7e3954900dc48e"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\hooks\\use-speech-to-text.ts": {
+    "mtime": 1771584842.618132,
+    "hash": "ed336867fbfd381436a6a815648b38cb"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\hooks\\use-toast.ts": {
+    "mtime": 1771584842.618132,
+    "hash": "4fd00028cb181c44efb5b049c470426c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\hooks\\use-transaction-polling.ts": {
+    "mtime": 1771584842.618132,
+    "hash": "596fa2eff0ff7b3e1fe70163592fa9f3"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\hooks\\use-voice-activation.ts": {
+    "mtime": 1771584842.618132,
+    "hash": "a0473e39160a1b0dc87e61249c347be5"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\hooks\\use-wake-word.ts": {
+    "mtime": 1771584842.618132,
+    "hash": "79ac3f798fcfee2a49cfa9aed649e324"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\hooks\\use-web-speech-wake-word.ts": {
+    "mtime": 1771584842.618132,
+    "hash": "b3246d5fd01297d03566dc3d4af1551c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\lib\\elevenlabs.ts": {
+    "mtime": 1771584842.625792,
+    "hash": "9e9850de45347c6ea8e4bc85de71d8ba"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\lib\\gemini-vision.ts": {
+    "mtime": 1771584842.625792,
+    "hash": "c9c412d0e61bd189f29e4852b1a0fb79"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\lib\\transaction-fees.ts": {
+    "mtime": 1771584842.6329722,
+    "hash": "b78a50d3e6a31a6f44fd41877db7662d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\lib\\utils.ts": {
+    "mtime": 1771584842.6342752,
+    "hash": "1d8011eb18769078bf77502b220daa5e"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\lib\\services\\gateService.ts": {
+    "mtime": 1771584842.625792,
+    "hash": "2d302e2d49db6dde5ddac1df7de6135f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\lib\\services\\gateWalletService.ts": {
+    "mtime": 1771584842.6286006,
+    "hash": "2b5950f2ba7f79183328cfc12e739ec6"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\lib\\services\\transactionPollingService.ts": {
+    "mtime": 1771584842.6296065,
+    "hash": "c97a751df25e392bc0770c5f914d58bc"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\lib\\services\\walletService.ts": {
+    "mtime": 1771584842.6296065,
+    "hash": "39ae61e731e96dae165ce3ce7c83d139"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\lib\\supabase\\client.ts": {
+    "mtime": 1771584842.6306064,
+    "hash": "1b496a8adc19bd452201dd130c344e76"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\lib\\supabase\\middleware.ts": {
+    "mtime": 1771584842.6316922,
+    "hash": "f5fb5d827982a5c38de718ef7e0a9ea8"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\lib\\supabase\\server.ts": {
+    "mtime": 1771584842.6329722,
+    "hash": "7ef825511dba10f25ed9120d7276f1cd"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\sw.js": {
+    "mtime": 1771584842.657187,
+    "hash": "fe571b61f79e2b40cc9b75d39a16de85"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\schema\\db.sql": {
+    "mtime": 1771584842.6581895,
+    "hash": "2d6f3b92e4ac46cce0f9a73ed25394e9"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\scripts\\create-elevenlabs-agent.mjs": {
+    "mtime": 1771584842.6581895,
+    "hash": "a9a0feb4258d8a78e9f9e8ddc3aade96"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\types\\window.d.ts": {
+    "mtime": 1771584842.6621623,
+    "hash": "2b66bfad4e4d70543753961cee2fcdb8"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\BALANCE_TO_AI_FIX.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "94de0fbc4096263cc32ca48686f8d070"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\CALLBACK_INFO.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "6b98f340c6bba0085f34d45ce1b1a3a8"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\changes.md": {
+    "mtime": 1771584842.4997451,
+    "hash": "207c893ec8db9073f9172792a4b7ac69"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\COMPLETE_SYSTEM_OVERVIEW.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "2dc85e0f693f8947f04bee1880b19e1d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\DEPOSIT_SETUP_GUIDE.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "a741ea3721b5982daaf4a84046b3b5b2"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\elevenlabs-kenyan-sheng-dictionary.txt": {
+    "mtime": 1771584842.6126733,
+    "hash": "a5b22d31673f42ce44809f5aa36fa942"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\ELEVENLABS_PROMPT_GUIDE.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "0496c6de32c3d31c628300570e2e8c04"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\ELEVENLABS_UI_SETUP_GUIDE.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "8380ad4e78abff212dfa0a21cc2dc53b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\indexpay.md": {
+    "mtime": 1771584842.618132,
+    "hash": "1717b2fda0f4079d0b883d060c2a8671"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\PREMATURE_DISCONNECT_FIX.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "592fe39ebf759bd6b915646d7bacf783"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\prompt.md": {
+    "mtime": 1771584842.6342752,
+    "hash": "e12c1720914b48c761220a5e865999cf"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\PROMPT_REWRITE_SUMMARY.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "848ac37843034339945f4ec4495e6f5b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\README.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "dc711e4427932251fba40aa551e8cb6b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\SUPABASE_EMAIL_TEMPLATE.html": {
+    "mtime": 1771584842.3665226,
+    "hash": "bc9ade528c3f2a56ae2cde8294a2cd39"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\themindgap.html": {
+    "mtime": 1771584842.661041,
+    "hash": "10c1ee338d65606181c1bd4895c278c4"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\TRANSACTION_POLLING_GUIDE.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "0224ad141268b17888737b57c50e1795"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\TRANSACTION_TRACKING.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "99cc6f699c726d26a443c432034f2fe1"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\VOICE_SESSION_FIX_GUIDE.md": {
+    "mtime": 1771584842.3665226,
+    "hash": "0de026995f98f8817794a2a41d485b6c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\WALLET_CREATION_FLOW.md": {
+    "mtime": 1771584842.3786223,
+    "hash": "23cdaf15b027d467b16d79cdac90efe1"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\WEBHOOK_TESTING_GUIDE.md": {
+    "mtime": 1771584842.3796303,
+    "hash": "e78fb5d76ad58eeb8d3f42f7a2654262"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\database\\README.md": {
+    "mtime": 1771584842.5664895,
+    "hash": "bfce8f05d77f6c10dfa89f3fba5034a3"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\CHAMA_AND_ESCROW_GUIDE.md": {
+    "mtime": 1771584842.5746303,
+    "hash": "f703603c9f4d403fb720f7d68916935b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\DEPOSIT_FEATURE.md": {
+    "mtime": 1771584842.576029,
+    "hash": "6340019676628008bc978c6901bb591e"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\ESCROW_AND_CHAMA_GUIDE.md": {
+    "mtime": 1771584842.576029,
+    "hash": "f64b8ba13dc711aaea93fe6efb388978"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\FIX_SESSION_DISCONNECT.md": {
+    "mtime": 1771584842.577374,
+    "hash": "3f6baf70985abdedcbd3e2fe8a1b89fc"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\GATE_CREATION_FIX.md": {
+    "mtime": 1771584842.5781987,
+    "hash": "ef6f8038a01713e69c577a569bb637e4"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\N8N_WEBHOOK_SETUP.md": {
+    "mtime": 1771584842.5786114,
+    "hash": "f3e39f14d9426faa0bfb2fbe844b6542"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\PWA_SETUP.md": {
+    "mtime": 1771584842.582307,
+    "hash": "ade2fa25a9fed8587d30c9ce9526a3c3"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\TERMS_AND_CONDITIONS.md": {
+    "mtime": 1771584842.5832548,
+    "hash": "725c362b3b65ebd33821a4d1dce90146"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\architecture\\API_REFERENCE.md": {
+    "mtime": 1771584842.584099,
+    "hash": "1c83cad56ef8bf0713f4685f237c3288"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\architecture\\MCP_SERVER.md": {
+    "mtime": 1771584842.584099,
+    "hash": "b4a5db1f8b6e932bbeb55dc8353b6dc6"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\architecture\\SYSTEM_DESIGN.md": {
+    "mtime": 1771584842.5856397,
+    "hash": "1ebe3d78f3720dedae6768a640fd05a6"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\architecture\\TRANSACTION_FORMAT.md": {
+    "mtime": 1771584842.5856397,
+    "hash": "fe77bd07913688753a751578818c37fc"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\architecture\\UI_DESIGN.md": {
+    "mtime": 1771584842.5856397,
+    "hash": "e17933560faa9021e08023d16368c3b9"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\architecture\\VOICE_AGENT.md": {
+    "mtime": 1771584842.5856397,
+    "hash": "d66397176d354f1d8f7c0918fb74a856"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\architecture\\VOICE_TOOLS.md": {
+    "mtime": 1771584842.5893734,
+    "hash": "5444f1a398f6dc48177456ad79f171ca"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\config\\elevenlabs-guide.md": {
+    "mtime": 1771584842.5909798,
+    "hash": "bd0032744ac486b46edcb1fd1e516c32"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\config\\elevenlabs-system-prompt-updated.md": {
+    "mtime": 1771584842.591967,
+    "hash": "1887605cc9587a1e58b328022702673d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\config\\vapi-prompt.md": {
+    "mtime": 1771584842.5935793,
+    "hash": "e856b51e652cffe0e9445331483283fe"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\deployment\\PRODUCTION.md": {
+    "mtime": 1771584842.5952818,
+    "hash": "cbbeb8f96cef06fe1200013f70011992"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\integrations\\ELEVENLABS_SETUP.md": {
+    "mtime": 1771584842.5972905,
+    "hash": "964c24af83fd2af9715846dd0b11728d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\integrations\\EMAIL_TEMPLATES.md": {
+    "mtime": 1771584842.598287,
+    "hash": "1fe0727dd853cee2f9a02cb3a2238767"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\integrations\\GATE_INTEGRATION.md": {
+    "mtime": 1771584842.5993345,
+    "hash": "66bd08a002fd6c5b3512a583c7c80428"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\integrations\\N8N_INTEGRATION.md": {
+    "mtime": 1771584842.6005104,
+    "hash": "c8a84087bcdd731ab1a50b88432aa918"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\integrations\\USERID_IMPLEMENTATION.md": {
+    "mtime": 1771584842.601519,
+    "hash": "66c251c3a7ada884ccd136faf620e4b0"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\integrations\\VAPI_N8N.md": {
+    "mtime": 1771584842.602751,
+    "hash": "9c759147dcd74d64acaf177941f497ae"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\ip-protection\\00-IP-PROTECTION-MASTER-GUIDE.md": {
+    "mtime": 1771584870.0266864,
+    "hash": "ea4e0fb01cca7295a35c8d77673e7df4"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\ip-protection\\01-TRADEMARK-REGISTRATION-GUIDE.md": {
+    "mtime": 1771584870.0501995,
+    "hash": "88da634e25b2a5d92650260d304342d6"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\ip-protection\\02-COPYRIGHT-PROTECTION-GUIDE.md": {
+    "mtime": 1771584870.0677927,
+    "hash": "aed965967b2f9317e10142b3fe10ee8d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\ip-protection\\03-PATENT-UTILITY-MODELS-GUIDE.md": {
+    "mtime": 1771584870.084134,
+    "hash": "c046b37963c3cebd96046175f0910cab"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\ip-protection\\05-INTERNATIONAL-IP-PROTECTION.md": {
+    "mtime": 1771584870.118459,
+    "hash": "65d81e8665681bfaf27712357075b114"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\ip-protection\\06-IP-ENFORCEMENT-MONITORING.md": {
+    "mtime": 1771584870.1353145,
+    "hash": "859c52763dd19f3457a1184232736a03"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\ip-protection\\07-IP-REGISTRY-MANAGEMENT.md": {
+    "mtime": 1771584870.1519003,
+    "hash": "974f02b1b01ff42f92d84fb7fffb7bd9"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\ip-protection\\README.md": {
+    "mtime": 1771584870.1694906,
+    "hash": "1f52f0f05c304dc69beb811ca7d139af"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\ip-protection\\templates\\NDA-TEMPLATE-MUTUAL.md": {
+    "mtime": 1771584870.1873999,
+    "hash": "4cdca62ec49fb4fdca88db51416f22e8"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\ip-protection\\templates\\NDA-TEMPLATE-UNILATERAL.md": {
+    "mtime": 1771584870.20516,
+    "hash": "2a315e642e94c795f177827a0e71825e"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\setup\\GEMINI.md": {
+    "mtime": 1771584842.6083553,
+    "hash": "2e50bdf6bff720b97746904f901b3b0d"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\setup\\LOCAL_TESTING.md": {
+    "mtime": 1771584842.6093156,
+    "hash": "332ea7de0df6216d50759ceb5942af44"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\setup\\SETUP_GUIDE.md": {
+    "mtime": 1771584842.6101818,
+    "hash": "c853a19de83994bf819c422a91dd0b91"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\docs\\setup\\VOICE_SETUP.md": {
+    "mtime": 1771584842.6107433,
+    "hash": "30d8c0c253131f67f8f902bf7de6a4c6"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\icons\\README.md": {
+    "mtime": 1771584842.6342752,
+    "hash": "b8e971b429bd17d98d9b1de8e3bec712"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\splash\\README.md": {
+    "mtime": 1771584842.656142,
+    "hash": "8fb668a5a0f1243cb285fe9e44b79724"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\schema\\db.md": {
+    "mtime": 1771584842.6581895,
+    "hash": "d10f3dbf23e67dca4c231a67cd61d739"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\placeholder-logo.png": {
+    "mtime": 1771584842.6537037,
+    "hash": "95d8d1a4a9bbcccc875e2c381e74064a"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\placeholder-logo.svg": {
+    "mtime": 1771584842.6537037,
+    "hash": "1e16dc7df824652c5906a2ab44aef78c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\placeholder-user.jpg": {
+    "mtime": 1771584842.6551373,
+    "hash": "7ee6562646feae6d6d77e2c72e204591"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\placeholder.jpg": {
+    "mtime": 1771584842.6551373,
+    "hash": "1e533b7b4545d1d605144ce893afc601"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\placeholder.svg": {
+    "mtime": 1771584842.656142,
+    "hash": "35707bd9960ba5281c72af927b79291f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\icons\\icon-128x128.png": {
+    "mtime": 1771584842.6342752,
+    "hash": "e903d1c4c9031cea54531880820a617c"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\icons\\icon-144x144.png": {
+    "mtime": 1771584842.6342752,
+    "hash": "694b4181e2bbf8b1f0985b7d19a55bee"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\icons\\icon-152x152.png": {
+    "mtime": 1771584842.6342752,
+    "hash": "9d4a937c39099e3b0ee1ba862d6b7719"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\icons\\icon-192x192.png": {
+    "mtime": 1771584842.6455765,
+    "hash": "f57ef90c0ff04830e938d2fe4e34a30f"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\icons\\icon-256x256.png": {
+    "mtime": 1771584842.646577,
+    "hash": "8efafeccc9e611af14aaff505cba4c1b"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\icons\\icon-384x384.png": {
+    "mtime": 1771584842.6485958,
+    "hash": "d6ddb387386faa571d0cf38dcac51da9"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\icons\\icon-48x48.png": {
+    "mtime": 1771584842.6485958,
+    "hash": "013711e43e78ae95be53793565ee95dc"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\icons\\icon-512x512.png": {
+    "mtime": 1771584842.6515956,
+    "hash": "9204e64279726cdbe3a917a0c942a274"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\icons\\icon-72x72.png": {
+    "mtime": 1771584842.6525967,
+    "hash": "0b48e181f060b7ea3fedae790b0f3a35"
+  },
+  "C:\\Users\\inkno\\Documents\\GitHub\\ongea-pesa\\public\\icons\\icon-96x96.png": {
+    "mtime": 1771584842.6525967,
+    "hash": "3df65c92597629d51d93020bb5173713"
+  }
+}
