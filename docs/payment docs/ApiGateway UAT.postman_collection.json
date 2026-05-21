@@ -1,0 +1,3469 @@
+{
+	"info": {
+		"_postman_id": "4f019e17-7e94-4f9c-9384-e7c09e10b35a",
+		"name": "ApiGateway UAT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25378365",
+		"_collection_link": "https://ncba-2023.postman.co/workspace/NCBA~695d8fd2-7857-47f2-bf1d-db1514b2d8b3/collection/25378365-4f019e17-7e94-4f9c-9384-e7c09e10b35a?action=share&source=collection_link&creator=25378365"
+	},
+	"item": [
+		{
+			"name": "api",
+			"item": [
+				{
+					"name": "v1",
+					"item": [
+						{
+							"name": "AccountDetails",
+							"item": [
+								{
+									"name": "accountdetails",
+									"item": [
+										{
+											"name": "/api/v1/AccountDetails/accountdetails - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"country\": \"<string>\",\n  \"accountNo\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/AccountDetails/accountdetails",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"AccountDetails",
+														"accountdetails"
+													]
+												},
+												"description": "/api/v1/AccountDetails/accountdetails - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"country\": \"<string>\",\n  \"accountNo\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/AccountDetails/accountdetails",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"AccountDetails",
+																"accountdetails"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "AccountMiniStatement",
+							"item": [
+								{
+									"name": "accountministatement",
+									"item": [
+										{
+											"name": "/api/v1/AccountMiniStatement/accountministatement - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"country\": \"<string>\",\n  \"accountNo\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/AccountMiniStatement/accountministatement",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"AccountMiniStatement",
+														"accountministatement"
+													]
+												},
+												"description": "/api/v1/AccountMiniStatement/accountministatement - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"country\": \"<string>\",\n  \"accountNo\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/AccountMiniStatement/accountministatement",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"AccountMiniStatement",
+																"accountministatement"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "AccountStatement",
+							"item": [
+								{
+									"name": "accountstatement",
+									"item": [
+										{
+											"name": "/api/v1/AccountStatement/accountstatement - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"country\": \"<string>\",\n  \"accountNo\": \"<string>\",\n  \"fromDate\": \"<string>\",\n  \"toDate\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/AccountStatement/accountstatement",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"AccountStatement",
+														"accountstatement"
+													]
+												},
+												"description": "/api/v1/AccountStatement/accountstatement - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"country\": \"<string>\",\n  \"accountNo\": \"<string>\",\n  \"fromDate\": \"<string>\",\n  \"toDate\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/AccountStatement/accountstatement",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"AccountStatement",
+																"accountstatement"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Auth",
+							"item": [
+								{
+									"name": "generate-token",
+									"item": [
+										{
+											"name": "/api/v1/Auth/generate-token - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"userID\": \"<string>\",\n  \"password\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/Auth/generate-token",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"Auth",
+														"generate-token"
+													]
+												},
+												"description": "/api/v1/Auth/generate-token - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"userID\": \"<string>\",\n  \"password\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/Auth/generate-token",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"Auth",
+																"generate-token"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "ChargeInquiry",
+							"item": [
+								{
+									"name": "chargeinquiry",
+									"item": [
+										{
+											"name": "/api/v1/ChargeInquiry/chargeinquiry - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"country\": \"<string>\",\n  \"debitAccount\": \"<string>\",\n  \"chargeCurrency\": \"<string>\",\n  \"transactionAmount\": \"<string>\",\n  \"serviceType\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/ChargeInquiry/chargeinquiry",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"ChargeInquiry",
+														"chargeinquiry"
+													]
+												},
+												"description": "/api/v1/ChargeInquiry/chargeinquiry - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"country\": \"<string>\",\n  \"debitAccount\": \"<string>\",\n  \"chargeCurrency\": \"<string>\",\n  \"transactionAmount\": \"<string>\",\n  \"serviceType\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/ChargeInquiry/chargeinquiry",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"ChargeInquiry",
+																"chargeinquiry"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "CreditCardStatement",
+							"item": [
+								{
+									"name": "credit-card-statement",
+									"item": [
+										{
+											"name": "/api/v1/CreditCardStatement/credit-card-statement - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"country\": \"<string>\",\n  \"creditCardNo\": \"<string>\",\n  \"srNo\": \"<string>\",\n  \"fromDate\": \"<string>\",\n  \"toDate\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/CreditCardStatement/credit-card-statement",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"CreditCardStatement",
+														"credit-card-statement"
+													]
+												},
+												"description": "/api/v1/CreditCardStatement/credit-card-statement - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"country\": \"<string>\",\n  \"creditCardNo\": \"<string>\",\n  \"srNo\": \"<string>\",\n  \"fromDate\": \"<string>\",\n  \"toDate\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/CreditCardStatement/credit-card-statement",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"CreditCardStatement",
+																"credit-card-statement"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "ForexDealRate",
+							"item": [
+								{
+									"name": "forexdealrate",
+									"item": [
+										{
+											"name": "/api/v1/ForexDealRate/forexdealrate - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"country\": \"<string>\",\n  \"cif\": \"<string>\",\n  \"dealRefNum\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/ForexDealRate/forexdealrate",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"ForexDealRate",
+														"forexdealrate"
+													]
+												},
+												"description": "/api/v1/ForexDealRate/forexdealrate - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"country\": \"<string>\",\n  \"cif\": \"<string>\",\n  \"dealRefNum\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/ForexDealRate/forexdealrate",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"ForexDealRate",
+																"forexdealrate"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "KPLCValidation",
+							"item": [
+								{
+									"name": "kplcvalidation",
+									"item": [
+										{
+											"name": "/api/v1/KPLCValidation/kplcvalidation - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"meterNumber\": \"<string>\",\n  \"msisdn\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/KPLCValidation/kplcvalidation",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"KPLCValidation",
+														"kplcvalidation"
+													]
+												},
+												"description": "/api/v1/KPLCValidation/kplcvalidation - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"meterNumber\": \"<string>\",\n  \"msisdn\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/KPLCValidation/kplcvalidation",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"KPLCValidation",
+																"kplcvalidation"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "KRAEslipValidation",
+							"item": [
+								{
+									"name": "kraeslipvalidation",
+									"item": [
+										{
+											"name": "/api/v1/KRAEslipValidation/kraeslipvalidation - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"eslip\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"paymentType\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/KRAEslipValidation/kraeslipvalidation",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"KRAEslipValidation",
+														"kraeslipvalidation"
+													]
+												},
+												"description": "/api/v1/KRAEslipValidation/kraeslipvalidation - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"eslip\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"paymentType\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/KRAEslipValidation/kraeslipvalidation",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"KRAEslipValidation",
+																"kraeslipvalidation"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "LipaNaMpesaValidation",
+							"item": [
+								{
+									"name": "accountdetails",
+									"item": [
+										{
+											"name": "/api/v1/LipaNaMpesaValidation/accountdetails - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"identifier\": \"<string>\",\n  \"identifierType\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/LipaNaMpesaValidation/accountdetails",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"LipaNaMpesaValidation",
+														"accountdetails"
+													]
+												},
+												"description": "/api/v1/LipaNaMpesaValidation/accountdetails - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"identifier\": \"<string>\",\n  \"identifierType\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/LipaNaMpesaValidation/accountdetails",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"LipaNaMpesaValidation",
+																"accountdetails"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "MpesaAgentValidation",
+							"item": [
+								{
+									"name": "mpesaagentvalidation",
+									"item": [
+										{
+											"name": "/api/v1/MpesaAgentValidation/mpesaagentvalidation - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"country\": \"<string>\",\n  \"agentCode\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/MpesaAgentValidation/mpesaagentvalidation",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"MpesaAgentValidation",
+														"mpesaagentvalidation"
+													]
+												},
+												"description": "/api/v1/MpesaAgentValidation/mpesaagentvalidation - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"country\": \"<string>\",\n  \"agentCode\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/MpesaAgentValidation/mpesaagentvalidation",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"MpesaAgentValidation",
+																"mpesaagentvalidation"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "NHIFValidation",
+							"item": [
+								{
+									"name": "nhifvalidation",
+									"item": [
+										{
+											"name": "/api/v1/NHIFValidation/nhifvalidation - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"customerRef\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"paymentType\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/NHIFValidation/nhifvalidation",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"NHIFValidation",
+														"nhifvalidation"
+													]
+												},
+												"description": "/api/v1/NHIFValidation/nhifvalidation - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"customerRef\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"paymentType\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/NHIFValidation/nhifvalidation",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"NHIFValidation",
+																"nhifvalidation"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "NSWCValidation",
+							"item": [
+								{
+									"name": "nairobiwatervalidation",
+									"item": [
+										{
+											"name": "/api/v1/NSWCValidation/nairobiwatervalidation - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"meterNumber\": \"<string>\",\n  \"msisdn\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/NSWCValidation/nairobiwatervalidation",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"NSWCValidation",
+														"nairobiwatervalidation"
+													]
+												},
+												"description": "/api/v1/NSWCValidation/nairobiwatervalidation - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"meterNumber\": \"<string>\",\n  \"msisdn\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/NSWCValidation/nairobiwatervalidation",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"NSWCValidation",
+																"nairobiwatervalidation"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "TransactionAdvice",
+							"item": [
+								{
+									"name": "transactionadvice",
+									"item": [
+										{
+											"name": "/api/v1/TransactionAdvice/transactionadvice - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"country\": \"<string>\",\n  \"transactionId\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/TransactionAdvice/transactionadvice",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"TransactionAdvice",
+														"transactionadvice"
+													]
+												},
+												"description": "/api/v1/TransactionAdvice/transactionadvice - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"country\": \"<string>\",\n  \"transactionId\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/TransactionAdvice/transactionadvice",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"TransactionAdvice",
+																"transactionadvice"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "TransactionStatusQuery",
+							"item": [
+								{
+									"name": "transactionstatusquery",
+									"item": [
+										{
+											"name": "/api/v1/TransactionStatusQuery/transactionstatusquery - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"country\": \"<string>\",\n  \"transactionId\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/TransactionStatusQuery/transactionstatusquery",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"TransactionStatusQuery",
+														"transactionstatusquery"
+													]
+												},
+												"description": "/api/v1/TransactionStatusQuery/transactionstatusquery - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"country\": \"<string>\",\n  \"transactionId\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/TransactionStatusQuery/transactionstatusquery",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"TransactionStatusQuery",
+																"transactionstatusquery"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "AirtelAirtimePayment",
+							"item": [
+								{
+									"name": "airtelairtimepayment",
+									"item": [
+										{
+											"name": "/api/v1/AirtelAirtimePayment/airtelairtimepayment - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"customerName\": \"<string>\",\n  \"creditMsisdn\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"reason\": \"<string>\",\n  \"accountNumber\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/AirtelAirtimePayment/airtelairtimepayment",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"AirtelAirtimePayment",
+														"airtelairtimepayment"
+													]
+												},
+												"description": "/api/v1/AirtelAirtimePayment/airtelairtimepayment - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"customerName\": \"<string>\",\n  \"creditMsisdn\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"reason\": \"<string>\",\n  \"accountNumber\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/AirtelAirtimePayment/airtelairtimepayment",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"AirtelAirtimePayment",
+																"airtelairtimepayment"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "CashPickUp",
+							"item": [
+								{
+									"name": "cashpickup",
+									"item": [
+										{
+											"name": "/api/v1/CashPickUp/cashpickup - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"senderCountry\": \"<string>\",\n  \"reqTransactionRefNo\": \"<string>\",\n  \"reqDebitAccountNo\": \"<string>\",\n  \"reqDebitCurrency\": \"<string>\",\n  \"reqDebitAmount\": \"<string>\",\n  \"reqCreditCurrency\": \"<string>\",\n  \"reqNarration\": \"<string>\",\n  \"reqBeneficiaryIDtype\": \"<string>\",\n  \"reqBeneficiaryName\": \"<string>\",\n  \"reqBeneficiaryIDNumber\": \"<string>\",\n  \"reqMobilenumber\": \"<string>\",\n  \"otcLegalIdentifier\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/CashPickUp/cashpickup",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"CashPickUp",
+														"cashpickup"
+													]
+												},
+												"description": "/api/v1/CashPickUp/cashpickup - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"senderCountry\": \"<string>\",\n  \"reqTransactionRefNo\": \"<string>\",\n  \"reqDebitAccountNo\": \"<string>\",\n  \"reqDebitCurrency\": \"<string>\",\n  \"reqDebitAmount\": \"<string>\",\n  \"reqCreditCurrency\": \"<string>\",\n  \"reqNarration\": \"<string>\",\n  \"reqBeneficiaryIDtype\": \"<string>\",\n  \"reqBeneficiaryName\": \"<string>\",\n  \"reqBeneficiaryIDNumber\": \"<string>\",\n  \"reqMobilenumber\": \"<string>\",\n  \"otcLegalIdentifier\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/CashPickUp/cashpickup",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"CashPickUp",
+																"cashpickup"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "CreditCardRepayment",
+							"item": [
+								{
+									"name": "creditcardrepayment",
+									"item": [
+										{
+											"name": "/api/v1/CreditCardRepayment/creditcardrepayment - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"narration\": \"<string>\",\n  \"country\": \"<string>\",\n  \"paymentAmount\": \"<string>\",\n  \"debitAccountCurrency\": \"<string>\",\n  \"reqTransactionReferenceNo\": \"<string>\",\n  \"debitAccountNumber\": \"<string>\",\n  \"creditCardNumber\": \"<string>\",\n  \"cardCurrency\": \"<string>\",\n  \"cardSerialNumber\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/CreditCardRepayment/creditcardrepayment",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"CreditCardRepayment",
+														"creditcardrepayment"
+													]
+												},
+												"description": "/api/v1/CreditCardRepayment/creditcardrepayment - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"narration\": \"<string>\",\n  \"country\": \"<string>\",\n  \"paymentAmount\": \"<string>\",\n  \"debitAccountCurrency\": \"<string>\",\n  \"reqTransactionReferenceNo\": \"<string>\",\n  \"debitAccountNumber\": \"<string>\",\n  \"creditCardNumber\": \"<string>\",\n  \"cardCurrency\": \"<string>\",\n  \"cardSerialNumber\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/CreditCardRepayment/creditcardrepayment",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"CreditCardRepayment",
+																"creditcardrepayment"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "EFTTransaction",
+							"item": [
+								{
+									"name": "efttransaction",
+									"item": [
+										{
+											"name": "/api/v1/EFTTransaction/efttransaction - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"amount\": \"<string>\",\n  \"beneficiaryAccountNumber\": \"<string>\",\n  \"beneficiaryAddress1\": \"<string>\",\n  \"beneficiaryAddress2\": \"<string>\",\n  \"beneficiaryAddress3\": \"<string>\",\n  \"beneficiaryAddress4\": \"<string>\",\n  \"beneficiaryBankBIC\": \"<string>\",\n  \"beneficiaryBankName\": \"<string>\",\n  \"beneficiaryBankSwiftCode\": \"<string>\",\n  \"beneficiaryCity\": \"<string>\",\n  \"beneficiaryCountry\": \"<string>\",\n  \"beneficiaryName\": \"<string>\",\n  \"creditAccountNumber\": \"<string>\",\n  \"currency\": \"<string>\",\n  \"debitAccountNumber\": \"<string>\",\n  \"narration\": \"<string>\",\n  \"senderAccountNumber\": \"<string>\",\n  \"senderAddress1\": \"<string>\",\n  \"senderAddress2\": \"<string>\",\n  \"senderAddress3\": \"<string>\",\n  \"senderAddress4\": \"<string>\",\n  \"senderCIF\": \"<string>\",\n  \"senderCountry\": \"<string>\",\n  \"senderName\": \"<string>\",\n  \"transactionID\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/EFTTransaction/efttransaction",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"EFTTransaction",
+														"efttransaction"
+													]
+												},
+												"description": "/api/v1/EFTTransaction/efttransaction - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"amount\": \"<string>\",\n  \"beneficiaryAccountNumber\": \"<string>\",\n  \"beneficiaryAddress1\": \"<string>\",\n  \"beneficiaryAddress2\": \"<string>\",\n  \"beneficiaryAddress3\": \"<string>\",\n  \"beneficiaryAddress4\": \"<string>\",\n  \"beneficiaryBankBIC\": \"<string>\",\n  \"beneficiaryBankName\": \"<string>\",\n  \"beneficiaryBankSwiftCode\": \"<string>\",\n  \"beneficiaryCity\": \"<string>\",\n  \"beneficiaryCountry\": \"<string>\",\n  \"beneficiaryName\": \"<string>\",\n  \"creditAccountNumber\": \"<string>\",\n  \"currency\": \"<string>\",\n  \"debitAccountNumber\": \"<string>\",\n  \"narration\": \"<string>\",\n  \"senderAccountNumber\": \"<string>\",\n  \"senderAddress1\": \"<string>\",\n  \"senderAddress2\": \"<string>\",\n  \"senderAddress3\": \"<string>\",\n  \"senderAddress4\": \"<string>\",\n  \"senderCIF\": \"<string>\",\n  \"senderCountry\": \"<string>\",\n  \"senderName\": \"<string>\",\n  \"transactionID\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/EFTTransaction/efttransaction",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"EFTTransaction",
+																"efttransaction"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "FloatPurchase",
+							"item": [
+								{
+									"name": "floatpurchase",
+									"item": [
+										{
+											"name": "/api/v1/FloatPurchase/floatpurchase - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"reqAgentName\": \"<string>\",\n  \"reqCreditAmount\": \"<string>\",\n  \"reqCustomerReference\": \"<string>\",\n  \"reqDealReference\": \"<string>\",\n  \"reqDebitAccountNumber\": \"<string>\",\n  \"reqDebitAcCurrency\": \"<string>\",\n  \"reqDebitAmount\": \"<string>\",\n  \"reqMobileNumber\": \"<string>\",\n  \"reqPayBillTillNo\": \"<string>\",\n  \"reqPaymentDescription\": \"<string>\",\n  \"reqPaymentType\": \"<string>\",\n  \"reqToAccountName\": \"<string>\",\n  \"reqTransactionReferenceNo\": \"<string>\",\n  \"reqTxnDate\": \"<string>\",\n  \"senderCountry\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/FloatPurchase/floatpurchase",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"FloatPurchase",
+														"floatpurchase"
+													]
+												},
+												"description": "/api/v1/FloatPurchase/floatpurchase - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"reqAgentName\": \"<string>\",\n  \"reqCreditAmount\": \"<string>\",\n  \"reqCustomerReference\": \"<string>\",\n  \"reqDealReference\": \"<string>\",\n  \"reqDebitAccountNumber\": \"<string>\",\n  \"reqDebitAcCurrency\": \"<string>\",\n  \"reqDebitAmount\": \"<string>\",\n  \"reqMobileNumber\": \"<string>\",\n  \"reqPayBillTillNo\": \"<string>\",\n  \"reqPaymentDescription\": \"<string>\",\n  \"reqPaymentType\": \"<string>\",\n  \"reqToAccountName\": \"<string>\",\n  \"reqTransactionReferenceNo\": \"<string>\",\n  \"reqTxnDate\": \"<string>\",\n  \"senderCountry\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/FloatPurchase/floatpurchase",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"FloatPurchase",
+																"floatpurchase"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "IFTTransaction",
+							"item": [
+								{
+									"name": "ifttransaction",
+									"item": [
+										{
+											"name": "/api/v1/IFTTransaction/ifttransaction - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"country\": \"<string>\",\n  \"transactionID\": \"<string>\",\n  \"beneficiaryAccountName\": \"<string>\",\n  \"debitAccountNumber\": \"<string>\",\n  \"creditAccountNumber\": \"<string>\",\n  \"currency\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"narration\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/IFTTransaction/ifttransaction",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"IFTTransaction",
+														"ifttransaction"
+													]
+												},
+												"description": "/api/v1/IFTTransaction/ifttransaction - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"country\": \"<string>\",\n  \"transactionID\": \"<string>\",\n  \"beneficiaryAccountName\": \"<string>\",\n  \"debitAccountNumber\": \"<string>\",\n  \"creditAccountNumber\": \"<string>\",\n  \"currency\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"narration\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/IFTTransaction/ifttransaction",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"IFTTransaction",
+																"ifttransaction"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "KPLCPayment",
+							"item": [
+								{
+									"name": "kplcpayment",
+									"item": [
+										{
+											"name": "/api/v1/KPLCPayment/kplcpayment - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"validationId\": \"<string>\",\n  \"customerName\": \"<string>\",\n  \"meterNumber\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"reason\": \"<string>\",\n  \"accountNumber\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/KPLCPayment/kplcpayment",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"KPLCPayment",
+														"kplcpayment"
+													]
+												},
+												"description": "/api/v1/KPLCPayment/kplcpayment - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"validationId\": \"<string>\",\n  \"customerName\": \"<string>\",\n  \"meterNumber\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"reason\": \"<string>\",\n  \"accountNumber\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/KPLCPayment/kplcpayment",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"KPLCPayment",
+																"kplcpayment"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "KRAPayment",
+							"item": [
+								{
+									"name": "krapayment",
+									"item": [
+										{
+											"name": "/api/v1/KRAPayment/krapayment - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"validationId\": \"<string>\",\n  \"customerName\": \"<string>\",\n  \"eslipNumber\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"reason\": \"<string>\",\n  \"accountNumber\": \"<string>\",\n  \"paymentType\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/KRAPayment/krapayment",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"KRAPayment",
+														"krapayment"
+													]
+												},
+												"description": "/api/v1/KRAPayment/krapayment - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"validationId\": \"<string>\",\n  \"customerName\": \"<string>\",\n  \"eslipNumber\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"reason\": \"<string>\",\n  \"accountNumber\": \"<string>\",\n  \"paymentType\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/KRAPayment/krapayment",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"KRAPayment",
+																"krapayment"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "LoopPayment",
+							"item": [
+								{
+									"name": "looppayment",
+									"item": [
+										{
+											"name": "/api/v1/LoopPayment/looppayment - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"loopAccount\": \"<string>\",\n  \"loopName\": \"<string>\",\n  \"loopCustomer\": \"<string>\",\n  \"date\": \"<string>\",\n  \"postingBranch\": \"<string>\",\n  \"transactionReferenceNumber\": \"<string>\",\n  \"transactionCode\": \"<string>\",\n  \"debitBranch\": \"<string>\",\n  \"accountNumber\": \"<string>\",\n  \"debitAmount\": \"<string>\",\n  \"narration\": \"<string>\",\n  \"beneficiaryAccount\": \"<string>\",\n  \"beneficiaryName\": \"<string>\",\n  \"beneficiaryBankBIC\": \"<string>\",\n  \"creditAccount\": \"<string>\",\n  \"country\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/LoopPayment/looppayment",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"LoopPayment",
+														"looppayment"
+													]
+												},
+												"description": "/api/v1/LoopPayment/looppayment - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"loopAccount\": \"<string>\",\n  \"loopName\": \"<string>\",\n  \"loopCustomer\": \"<string>\",\n  \"date\": \"<string>\",\n  \"postingBranch\": \"<string>\",\n  \"transactionReferenceNumber\": \"<string>\",\n  \"transactionCode\": \"<string>\",\n  \"debitBranch\": \"<string>\",\n  \"accountNumber\": \"<string>\",\n  \"debitAmount\": \"<string>\",\n  \"narration\": \"<string>\",\n  \"beneficiaryAccount\": \"<string>\",\n  \"beneficiaryName\": \"<string>\",\n  \"beneficiaryBankBIC\": \"<string>\",\n  \"creditAccount\": \"<string>\",\n  \"country\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/LoopPayment/looppayment",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"LoopPayment",
+																"looppayment"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "MobileB2WPayment",
+							"item": [
+								{
+									"name": "mobileb2wpayment",
+									"item": [
+										{
+											"name": "/api/v1/MobileB2WPayment/mobileb2wpayment - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"validationId\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"debitAccount\": \"<string>\",\n  \"receipientNumber\": \"<string>\",\n  \"senderNumber\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"narration\": \"<string>\",\n  \"callbackUrl\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/MobileB2WPayment/mobileb2wpayment",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"MobileB2WPayment",
+														"mobileb2wpayment"
+													]
+												},
+												"description": "/api/v1/MobileB2WPayment/mobileb2wpayment - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"validationId\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"debitAccount\": \"<string>\",\n  \"receipientNumber\": \"<string>\",\n  \"senderNumber\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"narration\": \"<string>\",\n  \"callbackUrl\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/MobileB2WPayment/mobileb2wpayment",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"MobileB2WPayment",
+																"mobileb2wpayment"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "MobileMoneyTransfer",
+							"item": [
+								{
+									"name": "mobilemoneytransfer",
+									"item": [
+										{
+											"name": "/api/v1/MobileMoneyTransfer/mobilemoneytransfer - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"hdrTranId\": \"<string>\",\n  \"reqChnlId\": \"<string>\",\n  \"reqChannelName\": \"<string>\",\n  \"reqUnitId\": \"<string>\",\n  \"reqAccNo\": \"<string>\",\n  \"reqAmt\": \"<string>\",\n  \"reqTxnCCY\": \"<string>\",\n  \"reqCBXRefNo\": \"<string>\",\n  \"reqmobilenumber\": \"<string>\",\n  \"reqwalletname\": \"<string>\",\n  \"reqDebitccy\": \"<string>\",\n  \"reqDebitamt\": \"<string>\",\n  \"reqCreditamt\": \"<string>\",\n  \"vipMarker\": \"<string>\",\n  \"waiveCharge\": \"<string>\",\n  \"hdrStatus\": \"<string>\",\n  \"reqTxnDt\": \"<string>\",\n  \"reqInterfaceId\": \"<string>\",\n  \"reqRefNo\": \"<string>\",\n  \"reqEchoField\": \"<string>\",\n  \"reqCardNo\": \"<string>\",\n  \"reqConvMode\": \"<string>\",\n  \"reqConvRate\": \"<string>\",\n  \"reqCrConvRate\": \"<string>\",\n  \"reqCrConvMode\": \"<string>\",\n  \"reqIntRemarks\": \"<string>\",\n  \"custreference\": \"<string>\",\n  \"reqValDt\": \"<string>\",\n  \"reqRepostFlg\": \"<string>\",\n  \"reqdealrefno\": \"<string>\",\n  \"reqdealrate\": \"<string>\",\n  \"reqdealamount\": \"<string>\",\n  \"reqdealername\": \"<string>\",\n  \"reqwalletprovider\": \"<string>\",\n  \"reqexrate1\": \"<string>\",\n  \"reqdrcrflag\": \"<string>\",\n  \"reqDebitkeyinAmount\": \"<string>\",\n  \"reqChargeDebitAccountNo\": \"<string>\",\n  \"reqChargeDebitAccCategory\": \"<string>\",\n  \"reqChargeDebitCurrency\": \"<string>\",\n  \"reqChargeDebitAmount\": \"<string>\",\n  \"reqChargeDebitNarration\": \"<string>\",\n  \"reqChargeForceDebitFlag\": \"<string>\",\n  \"reqChargeConversionRate\": \"<string>\",\n  \"reqChargeBuyRate\": \"<string>\",\n  \"reqChargeSellRate\": \"<string>\",\n  \"reqChargeMidRate\": \"<string>\",\n  \"reqChargeCreditAccountNo\": \"<string>\",\n  \"reqChargeCreditAccCategory\": \"<string>\",\n  \"reqChargeCreditCurrency\": \"<string>\",\n  \"reqChargeCreditAmount\": \"<string>\",\n  \"reqChargeCreditNarration\": \"<string>\",\n  \"reqBeneficiaryName\": \"<string>\",\n  \"reqChargeForceCreditFlag\": \"<string>\",\n  \"orgcrossratevalue\": \"<string>\",\n  \"reqtaxamount\": \"<string>\",\n  \"reqtaxglaccount\": \"<string>\",\n  \"reqtaxcurrency\": \"<string>\",\n  \"reqTaxCreditNarration\": \"<string>\",\n  \"reqcrdramount\": \"<string>\",\n  \"reqcrdrindicator\": \"<string>\",\n  \"reqSuspCrChgAmt\": \"<string>\",\n  \"reqmkrid\": \"<string>\",\n  \"reqauthid\": \"<string>\",\n  \"reqmkrname\": \"<string>\",\n  \"reqauthname\": \"<string>\",\n  \"reqpartnerfeeglacc\": \"<string>\",\n  \"reqpartnerfee\": \"<string>\",\n  \"reqpartnerfeeccy\": \"<string>\",\n  \"reqChargeExchangeRate\": \"<string>\",\n  \"reqDebitNarration1\": \"<string>\",\n  \"reqCreditNarration1\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/MobileMoneyTransfer/mobilemoneytransfer",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"MobileMoneyTransfer",
+														"mobilemoneytransfer"
+													]
+												},
+												"description": "/api/v1/MobileMoneyTransfer/mobilemoneytransfer - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"hdrTranId\": \"<string>\",\n  \"reqChnlId\": \"<string>\",\n  \"reqChannelName\": \"<string>\",\n  \"reqUnitId\": \"<string>\",\n  \"reqAccNo\": \"<string>\",\n  \"reqAmt\": \"<string>\",\n  \"reqTxnCCY\": \"<string>\",\n  \"reqCBXRefNo\": \"<string>\",\n  \"reqmobilenumber\": \"<string>\",\n  \"reqwalletname\": \"<string>\",\n  \"reqDebitccy\": \"<string>\",\n  \"reqDebitamt\": \"<string>\",\n  \"reqCreditamt\": \"<string>\",\n  \"vipMarker\": \"<string>\",\n  \"waiveCharge\": \"<string>\",\n  \"hdrStatus\": \"<string>\",\n  \"reqTxnDt\": \"<string>\",\n  \"reqInterfaceId\": \"<string>\",\n  \"reqRefNo\": \"<string>\",\n  \"reqEchoField\": \"<string>\",\n  \"reqCardNo\": \"<string>\",\n  \"reqConvMode\": \"<string>\",\n  \"reqConvRate\": \"<string>\",\n  \"reqCrConvRate\": \"<string>\",\n  \"reqCrConvMode\": \"<string>\",\n  \"reqIntRemarks\": \"<string>\",\n  \"custreference\": \"<string>\",\n  \"reqValDt\": \"<string>\",\n  \"reqRepostFlg\": \"<string>\",\n  \"reqdealrefno\": \"<string>\",\n  \"reqdealrate\": \"<string>\",\n  \"reqdealamount\": \"<string>\",\n  \"reqdealername\": \"<string>\",\n  \"reqwalletprovider\": \"<string>\",\n  \"reqexrate1\": \"<string>\",\n  \"reqdrcrflag\": \"<string>\",\n  \"reqDebitkeyinAmount\": \"<string>\",\n  \"reqChargeDebitAccountNo\": \"<string>\",\n  \"reqChargeDebitAccCategory\": \"<string>\",\n  \"reqChargeDebitCurrency\": \"<string>\",\n  \"reqChargeDebitAmount\": \"<string>\",\n  \"reqChargeDebitNarration\": \"<string>\",\n  \"reqChargeForceDebitFlag\": \"<string>\",\n  \"reqChargeConversionRate\": \"<string>\",\n  \"reqChargeBuyRate\": \"<string>\",\n  \"reqChargeSellRate\": \"<string>\",\n  \"reqChargeMidRate\": \"<string>\",\n  \"reqChargeCreditAccountNo\": \"<string>\",\n  \"reqChargeCreditAccCategory\": \"<string>\",\n  \"reqChargeCreditCurrency\": \"<string>\",\n  \"reqChargeCreditAmount\": \"<string>\",\n  \"reqChargeCreditNarration\": \"<string>\",\n  \"reqBeneficiaryName\": \"<string>\",\n  \"reqChargeForceCreditFlag\": \"<string>\",\n  \"orgcrossratevalue\": \"<string>\",\n  \"reqtaxamount\": \"<string>\",\n  \"reqtaxglaccount\": \"<string>\",\n  \"reqtaxcurrency\": \"<string>\",\n  \"reqTaxCreditNarration\": \"<string>\",\n  \"reqcrdramount\": \"<string>\",\n  \"reqcrdrindicator\": \"<string>\",\n  \"reqSuspCrChgAmt\": \"<string>\",\n  \"reqmkrid\": \"<string>\",\n  \"reqauthid\": \"<string>\",\n  \"reqmkrname\": \"<string>\",\n  \"reqauthname\": \"<string>\",\n  \"reqpartnerfeeglacc\": \"<string>\",\n  \"reqpartnerfee\": \"<string>\",\n  \"reqpartnerfeeccy\": \"<string>\",\n  \"reqChargeExchangeRate\": \"<string>\",\n  \"reqDebitNarration1\": \"<string>\",\n  \"reqCreditNarration1\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/MobileMoneyTransfer/mobilemoneytransfer",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"MobileMoneyTransfer",
+																"mobilemoneytransfer"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "MshwariTransafer",
+							"item": [
+								{
+									"name": "mshwaritransafer",
+									"item": [
+										{
+											"name": "/api/v1/MshwariTransafer/mshwaritransafer - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"reqCreditAmount\": \"<string>\",\n  \"reqCustomerReference\": \"<string>\",\n  \"reqDebitAccountNumber\": \"<string>\",\n  \"reqDebitAcCurrency\": \"<string>\",\n  \"reqMobileNumber\": \"<string>\",\n  \"reqPaymentDescription\": \"<string>\",\n  \"reqToAccountName\": \"<string>\",\n  \"reqTransactionReferenceNo\": \"<string>\",\n  \"reqUnitID\": \"<string>\",\n  \"reqTransactionDate\": \"<string>\",\n  \"senderCountry\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/MshwariTransafer/mshwaritransafer",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"MshwariTransafer",
+														"mshwaritransafer"
+													]
+												},
+												"description": "/api/v1/MshwariTransafer/mshwaritransafer - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"reqCreditAmount\": \"<string>\",\n  \"reqCustomerReference\": \"<string>\",\n  \"reqDebitAccountNumber\": \"<string>\",\n  \"reqDebitAcCurrency\": \"<string>\",\n  \"reqMobileNumber\": \"<string>\",\n  \"reqPaymentDescription\": \"<string>\",\n  \"reqToAccountName\": \"<string>\",\n  \"reqTransactionReferenceNo\": \"<string>\",\n  \"reqUnitID\": \"<string>\",\n  \"reqTransactionDate\": \"<string>\",\n  \"senderCountry\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/MshwariTransafer/mshwaritransafer",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"MshwariTransafer",
+																"mshwaritransafer"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "NHIFPayment",
+							"item": [
+								{
+									"name": "nhifpayment",
+									"item": [
+										{
+											"name": "/api/v1/NHIFPayment/nhifpayment - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"reason\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"validationId\": \"<string>\",\n  \"customerName\": \"<string>\",\n  \"accountNumber\": \"<string>\",\n  \"customerRef\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"paymentType\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/NHIFPayment/nhifpayment",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"NHIFPayment",
+														"nhifpayment"
+													]
+												},
+												"description": "/api/v1/NHIFPayment/nhifpayment - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"reason\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"validationId\": \"<string>\",\n  \"customerName\": \"<string>\",\n  \"accountNumber\": \"<string>\",\n  \"customerRef\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"paymentType\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/NHIFPayment/nhifpayment",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"NHIFPayment",
+																"nhifpayment"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "NWSCPayment",
+							"item": [
+								{
+									"name": "NWSCPayment",
+									"item": [
+										{
+											"name": "/api/v1/NWSCPayment/NWSCPayment - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"validationId\": \"<string>\",\n  \"customerName\": \"<string>\",\n  \"meterNumber\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"reason\": \"<string>\",\n  \"accountNumber\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/NWSCPayment/NWSCPayment",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"NWSCPayment",
+														"NWSCPayment"
+													]
+												},
+												"description": "/api/v1/NWSCPayment/NWSCPayment - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"validationId\": \"<string>\",\n  \"customerName\": \"<string>\",\n  \"meterNumber\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"reason\": \"<string>\",\n  \"accountNumber\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/NWSCPayment/NWSCPayment",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"NWSCPayment",
+																"NWSCPayment"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "PesaLinkTransaction",
+							"item": [
+								{
+									"name": "pesaLinktransaction",
+									"item": [
+										{
+											"name": "/api/v1/PesaLinkTransaction/pesaLinktransaction - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"beneficiaryAccountNumber\": \"<string>\",\n  \"beneficiaryAddress1\": \"<string>\",\n  \"beneficiaryAddress2\": \"<string>\",\n  \"beneficiaryAddress3\": \"<string>\",\n  \"beneficiaryAddress4\": \"<string>\",\n  \"beneficiaryBankBIC\": \"<string>\",\n  \"beneficiaryBankName\": \"<string>\",\n  \"beneficiaryName\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"currency\": \"<string>\",\n  \"narration\": \"<string>\",\n  \"senderAccountNumber\": \"<string>\",\n  \"senderAddress1\": \"<string>\",\n  \"senderAddress2\": \"<string>\",\n  \"senderAddress3\": \"<string>\",\n  \"senderAddress4\": \"<string>\",\n  \"senderCIF\": \"<string>\",\n  \"senderCountry\": \"<string>\",\n  \"senderName\": \"<string>\",\n  \"transactionID\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/PesaLinkTransaction/pesaLinktransaction",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"PesaLinkTransaction",
+														"pesaLinktransaction"
+													]
+												},
+												"description": "/api/v1/PesaLinkTransaction/pesaLinktransaction - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"beneficiaryAccountNumber\": \"<string>\",\n  \"beneficiaryAddress1\": \"<string>\",\n  \"beneficiaryAddress2\": \"<string>\",\n  \"beneficiaryAddress3\": \"<string>\",\n  \"beneficiaryAddress4\": \"<string>\",\n  \"beneficiaryBankBIC\": \"<string>\",\n  \"beneficiaryBankName\": \"<string>\",\n  \"beneficiaryName\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"currency\": \"<string>\",\n  \"narration\": \"<string>\",\n  \"senderAccountNumber\": \"<string>\",\n  \"senderAddress1\": \"<string>\",\n  \"senderAddress2\": \"<string>\",\n  \"senderAddress3\": \"<string>\",\n  \"senderAddress4\": \"<string>\",\n  \"senderCIF\": \"<string>\",\n  \"senderCountry\": \"<string>\",\n  \"senderName\": \"<string>\",\n  \"transactionID\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/PesaLinkTransaction/pesaLinktransaction",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"PesaLinkTransaction",
+																"pesaLinktransaction"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "PrepaidCardTopUp",
+							"item": [
+								{
+									"name": "prepaidcardtopup",
+									"item": [
+										{
+											"name": "/api/v1/PrepaidCardTopUp/prepaidcardtopup - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"procCode\": \"<string>\",\n  \"unitID\": \"<string>\",\n  \"debitAccountNumber\": \"<string>\",\n  \"debitAccountCurrency\": \"<string>\",\n  \"paymentAmount\": \"<integer>\",\n  \"prepaidCardNumber\": \"<string>\",\n  \"vipMarker\": \"<string>\",\n  \"waiveCharge\": \"<string>\",\n  \"transactionReferenceNo\": \"<string>\",\n  \"chnlId\": \"<string>\",\n  \"hdrTranId\": \"<string>\",\n  \"prepaidCardSerialNumber\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/PrepaidCardTopUp/prepaidcardtopup",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"PrepaidCardTopUp",
+														"prepaidcardtopup"
+													]
+												},
+												"description": "/api/v1/PrepaidCardTopUp/prepaidcardtopup - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"procCode\": \"<string>\",\n  \"unitID\": \"<string>\",\n  \"debitAccountNumber\": \"<string>\",\n  \"debitAccountCurrency\": \"<string>\",\n  \"paymentAmount\": \"<integer>\",\n  \"prepaidCardNumber\": \"<string>\",\n  \"vipMarker\": \"<string>\",\n  \"waiveCharge\": \"<string>\",\n  \"transactionReferenceNo\": \"<string>\",\n  \"chnlId\": \"<string>\",\n  \"hdrTranId\": \"<string>\",\n  \"prepaidCardSerialNumber\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/PrepaidCardTopUp/prepaidcardtopup",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"PrepaidCardTopUp",
+																"prepaidcardtopup"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "RTGSPayment",
+							"item": [
+								{
+									"name": "RTGSPayment",
+									"item": [
+										{
+											"name": "/api/v1/RTGSPayment/RTGSPayment - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"beneficiaryAccountNumber\": \"<string>\",\n  \"beneficiaryBankBIC\": \"<string>\",\n  \"beneficiaryBankName\": \"<string>\",\n  \"beneficiaryCountry\": \"<string>\",\n  \"beneficiaryName\": \"<string>\",\n  \"creditAmount\": \"<string>\",\n  \"creditCurrency\": \"<string>\",\n  \"debitCurrency\": \"<string>\",\n  \"narration\": \"<string>\",\n  \"senderAccountNumber\": \"<string>\",\n  \"senderCIF\": \"<string>\",\n  \"senderCountry\": \"<string>\",\n  \"senderName\": \"<string>\",\n  \"transactionID\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/RTGSPayment/RTGSPayment",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"RTGSPayment",
+														"RTGSPayment"
+													]
+												},
+												"description": "/api/v1/RTGSPayment/RTGSPayment - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"beneficiaryAccountNumber\": \"<string>\",\n  \"beneficiaryBankBIC\": \"<string>\",\n  \"beneficiaryBankName\": \"<string>\",\n  \"beneficiaryCountry\": \"<string>\",\n  \"beneficiaryName\": \"<string>\",\n  \"creditAmount\": \"<string>\",\n  \"creditCurrency\": \"<string>\",\n  \"debitCurrency\": \"<string>\",\n  \"narration\": \"<string>\",\n  \"senderAccountNumber\": \"<string>\",\n  \"senderCIF\": \"<string>\",\n  \"senderCountry\": \"<string>\",\n  \"senderName\": \"<string>\",\n  \"transactionID\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/RTGSPayment/RTGSPayment",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"RTGSPayment",
+																"RTGSPayment"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "SafaricomAirtimePayment",
+							"item": [
+								{
+									"name": "safaricomairtimepayment",
+									"item": [
+										{
+											"name": "/api/v1/SafaricomAirtimePayment/safaricomairtimepayment - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"customerName\": \"<string>\",\n  \"creditMsisdn\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"reason\": \"<string>\",\n  \"accountNumber\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/SafaricomAirtimePayment/safaricomairtimepayment",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"SafaricomAirtimePayment",
+														"safaricomairtimepayment"
+													]
+												},
+												"description": "/api/v1/SafaricomAirtimePayment/safaricomairtimepayment - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"customerName\": \"<string>\",\n  \"creditMsisdn\": \"<string>\",\n  \"msisdn\": \"<string>\",\n  \"channelRef\": \"<string>\",\n  \"amount\": \"<string>\",\n  \"callbackUrl\": \"<string>\",\n  \"reason\": \"<string>\",\n  \"accountNumber\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/SafaricomAirtimePayment/safaricomairtimepayment",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"SafaricomAirtimePayment",
+																"safaricomairtimepayment"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "MpesaB2WValidation",
+							"item": [
+								{
+									"name": "validate-account",
+									"item": [
+										{
+											"name": "/api/v1/MpesaB2WValidation/validate-account - POST",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Ocp-Apim-Subscription-Key",
+														"value": "<string>"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"msisdn\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/MpesaB2WValidation/validate-account",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"MpesaB2WValidation",
+														"validate-account"
+													]
+												},
+												"description": "/api/v1/MpesaB2WValidation/validate-account - POST"
+											},
+											"response": [
+												{
+													"name": "OK",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<string>"
+															},
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Ocp-Apim-Subscription-Key",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"msisdn\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/v1/MpesaB2WValidation/validate-account",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"v1",
+																"MpesaB2WValidation",
+																"validate-account"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "7e0a42d930e34680b295951acb24b140",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "Ocp-Apim-Subscription-Key",
+				"type": "string"
+			},
+			{
+				"key": "in",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://apidev.ncbagroup.com/openbankingapigateway/dev"
+		}
+	]
+}

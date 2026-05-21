@@ -253,15 +253,18 @@ export class WalletService {
   }
 
   /**
-   * Withdraw money to M-Pesa (S2C)
+   * Withdraw money to M-Pesa via NCBA Open Banking B2C (S2C)
+   * Falls back to IndexPay for amounts below KES 50 (NCBA minimum)
    */
   async withdrawMoney(
     userId: string,
     amount: number,
-    phone: string
+    phone: string,
+    recipientName?: string,
+    narration?: string
   ): Promise<any> {
     const wallet = await this.getOrCreateWallet(userId);
-    
+
     // Calculate fees (platform fee + M-Pesa B2C fee)
     const fees = this.calculateFees(amount, true);
 
@@ -273,49 +276,38 @@ export class WalletService {
       );
     }
 
-    // Create withdrawal transaction (status: processing)
-    const { data: transaction, error: txError } = await this.supabase
-      .from('transactions')
-      .insert({
-        user_id: userId,
-        type: 'withdraw',
-        amount: amount,
-        status: 'processing',
-        phone: phone,
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    const n8nBase = process.env.N8N_WEBHOOK_BASE_URL || 'https://primary-production-579c.up.railway.app';
 
-    if (txError) throw txError;
+    const response = await fetch(`${n8nBase}/webhook/ncba_withdraw`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        amount,
+        phoneNumber: phone,
+        recipientName: recipientName || 'Beneficiary',
+        narration: narration || 'Wallet withdrawal',
+      }),
+    });
 
-    // Reserve amount in wallet (deduct immediately)
-    const newBalance = wallet.available_balance - fees.totalDebit;
-    const { error: updateError } = await this.supabase
-      .from('profiles')
-      .update({
-        wallet_balance: newBalance,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', userId);
+    const result = await response.json();
 
-    if (updateError) throw updateError;
+    if (!result.success) {
+      throw new Error(result.message || 'Withdrawal failed');
+    }
 
-    console.log(`💸 Withdrawal initiated: KES ${amount} to ${phone}`);
-
-    // TODO: Initiate M-Pesa B2C payment here
-    // For now, return pending status
+    console.log(`💸 Withdrawal sent via NCBA: KES ${amount} to ${phone}`);
 
     return {
       success: true,
-      transaction_id: transaction.id,
-      status: 'processing',
-      amount: amount,
+      transaction_id: result.transaction_id,
+      bank_ref: result.bank_ref,
+      status: 'completed',
+      amount,
       platform_fee: fees.platformFee,
       mpesa_fee: fees.mpesaFee,
       total_debit: fees.totalDebit,
-      new_balance: newBalance,
-      message: 'Withdrawal is being processed. You will receive M-Pesa shortly.',
+      message: result.message || 'Withdrawal sent successfully.',
     };
   }
 

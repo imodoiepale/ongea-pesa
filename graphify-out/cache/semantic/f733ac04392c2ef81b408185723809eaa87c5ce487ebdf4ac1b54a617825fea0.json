@@ -1,0 +1,1 @@
+{"nodes": [{"id": "migration004_users_gate_fields", "label": "users gate_id/gate_name Fields (migration 004)", "file_type": "document", "source_file": "database/migrations/004_add_gate_fields.sql", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null}], "edges": [], "hyperedges": []}

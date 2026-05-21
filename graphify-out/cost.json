@@ -1,12 +1,34 @@
-{
-  "runs": [
-    {
-      "date": "2026-05-16T09:42:45.836757+00:00",
-      "input_tokens": 37000,
-      "output_tokens": 7400,
-      "files": 315
-    }
-  ],
-  "total_input_tokens": 37000,
-  "total_output_tokens": 7400
-}
+[
+  {
+    "runs": [
+      {
+        "date": "2026-05-16T09:42:45.836757+00:00",
+        "input_tokens": 37000,
+        "output_tokens": 7400,
+        "files": 315
+      },
+      {
+        "date": "2026-05-20T07:33:30.366247+00:00",
+        "input_tokens": 38800,
+        "output_tokens": 8800,
+        "files": 322
+      }
+    ],
+    "total_input_tokens": 75800,
+    "total_output_tokens": 16200
+  },
+  {
+    "run": "incremental",
+    "timestamp": "2026-05-20T10:11:27.895396Z",
+    "new_files": 3,
+    "new_nodes": 85,
+    "new_edges": 109,
+    "total_nodes": 1564,
+    "total_edges": 1897,
+    "communities": 289,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "corpus_tokens": 405154,
+    "reduction_ratio": 197.8
+  }
+]
