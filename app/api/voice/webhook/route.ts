@@ -1,9 +1,18 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 
-// n8n webhook URL and auth
-const N8N_WEBHOOK_URL = 'https://primary-production-579c.up.railway.app/webhook/send_money';
+// n8n webhook URL and auth (env-overridable for Railway → Hostinger cutover).
+const N8N_BASE = process.env.N8N_WEBHOOK_BASE_URL || 'https://n8n-lc5r.srv1631847.hstgr.cloud';
+const N8N_WEBHOOK_URL = `${N8N_BASE}/webhook/send_money`;
 const N8N_AUTH_TOKEN = process.env.N8N_WEBHOOK_AUTH_TOKEN || '';
+
+// Money-moving voice intents that must be gated by an in-app step-up confirm.
+// Non-payment commands (balance queries, etc.) fall through to n8n directly.
+const MONEY_MOVING_TYPES = new Set([
+  'send_phone', 'buy_goods_pochi', 'buy_goods_till', 'paybill',
+  'withdraw', 'bank_to_mpesa', 'bank_to_bank',
+  'c2c', 'c2b', 'b2c', 'b2b',
+]);
 
 export async function POST(request: NextRequest) {
   try {
@@ -529,7 +538,64 @@ export async function POST(request: NextRequest) {
 
     console.log('N8N Payload:', JSON.stringify(n8nPayload, null, 2))
 
-    // Forward to n8n
+    // ===== Voice step-up gate (A6) — OPT-IN, OFF by default =====
+    // Product decision: voice payments move as fast as possible — no confirm step.
+    // So by default we forward straight to n8n (fastest path).
+    //
+    // This gate can be turned on later without code changes:
+    //   VOICE_STEPUP_ENABLED=true            → stage ALL money-moving commands
+    //   VOICE_STEPUP_THRESHOLD=5000          → stage only when amount >= threshold
+    // When enabled, the command is staged in pending_voice_payments and released
+    // only after an in-app PIN/passkey confirm via /api/voice/confirm/[id].
+    const stepupEnabled = process.env.VOICE_STEPUP_ENABLED === 'true';
+    const stepupThreshold = Number(process.env.VOICE_STEPUP_THRESHOLD || '0') || 0;
+    const isMoneyMoving = MONEY_MOVING_TYPES.has(String(body.type));
+    const isRealUser = !userContext?.test_mode && !!finalUserId && finalUserId !== 'test-user-id';
+    const amountForStage = Number(requestedAmount) || 0;
+    const needsStepUp =
+      stepupEnabled && isMoneyMoving && isRealUser && amountForStage >= stepupThreshold && amountForStage > 0;
+
+    if (needsStepUp) {
+      console.log('🔐 Staging voice payment for in-app confirmation (step-up required)')
+      const admin = createServiceClient();
+      const summary =
+        body.summary ||
+        `${body.type} of KSh ${amountForStage}` +
+          (body.phone ? ` to ${body.phone}` : '') +
+          (body.till ? ` to till ${body.till}` : '') +
+          (body.paybill ? ` to paybill ${body.paybill}` : '');
+
+      const { data: pending, error: stageError } = await admin
+        .from('pending_voice_payments')
+        .insert({
+          user_id: finalUserId,
+          voice_session_id: conversationId || null,
+          payload: n8nPayload,
+          summary,
+          status: 'awaiting_confirm',
+        })
+        .select('id, expires_at')
+        .single();
+
+      if (stageError || !pending) {
+        console.error('❌ Failed to stage voice payment:', stageError);
+        return NextResponse.json(
+          { success: false, error: 'Could not stage payment for confirmation', details: stageError?.message },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        status: 'awaiting_confirmation',
+        pending_id: pending.id,
+        expires_at: pending.expires_at,
+        summary,
+        message: `I've prepared ${summary}. Confirm in the app with your PIN or Face ID to release it.`,
+      });
+    }
+
+    // Forward to n8n (non-payment intents or test/anonymous sessions)
     console.log('\n=== FORWARDING TO N8N ===')
     console.log('N8N URL:', N8N_WEBHOOK_URL)
     console.log('Auth configured:', N8N_AUTH_TOKEN ? 'Yes' : 'No')
@@ -605,12 +671,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Return success response to ElevenLabs
+    // Return success response to ElevenLabs.
+    // n8n WALLET SYSTEM now returns real NCBA result:
+    //   { success, transaction_id, bankRef, status, type, amount, message }
+    // Surface the human-readable message so ElevenLabs can speak it.
     console.log('\n=== SENDING RESPONSE TO ELEVENLABS ===')
+    const ncbaSuccess: boolean = n8nResult.success === true
+    const ncbaMessage: string =
+      n8nResult.message ||
+      (ncbaSuccess
+        ? `Transaction processed successfully`
+        : `Payment failed. Please try again.`)
+
     const response = {
-      success: true,
-      message: `Transaction processed successfully${userContext?.email ? ' for ' + userContext.email : ''}`,
-      transaction_id: n8nResult.transaction_id || null,
+      success: ncbaSuccess,
+      message: ncbaMessage,
+      agent_message: ncbaMessage,
+      transaction_id: n8nResult.transaction_id || n8nResult.txId || null,
+      bank_ref: n8nResult.bankRef || null,
+      status: n8nResult.status || (ncbaSuccess ? 'completed' : 'failed'),
       data: n8nResult,
     }
     console.log('Response:', JSON.stringify(response, null, 2))

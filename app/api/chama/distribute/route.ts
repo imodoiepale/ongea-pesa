@@ -84,19 +84,52 @@ export async function POST(request: NextRequest) {
       console.error('❌ Failed to create payout record:', payoutError);
     }
 
-    // TODO: Initiate actual B2C payment to recipient
-    // For now, we'll mark as completed (in production, this would be async)
-    
-    // Simulate successful payout
+    // Initiate REAL B2C payout via Safaricom Daraja (async — final status is
+    // confirmed later by the /webhook/b2c_result callback, which flips this
+    // payout to 'completed' or 'failed' by conversation_id).
+    const n8nBase = process.env.N8N_WEBHOOK_BASE_URL || 'https://n8n-lc5r.srv1631847.hstgr.cloud';
     if (payout) {
-      await supabase
-        .from('chama_payouts')
-        .update({
-          status: 'completed',
-          mpesa_transaction_id: `SIM_${Date.now()}`,
-          completed_at: new Date().toISOString(),
-        })
-        .eq('id', payout.id);
+      try {
+        const darajaRes = await fetch(`${n8nBase}/webhook/bulk_disburse`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chamaId: cycle.chama_id,
+            remarks: `${cycle.chama?.name || 'Chama'} payout`,
+            disbursements: [
+              {
+                memberId: recipient.id,
+                phone: recipient.phone_number,
+                amount: cycle.collected_amount,
+              },
+            ],
+          }),
+        });
+        const darajaJson: any = await darajaRes.json().catch(() => ({}));
+        const conversationId =
+          darajaJson?.conversationId ||
+          darajaJson?.results?.[0]?.conversationId ||
+          darajaJson?.ConversationID ||
+          null;
+
+        if (!darajaRes.ok) {
+          throw new Error(darajaJson?.message || `Daraja responded ${darajaRes.status}`);
+        }
+
+        // Stay 'pending' until the async result callback reconciles it.
+        await supabase
+          .from('chama_payouts')
+          .update({ conversation_id: conversationId, provider: 'safaricom_b2c', status: 'pending' })
+          .eq('id', payout.id);
+      } catch (darajaErr: any) {
+        console.error('❌ Daraja B2C initiation failed:', darajaErr);
+        await supabase.from('chama_payouts').update({ status: 'failed' }).eq('id', payout.id);
+        await supabase.from('chama_cycles').update({ status: 'collected' }).eq('id', cycle_id);
+        return NextResponse.json(
+          { error: 'Failed to initiate payout', details: darajaErr.message },
+          { status: 502 }
+        );
+      }
     }
 
     // Update cycle as completed
@@ -172,7 +205,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `${cycle.chama.currency} ${cycle.collected_amount.toLocaleString()} sent to ${recipient.name}`,
+      message: `${cycle.chama.currency} ${cycle.collected_amount.toLocaleString()} payout to ${recipient.name} initiated (processing via M-Pesa)`,
+      status: 'pending',
       payout_id: payout?.id,
       amount: cycle.collected_amount,
       recipient: {

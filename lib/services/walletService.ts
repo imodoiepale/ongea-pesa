@@ -276,13 +276,14 @@ export class WalletService {
       );
     }
 
-    const n8nBase = process.env.N8N_WEBHOOK_BASE_URL || 'https://primary-production-579c.up.railway.app';
+    const n8nBase = process.env.N8N_WEBHOOK_BASE_URL || 'https://n8n-lc5r.srv1631847.hstgr.cloud';
 
     const response = await fetch(`${n8nBase}/webhook/ncba_withdraw`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId,
+        destinationType: 'phone',
         amount,
         phoneNumber: phone,
         recipientName: recipientName || 'Beneficiary',
@@ -309,6 +310,131 @@ export class WalletService {
       total_debit: fees.totalDebit,
       message: result.message || 'Withdrawal sent successfully.',
     };
+  }
+
+  /**
+   * Unified payment router for **non-voice** UI initiated payments.
+   * Voice payments are handled by n8n WALLET SYSTEM → /webhook/ncba_withdraw.
+   *
+   * Given a destination, choose the correct rail and move money, recording
+   * provider/provider_ref for callback reconciliation.
+   *
+   * Balance integrity: external sends insert a 'processing' transaction first
+   * (no balance change), then flip to 'completed' (DB trigger debits) on success
+   * or 'failed' (no change) on error — so the wallet is never debited for money
+   * that didn't leave. Internal transfers use the atomic RPC.
+   *
+   * Wire this into an API route when a non-voice paybill/till/phone UI is built.
+   * Currently not called by any route — kept as the app-side rail implementation.
+   */
+  async resolveRailAndSend(params: {
+    userId: string;
+    amount: number;
+    destination:
+      | { kind: 'internal'; recipientId: string }
+      | { kind: 'phone'; phone: string; recipientName?: string }
+      | { kind: 'paybill'; paybill: string; account: string; recipientName?: string }
+      | { kind: 'till'; till: string; recipientName?: string }
+      | { kind: 'bill'; billType: string; meterNumber?: string; eslip?: string; customerRef?: string; account?: string; phone?: string };
+    narration?: string;
+  }): Promise<any> {
+    const { userId, amount, destination, narration } = params;
+    const n8nBase = process.env.N8N_WEBHOOK_BASE_URL || 'https://n8n-lc5r.srv1631847.hstgr.cloud';
+
+    // Internal in-app transfer → existing atomic RPC path
+    if (destination.kind === 'internal') {
+      return this.sendMoney({
+        senderId: userId,
+        recipientId: destination.recipientId,
+        amount,
+        transactionType: 'c2c',
+        description: narration || '',
+      });
+    }
+
+    // External rails: validate balance up-front (incl. M-Pesa fee)
+    const wallet = await this.getOrCreateWallet(userId);
+    const fees = this.calculateFees(amount, true);
+    if (wallet.available_balance < fees.totalDebit) {
+      const shortfall = fees.totalDebit - wallet.available_balance;
+      throw new Error(`Insufficient funds. You need KES ${shortfall.toFixed(2)} more.`);
+    }
+
+    // Map destination → (transaction type, rail webhook, payload)
+    let txType: string;
+    let webhook: string;
+    let payload: Record<string, any>;
+    const provider = destination.kind === 'bill' ? 'ncba' : 'ncba';
+
+    if (destination.kind === 'phone') {
+      txType = 'send_phone';
+      webhook = `${n8nBase}/webhook/ncba_withdraw`;
+      payload = { userId, destinationType: 'phone', amount, phoneNumber: destination.phone, recipientName: destination.recipientName, narration };
+    } else if (destination.kind === 'paybill') {
+      txType = 'paybill';
+      webhook = `${n8nBase}/webhook/ncba_withdraw`;
+      payload = { userId, destinationType: 'paybill', amount, paybillOrTill: destination.paybill, accountRef: destination.account, recipientName: destination.recipientName, narration };
+    } else if (destination.kind === 'till') {
+      txType = 'buy_goods_till';
+      webhook = `${n8nBase}/webhook/ncba_withdraw`;
+      payload = { userId, destinationType: 'till', amount, paybillOrTill: destination.till, recipientName: destination.recipientName, narration };
+    } else {
+      // utility bill (KPLC/KRA/NHIF/NWSC)
+      txType = 'paybill';
+      webhook = `${n8nBase}/webhook/ncba_bill_pay`;
+      payload = {
+        userId, billType: destination.billType, amount, narration,
+        meterNumber: destination.meterNumber, eslip: destination.eslip,
+        customerRef: destination.customerRef, debitAccount: destination.account, msisdn: destination.phone,
+      };
+    }
+
+    // 1. Insert a 'processing' transaction (no balance change yet)
+    const { data: tx, error: txError } = await this.supabase
+      .from('transactions')
+      .insert({
+        user_id: userId,
+        type: txType,
+        amount,
+        status: 'processing',
+        provider,
+        phone: (destination as any).phone || '',
+        till: destination.kind === 'till' ? destination.till : '',
+        paybill: destination.kind === 'paybill' ? destination.paybill : '',
+        account: destination.kind === 'paybill' ? destination.account : '',
+      })
+      .select()
+      .single();
+    if (txError) throw txError;
+
+    // 2. Call the rail
+    let result: any = {};
+    try {
+      const res = await fetch(webhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      result = await res.json().catch(() => ({}));
+
+      // 3. Reconcile by sync response
+      if (result?.success) {
+        await this.supabase
+          .from('transactions')
+          .update({ status: 'completed', provider_ref: result.bank_ref || result.bankRef || null, completed_at: new Date().toISOString() })
+          .eq('id', tx.id);
+        return { success: true, rail: provider, transaction_id: tx.id, bank_ref: result.bank_ref || result.bankRef, raw: result };
+      }
+
+      await this.supabase
+        .from('transactions')
+        .update({ status: 'failed', error_message: result?.message || 'Rail rejected the payment' })
+        .eq('id', tx.id);
+      throw new Error(result?.message || 'Payment failed');
+    } catch (err: any) {
+      await this.supabase.from('transactions').update({ status: 'failed', error_message: err.message }).eq('id', tx.id);
+      throw err;
+    }
   }
 
   /**

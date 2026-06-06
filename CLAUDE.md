@@ -20,6 +20,28 @@ ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
 ```
 
+**Migration `015_enable_rls_core.sql` now does this WITH owner policies** (server uses the service-role client, which bypasses RLS). Review + apply it in the Supabase SQL editor, then verify cross-user reads are blocked with the anon key.
+
+---
+
+## Security & Payment Routing (added)
+
+**Apply migrations in order:** `013_security_events_and_audit.sql`, `014_webauthn_and_lockout.sql`, `015_enable_rls_core.sql`.
+
+**Security model:**
+- **PIN** — `profiles.pin_hash` (bcrypt). `POST /api/security/pin/set|verify`.
+- **Passkeys (Face/Touch ID)** — WebAuthn via `@simplewebauthn`. Device does the biometric match; we store only a public key in `webauthn_credentials`. **No face/fingerprint data is ever stored server-side.** Endpoints under `/api/security/passkey/*`.
+- **Lockout** — `auth_attempts` + `profiles.locked_until/failed_attempts`; 5 fails → 15-min lock (`lib/services/securityService.ts`).
+- **Step-up** — verifying PIN/passkey issues a short-lived `stepup_tokens` token; `/api/wallet/send` + `/api/wallet/withdraw` require `stepup_token` before money moves. Client helpers: `lib/security-client.ts`.
+- **Audit** — sensitive actions call `logSecurityEvent()` (`lib/services/auditService.ts`) → `security_events`; row changes → `audit_log` triggers. Admin view: `/admin-analytics/security-events`.
+- **Voice** — sessions bound to the authenticated user; voice spends still require step-up (full stage→confirm across n8n + client is the next increment).
+
+**Payment routing** — `WalletService.resolveRailAndSend()` chooses the rail: in-app→internal RPC; phone/paybill/till→NCBA Send `/webhook/ncba_withdraw`; utility bill→`/webhook/ncba_bill_pay`; chama payout→Daraja `/webhook/bulk_disburse`.
+
+**Two-balance model:** `profiles.wallet_balance` is the internal ledger (DB trigger debits/credits on `completed` transactions); IndexPay gates/pockets hold chama/escrow funds. External sends insert `processing` (no debit) then flip to `completed` (debit) or `failed` (no debit). Async results reconcile via `POST /api/ncba/callback` (by `provider_ref`) and `POST /api/chama/daraja-callback` (by `conversation_id`), both idempotent.
+
+**New env vars:** `N8N_WEBHOOK_BASE_URL`, `WEBAUTHN_RP_ID`, `WEBAUTHN_ORIGIN`, `ADMIN_EMAILS`.
+
 ---
 
 ## Knowledge Graph (ALWAYS reference before architectural changes)

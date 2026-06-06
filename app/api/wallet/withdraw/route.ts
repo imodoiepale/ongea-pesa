@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { WalletService } from '@/lib/services/walletService';
+import { consumeStepupToken, isLocked } from '@/lib/services/securityService';
+import { logSecurityEvent, requestContext } from '@/lib/services/auditService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +21,7 @@ export async function POST(request: NextRequest) {
     const {
       phone_number,
       amount,
-      pin, // TODO: Implement PIN verification
+      stepup_token, // fresh PIN/passkey proof (see /api/security/pin|passkey)
     } = body;
 
     // Validate inputs
@@ -51,11 +53,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Verify PIN before processing
-    if (pin) {
-      // Implement PIN verification logic
-      console.log('⚠️ PIN verification not yet implemented');
+    // Step-up gate: money only moves with a fresh PIN/passkey proof, and never
+    // while the account is locked (A5/A6).
+    const admin = createServiceClient();
+    const { ip, userAgent } = requestContext(request);
+
+    const { data: lockState } = await admin
+      .from('profiles')
+      .select('locked_until, failed_attempts')
+      .eq('id', user.id)
+      .single();
+    if (isLocked(lockState)) {
+      return NextResponse.json(
+        { error: 'Account temporarily locked. Verify your identity and try again.', lockedUntil: lockState!.locked_until },
+        { status: 423 }
+      );
     }
+
+    const stepUpOk = await consumeStepupToken(admin, user.id, stepup_token);
+    if (!stepUpOk) {
+      return NextResponse.json(
+        { error: 'Step-up authentication required', code: 'STEPUP_REQUIRED' },
+        { status: 403 }
+      );
+    }
+
+    await logSecurityEvent(
+      { userId: user.id, eventType: 'money_send_initiated', ip, userAgent, metadata: { rail: 'withdraw', amount, phone: phone_number } },
+      admin
+    );
 
     // Format phone number (ensure it starts with 254)
     let formattedPhone = phone_number.replace(/\s+/g, '');

@@ -29,6 +29,13 @@ next-env.d.ts
 # MCP server config (contains API keys)
 .mcp.json
 
+# Claude Code local settings (machine-local; has contained API keys)
+.claude/settings.local.json
+
+# n8n credential exports (contain live API keys and OAuth tokens — NEVER commit)
+credentials.json
+*credentials*.json
+
 # PWA generated files
 public/sw.js.map
 public/workbox-*.js
