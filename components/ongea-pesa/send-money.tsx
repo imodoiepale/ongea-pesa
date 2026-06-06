@@ -1,13 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Mic, Send, User, DollarSign, UserPlus, Loader2, Search, Wallet, CheckCircle, AlertCircle } from "lucide-react"
+import { ArrowLeft, Mic, Send, User, UserPlus, Loader2, Search, CheckCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { useContacts, formatPhoneNumber, getContactDisplayName } from "@/hooks/use-contacts"
-import { Badge } from "@/components/ui/badge"
+import { ScreenShell } from "@/components/foundation"
+import { cn } from "@/lib/utils"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -40,13 +38,13 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
   const [isVoiceMode, setIsVoiceMode] = useState(false)
   const [voiceCommand, setVoiceCommand] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
-  
+
   // Contacts state
   const [contacts, setContacts] = useState<Contact[]>([])
   const [currentUser, setCurrentUser] = useState<Contact | null>(null)
   const [loadingContacts, setLoadingContacts] = useState(true)
   const [contactsError, setContactsError] = useState<string | null>(null)
-  
+
   // Transfer state
   const [isSending, setIsSending] = useState(false)
   const [sendResult, setSendResult] = useState<{ success: boolean; message: string } | null>(null)
@@ -65,11 +63,11 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
       const response = await fetch('/api/contacts')
       const data = await response.json()
       console.log('📱 Contacts API response:', data)
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch contacts')
       }
-      
+
       setContacts(data.contacts || [])
       setCurrentUser(data.current_user || null)
       console.log('✅ Loaded contacts:', data.contacts?.length || 0)
@@ -140,9 +138,9 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
         throw new Error(data.error || 'Transfer failed')
       }
 
-      setSendResult({ 
-        success: true, 
-        message: data.message || `Successfully sent KES ${amount} to ${selectedContact.name}` 
+      setSendResult({
+        success: true,
+        message: data.message || `Successfully sent KES ${amount} to ${selectedContact.name}`
       })
 
       // Update current user's balance immediately
@@ -155,7 +153,7 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
 
       // Refresh contacts to get updated balances
       await fetchContacts()
-      
+
       // Reset form after success
       setTimeout(() => {
         setAmount('')
@@ -186,326 +184,294 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
   })
 
   return (
-    <div className="min-h-screen p-4 pb-20">
-      {/* Header */}
-      <div className="flex items-center mb-6 pt-8">
-        <Button variant="ghost" size="icon" onClick={() => onNavigate("dashboard")} className="mr-3">
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Send Money</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Voice or manual entry</p>
+    <div className="min-h-[100dvh] bg-background surface-money pb-32">
+      <ScreenShell className="pt-0">
+
+        {/* Header */}
+        <div className="flex items-center gap-3 pt-6 mb-6">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onNavigate("dashboard")}
+            aria-label="Back"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">Send Money</h1>
+            <p className="text-sm text-muted-foreground">Voice or manual entry</p>
+          </div>
         </div>
-      </div>
 
-      {/* Voice Command Card */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-sm">Voice Command</h3>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Say: "Tuma [amount] kwa [name/number]"</p>
-            </div>
-            <Button
-              onClick={handleVoiceSend}
-              disabled={isVoiceMode}
-              className={`rounded-full ${isVoiceMode ? "bg-red-500 animate-pulse" : "bg-green-500"}`}
-            >
-              <Mic className="h-4 w-4" />
-            </Button>
+        {/* Voice Command */}
+        <div className="rounded-2xl border border-border/60 bg-card px-4 py-3 mb-5 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Voice Command</p>
+            <p className="text-xs text-muted-foreground">Say: "Tuma [amount] kwa [name/number]"</p>
+            {voiceCommand && (
+              <p className="text-xs text-brand mt-1.5 font-medium">Heard: "{voiceCommand}"</p>
+            )}
           </div>
-          {voiceCommand && (
-            <div className="mt-3 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <p className="text-sm text-green-700 dark:text-green-300">Heard: "{voiceCommand}"</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          <button
+            onClick={handleVoiceSend}
+            disabled={isVoiceMode}
+            aria-label="Activate voice send"
+            className={cn(
+              "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 active:scale-[0.97]",
+              isVoiceMode
+                ? "bg-red-500/15 text-red-500 animate-pulse cursor-wait"
+                : "bg-brand/10 text-brand hover:bg-brand/15"
+            )}
+          >
+            <Mic className="h-4 w-4" />
+          </button>
+        </div>
 
-      {/* Amount Input */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center">
-            <DollarSign className="h-5 w-5 mr-2 text-green-600" />
+        {/* Amount Input */}
+        <div className="mb-5">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block px-1">
             Amount
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">KSh</span>
-            <Input
-              type="number"
-              placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="pl-12 text-lg h-12"
-            />
+          </label>
+          <div className="rounded-2xl border border-border/60 bg-card px-4 py-3">
+            <div className="flex items-baseline gap-2 mb-3">
+              <span className="text-base font-medium text-muted-foreground">KSh</span>
+              <input
+                type="number"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="flex-1 text-3xl font-bold tracking-tighter text-foreground bg-transparent border-none outline-none placeholder:text-muted-foreground/30"
+                style={{ fontVariantNumeric: 'tabular-nums' }}
+                inputMode="decimal"
+                aria-label="Amount in KSh"
+              />
+            </div>
+            {/* Quick presets */}
+            <div className="flex gap-2">
+              {["100", "500", "1000", "2000"].map((preset) => (
+                <button
+                  key={preset}
+                  onClick={() => setAmount(preset)}
+                  className={cn(
+                    "flex-1 text-xs font-semibold py-1.5 rounded-lg transition-all duration-150 active:scale-[0.97]",
+                    amount === preset
+                      ? "bg-brand text-white"
+                      : "bg-muted text-muted-foreground hover:bg-muted/70"
+                  )}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-3 gap-2 mt-4">
-            {["100", "500", "1000"].map((preset) => (
-              <Button key={preset} variant="outline" size="sm" onClick={() => setAmount(preset)}>
-                KSh {preset}
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Recipient Selection */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center">
-            <User className="h-5 w-5 mr-2 text-blue-600" />
+        {/* Recipient Section */}
+        <div className="mb-5">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block px-1">
             Send To
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Contact Picker Button */}
+          </label>
+
+          {/* Contact picker button */}
           {isSupported && (
             <Button
               onClick={handlePickContact}
               disabled={isLoading}
               variant="outline"
-              className="w-full border-green-500/50 text-green-600 hover:bg-green-500/10"
+              size="sm"
+              className="w-full mb-3 border-brand/30 text-brand hover:bg-brand/5"
             >
               <UserPlus className="h-4 w-4 mr-2" />
-              {isLoading ? "Opening Contacts..." : "Pick from Contacts"}
+              {isLoading ? "Opening Contacts…" : "Pick from Phone Contacts"}
             </Button>
           )}
-          <div>
-            <Label htmlFor="recipient">Contact Name</Label>
-            <Input
-              id="recipient"
-              placeholder="Enter contact name"
-              value={recipient}
-              onChange={(e) => setRecipient(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="phone">Or Phone Number</Label>
-            <Input
-              id="phone"
-              placeholder="0712345678"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Transfer Result */}
-      {sendResult && (
-        <Card className={`mb-6 ${sendResult.success ? 'bg-green-50 dark:bg-green-900/20 border-green-500' : 'bg-red-50 dark:bg-red-900/20 border-red-500'}`}>
-          <CardContent className="p-4 flex items-center gap-3">
-            {sendResult.success ? (
-              <CheckCircle className="h-5 w-5 text-green-600" />
-            ) : (
-              <AlertCircle className="h-5 w-5 text-red-600" />
-            )}
-            <p className={`text-sm ${sendResult.success ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-              {sendResult.message}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Selected Contact Display */}
-      {selectedContact && (
-        <Card className="mb-6 border-green-500 bg-green-50/50 dark:bg-green-900/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold ${selectedContact.has_account ? 'bg-green-500' : 'bg-orange-500'}`}>
-                  {selectedContact.avatar}
-                </div>
-                <div>
-                  <p className="font-semibold">{selectedContact.name}</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">{selectedContact.phone || selectedContact.gate_name}</p>
-                  {!selectedContact.has_account && (
-                    <p className="text-xs text-orange-600 dark:text-orange-400">Gate will be auto-created</p>
-                  )}
-                </div>
+          {/* Selected contact display */}
+          {selectedContact && (
+            <div className="rounded-2xl border border-brand/30 bg-brand/5 px-4 py-3 mb-3 flex items-center gap-3">
+              <div className={cn(
+                "w-10 h-10 rounded-xl flex items-center justify-center text-white font-semibold text-sm shrink-0",
+                selectedContact.has_account ? "bg-brand" : "bg-amber-500"
+              )}>
+                {selectedContact.avatar}
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedContact(null)}>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">{selectedContact.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{selectedContact.phone || selectedContact.gate_name}</p>
+                {!selectedContact.has_account && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">Gate will be auto-created</p>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedContact(null)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-muted"
+              >
                 Change
-              </Button>
+              </button>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
 
-      {/* Ongea Pesa Contacts */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-green-600" />
-              Ongea Pesa Contacts
-            </span>
-            <Badge variant="outline" className="text-xs">
-              {contacts.length} contacts
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Search */}
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search by name, phone, or gate..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          {/* Manual entry fields */}
+          <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40 mb-3">
+            <div className="px-4 py-3 flex items-center gap-3">
+              <User className="h-4 w-4 text-muted-foreground shrink-0" />
+              <input
+                placeholder="Contact name"
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
+                className="flex-1 text-sm text-foreground bg-transparent border-none outline-none placeholder:text-muted-foreground/50"
+                aria-label="Recipient name"
+              />
+            </div>
+            <div className="px-4 py-3 flex items-center gap-3">
+              <span className="text-xs font-medium text-muted-foreground shrink-0">0</span>
+              <input
+                placeholder="Phone number e.g. 712345678"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="flex-1 text-sm text-foreground bg-transparent border-none outline-none placeholder:text-muted-foreground/50"
+                inputMode="tel"
+                aria-label="Phone number"
+              />
+            </div>
           </div>
 
-          {/* Loading State */}
-          {loadingContacts && (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-green-600" />
-              <span className="ml-2 text-sm text-gray-600">Loading contacts...</span>
+          {/* Contacts list */}
+          <div className="rounded-2xl border border-border/60 bg-card">
+            {/* Search */}
+            <div className="px-4 py-3 border-b border-border/40 flex items-center gap-2">
+              <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+              <input
+                placeholder="Search contacts…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 text-sm text-foreground bg-transparent border-none outline-none placeholder:text-muted-foreground/50"
+                aria-label="Search contacts"
+              />
+              <span className="text-xs text-muted-foreground">{contacts.length}</span>
             </div>
-          )}
 
-          {/* Error State */}
-          {contactsError && (
-            <div className="text-center py-4">
-              <p className="text-sm text-red-600 mb-2">{contactsError}</p>
-              <Button variant="outline" size="sm" onClick={fetchContacts}>
-                Retry
-              </Button>
-            </div>
-          )}
+            <div className="max-h-64 overflow-y-auto divide-y divide-border/30">
+              {/* Loading */}
+              {loadingContacts && (
+                <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">Loading contacts…</span>
+                </div>
+              )}
 
-          {/* Contacts List */}
-          {!loadingContacts && !contactsError && (
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {/* Current User (Me) - Always shown at top */}
-              {currentUser && (
-                <div className="flex items-center p-3 rounded-lg border border-blue-300 bg-blue-50 dark:bg-blue-900/20 cursor-not-allowed opacity-75">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold mr-3 bg-blue-500">
+              {/* Error */}
+              {contactsError && !loadingContacts && (
+                <div className="flex flex-col items-center gap-2 py-6">
+                  <p className="text-sm text-destructive">{contactsError}</p>
+                  <Button variant="outline" size="sm" onClick={fetchContacts}>Retry</Button>
+                </div>
+              )}
+
+              {/* Current user (me) */}
+              {currentUser && !loadingContacts && (
+                <div className="flex items-center gap-3 px-4 py-3 opacity-60 cursor-not-allowed">
+                  <div className="w-9 h-9 rounded-xl bg-blue-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
                     {currentUser.avatar}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm truncate">{currentUser.name}</p>
-                      <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
-                        You
-                      </Badge>
-                      {currentUser.is_admin && (
-                        <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300">
-                          Admin
-                        </Badge>
-                      )}
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium text-foreground truncate">{currentUser.name}</p>
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">You</span>
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                      {currentUser.gate_name || currentUser.email}
-                    </p>
-                  </div>
-                  <div className="text-right space-y-1">
-                    <div>
-                      <p className="text-xs text-gray-500">Wallet Balance</p>
-                      <p className="text-sm font-medium text-blue-600">
-                        KSh {currentUser.balance.toLocaleString()}
-                      </p>
-                    </div>
-                    {/* Show IndexPay balances for admin user */}
-                    {currentUser.is_admin && currentUser.indexpay_gate_balance !== undefined && (
-                      <div className="border-t pt-1">
-                        <p className="text-xs text-purple-500">Gate Balance</p>
-                        <p className="text-xs font-medium text-purple-600">
-                          KSh {currentUser.indexpay_gate_balance.toLocaleString()}
-                        </p>
-                      </div>
-                    )}
-                    {currentUser.is_admin && currentUser.indexpay_pocket_balance !== undefined && (
-                      <div>
-                        <p className="text-xs text-purple-500">Pocket Balance</p>
-                        <p className="text-xs font-medium text-purple-600">
-                          KSh {currentUser.indexpay_pocket_balance.toLocaleString()}
-                        </p>
-                      </div>
-                    )}
+                    <p className="text-xs text-muted-foreground">KSh {currentUser.balance.toLocaleString('en-KE')}</p>
                   </div>
                 </div>
               )}
 
-              {/* Separator */}
-              {currentUser && filteredContacts.length > 0 && (
-                <div className="border-t my-2 pt-2">
-                  <p className="text-xs text-gray-500 mb-2">Send money to:</p>
-                </div>
-              )}
-
-              {filteredContacts.length === 0 && !currentUser ? (
-                <p className="text-center text-sm text-gray-500 py-4">
+              {/* Empty state */}
+              {!loadingContacts && !contactsError && filteredContacts.length === 0 && !currentUser && (
+                <p className="text-sm text-muted-foreground text-center py-8">
                   {searchQuery ? 'No contacts found' : 'No contacts available'}
                 </p>
-              ) : (
-                filteredContacts.map((contact, index) => (
-                  <div
-                    key={contact.gate_name || index}
-                    className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${
-                      selectedContact?.gate_name === contact.gate_name
-                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                    }`}
-                    onClick={() => handleSelectContact(contact)}
-                  >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold mr-3 ${
-                      contact.has_account ? 'bg-green-500' : 'bg-orange-500'
-                    }`}>
-                      {contact.avatar}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-sm truncate">{contact.name}</p>
-                        {contact.has_account ? (
-                          <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
-                            Verified
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300">
-                            Unclaimed
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                        {contact.phone || contact.gate_name}
-                      </p>
-                    </div>
-                    {contact.has_account && contact.balance > 0 && (
-                      <div className="text-right">
-                        <p className="text-xs text-gray-500">Balance</p>
-                        <p className="text-sm font-medium text-green-600">
-                          KSh {contact.balance.toLocaleString()}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ))
               )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Send Button */}
-      <div className="fixed bottom-6 left-4 right-4">
+              {/* Contact list */}
+              {!loadingContacts && !contactsError && filteredContacts.map((contact, index) => (
+                <button
+                  key={contact.gate_name || index}
+                  onClick={() => handleSelectContact(contact)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-3 text-left transition-all duration-150 active:scale-[0.99]",
+                    selectedContact?.gate_name === contact.gate_name
+                      ? "bg-brand/[0.08] border-l-2 border-brand"
+                      : "hover:bg-muted/50"
+                  )}
+                >
+                  <div className={cn(
+                    "w-9 h-9 rounded-xl flex items-center justify-center text-white font-semibold text-sm shrink-0",
+                    contact.has_account ? "bg-brand" : "bg-amber-500"
+                  )}>
+                    {contact.avatar}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium text-foreground truncate">{contact.name}</p>
+                      {contact.has_account ? (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-brand/10 text-brand">Verified</span>
+                      ) : (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Unclaimed</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{contact.phone || contact.gate_name}</p>
+                  </div>
+                  {contact.has_account && contact.balance > 0 && (
+                    <span className="text-xs font-medium text-brand shrink-0">
+                      KSh {contact.balance.toLocaleString('en-KE', { maximumFractionDigits: 0 })}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Send result notification */}
+        {sendResult && (
+          <div className={cn(
+            "rounded-2xl px-4 py-3 mb-5 flex items-center gap-3",
+            sendResult.success
+              ? "bg-brand/[0.08] border border-brand/20"
+              : "bg-destructive/[0.08] border border-destructive/20"
+          )}>
+            {sendResult.success
+              ? <CheckCircle className="h-4 w-4 text-brand shrink-0" />
+              : <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+            }
+            <p className={cn(
+              "text-sm",
+              sendResult.success ? "text-brand" : "text-destructive"
+            )}>{sendResult.message}</p>
+          </div>
+        )}
+
+      </ScreenShell>
+
+      {/* Fixed bottom CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-6 pt-3 bg-gradient-to-t from-background via-background to-transparent">
         <Button
-          className="w-full h-12 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700"
+          className="w-full h-12 rounded-2xl text-sm font-semibold"
           disabled={!amount || !selectedContact || isSending}
           onClick={handleSendMoney}
+          aria-live="polite"
         >
           {isSending ? (
             <>
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              Sending...
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Sending…
             </>
           ) : (
             <>
-              <Send className="h-5 w-5 mr-2" />
-              Send KSh {amount || "0"} {selectedContact ? `to ${selectedContact.name}` : ''}
+              <Send className="h-4 w-4 mr-2" />
+              {amount && selectedContact
+                ? `Send KSh ${Number(amount).toLocaleString('en-KE')} to ${selectedContact.name}`
+                : "Send Money"
+              }
             </>
           )}
         </Button>

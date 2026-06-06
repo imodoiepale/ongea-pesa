@@ -30,7 +30,8 @@ next-env.d.ts
 .mcp.json
 
 # Claude Code local settings (machine-local; has contained API keys)
-.claude/settings.local.json
+.claude
+.agents
 
 # n8n credential exports (contain live API keys and OAuth tokens — NEVER commit)
 credentials.json

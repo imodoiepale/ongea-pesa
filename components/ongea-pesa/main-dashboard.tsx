@@ -1,35 +1,119 @@
 "use client"
 
-import { Mic, Send, Camera, Calendar, BarChart3, Settings, TestTube, Moon, Sun, LogOut, Wallet, Plus, Shield } from "lucide-react"
+import {
+  Mic,
+  Send,
+  Camera,
+  Calendar,
+  BarChart3,
+  Settings,
+  TestTube,
+  Moon,
+  Sun,
+  LogOut,
+  Wallet,
+  Plus,
+  Shield,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useVoice } from "@/components/voice-provider"
 import VoiceInterface from "@/components/ongea-pesa/voice-interface"
-import WaveAnimation from "./wave-animation"
 import { useAuth } from "@/components/providers/auth-provider"
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from "@/lib/supabase/client"
 import BalanceSheet from "./balance-sheet"
 import PWAInstallPrompt from "./pwa-install-prompt"
+import { PageHeader, ScreenShell } from "@/components/foundation"
+import { cn } from "@/lib/utils"
 
-type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+type Screen =
+  | "dashboard"
+  | "voice"
+  | "send"
+  | "camera"
+  | "recurring"
+  | "analytics"
+  | "test"
+  | "permissions"
+  | "scanner"
 
 interface MainDashboardProps {
-  onNavigate?: (screen: Screen) => void;
-  onVoiceActivate?: () => void;
+  onNavigate?: (screen: Screen) => void
+  onVoiceActivate?: () => void
 }
 
 // Admin emails list
 const ADMIN_EMAILS = [
-  'ijepale@gmail.com',
-  'admin@ongeapesa.com',
-  'ongeapesa.kenya@gmail.com',
+  "ijepale@gmail.com",
+  "admin@ongeapesa.com",
+  "ongeapesa.kenya@gmail.com",
 ]
 
-export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashboardProps) {
+const quickActions: {
+  label: string
+  desc: string
+  screen: Screen
+  icon: React.ElementType
+  iconBg: string
+}[] = [
+  {
+    label: "Send Money",
+    desc: "Voice or manual",
+    screen: "send",
+    icon: Send,
+    iconBg: "bg-brand",
+  },
+  {
+    label: "Pay Scanner",
+    desc: "Bills & QR codes",
+    screen: "scanner",
+    icon: Camera,
+    iconBg: "bg-blue-500",
+  },
+  {
+    label: "Recurring",
+    desc: "Auto payments",
+    screen: "recurring",
+    icon: Calendar,
+    iconBg: "bg-violet-500",
+  },
+  {
+    label: "Analytics",
+    desc: "Spending stats",
+    screen: "analytics",
+    icon: BarChart3,
+    iconBg: "bg-amber-500",
+  },
+]
+
+const voiceExamples = [
+  {
+    command: '"Ongea Pesa, tuma 500 kwa John"',
+    desc: "Send money to contact",
+  },
+  {
+    command: '"Tuma 200 kwa namba 0712345678"',
+    desc: "Send to unsaved number",
+  },
+  {
+    command: '"Angalia salio langu"',
+    desc: "Check your balance",
+  },
+]
+
+export default function MainDashboard({
+  onNavigate,
+  onVoiceActivate,
+}: MainDashboardProps) {
   const { user, signOut } = useAuth()
   const { theme, setTheme } = useTheme()
   const router = useRouter()
@@ -39,7 +123,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
   const [isBalanceSheetOpen, setIsBalanceSheetOpen] = useState(false)
   const [showVoiceInterface, setShowVoiceInterface] = useState(false)
   const supabase = createClient()
-  
+
   // Check if user is admin
   const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email)
 
@@ -63,7 +147,7 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
     const fetchBalance = async () => {
       setLoading(false) // Remove loading immediately
       try {
-        const response = await fetch('/api/balance')
+        const response = await fetch("/api/balance")
         if (response.ok) {
           const data = await response.json()
           let finalBalance = data.balance || 0
@@ -71,28 +155,28 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
           // If balance is 0, calculate from transactions as fallback
           if (finalBalance === 0) {
             const { data: transactions } = await supabase
-              .from('transactions')
-              .select('type, amount, status')
-              .eq('user_id', user.id)
-              .eq('status', 'completed')
+              .from("transactions")
+              .select("type, amount, status")
+              .eq("user_id", user.id)
+              .eq("status", "completed")
 
             if (transactions && transactions.length > 0) {
               finalBalance = transactions.reduce((total, tx) => {
-                if (tx.type === 'deposit' || tx.type === 'receive') {
+                if (tx.type === "deposit" || tx.type === "receive") {
                   return total + parseFloat(String(tx.amount))
                 } else {
                   return total - parseFloat(String(tx.amount))
                 }
               }, 0)
-              console.log('📊 Calculated from transactions:', finalBalance)
+              console.log("📊 Calculated from transactions:", finalBalance)
             }
           }
 
           setBalance(finalBalance)
-          console.log('💰 Balance loaded:', finalBalance)
+          console.log("💰 Balance loaded:", finalBalance)
         }
       } catch (error) {
-        console.error('Failed to fetch balance:', error)
+        console.error("Failed to fetch balance:", error)
         setBalance(0)
       }
     }
@@ -101,18 +185,18 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
 
     // Set up real-time subscription for balance changes
     const channel = supabase
-      .channel('dashboard-balance-changes')
+      .channel("dashboard-balance-changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
+          event: "UPDATE",
+          schema: "public",
+          table: "profiles",
           filter: `id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('✅ Balance updated in real-time:', payload)
-          if (payload.new && 'wallet_balance' in payload.new) {
+          console.log("✅ Balance updated in real-time:", payload)
+          if (payload.new && "wallet_balance" in payload.new) {
             setBalance(payload.new.wallet_balance || 0)
           }
         }
@@ -134,235 +218,212 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
   }
 
   return (
-    <div className="min-h-screen p-4 pb-20 relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 opacity-10 dark:opacity-20">
-        <WaveAnimation />
-      </div>
-
-      {/* Header with Navigation */}
-      <div className="flex items-center justify-between mb-6 pt-4 relative z-10">
-        <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 dark:from-[#00FF88] dark:to-[#00D4AA] bg-clip-text text-transparent">Ongea Pesa</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-300">Voice-First Financial Companion</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          {/* Admin Analytics Button - Only visible for admins */}
+    <div className="min-h-[100dvh] bg-background surface-money">
+      <ScreenShell className="pt-0 pb-28">
+        {/* Page Header */}
+        <PageHeader title="Ongea Pesa" subtitle="Voice-first payments">
+          {/* Admin Analytics Button — only visible for admins */}
           {isAdmin && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={() => router.push("/admin-analytics")}
-              className="rounded-full border-emerald-400 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 backdrop-blur-sm hover:bg-emerald-100 dark:hover:bg-emerald-900/50"
+              className="rounded-full"
               title="Admin Analytics"
             >
               <Shield className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </Button>
           )}
+
+          {/* Theme toggle */}
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="rounded-full border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+            className="rounded-full"
           >
             {theme === "dark" ? (
               <Sun className="h-5 w-5 text-yellow-500" />
             ) : (
-              <Moon className="h-5 w-5 text-gray-600" />
+              <Moon className="h-5 w-5 text-muted-foreground" />
             )}
           </Button>
+
+          {/* Settings */}
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={() => handleNavigate("permissions")}
-            className="rounded-full border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+            className="rounded-full"
           >
-            <Settings className="h-5 w-5" />
+            <Settings className="h-5 w-5 text-muted-foreground" />
           </Button>
 
-          {/* User Menu */}
+          {/* User dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-blue-500 dark:from-[#00FF88] dark:to-[#00D4AA] flex items-center justify-center text-white font-semibold text-xs">
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+                aria-label="User menu"
+              >
+                <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white font-semibold text-xs">
+                  {user?.email?.charAt(0).toUpperCase() || "U"}
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5">
                 <p className="text-sm font-medium">{user?.email}</p>
-                <p className="text-xs text-muted-foreground">Voice-activated payments</p>
+                <p className="text-xs text-muted-foreground">
+                  Voice-activated payments
+                </p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="text-red-600 focus:text-red-600">
+              <DropdownMenuItem
+                onClick={signOut}
+                className="text-red-600 focus:text-red-600"
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Logout</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      </div>
+        </PageHeader>
 
-      {/* Balance Card - Clickable */}
-      <Card
-        className="mb-6 bg-gradient-to-r from-green-500 to-blue-600 dark:from-[#00FF88] dark:to-[#00D4AA] text-white border-0 shadow-2xl relative overflow-hidden cursor-pointer hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]"
-        onClick={() => setIsBalanceSheetOpen(true)}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent dark:from-black/40 dark:to-transparent" />
-        <CardContent className="p-6 relative z-10">
-          <div className="text-center">
-            <p className="text-green-100 dark:text-gray-200 text-sm mb-2">Wallet Balance</p>
-            <h2 className="text-3xl font-bold mb-4">
-              KSh {balance.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </h2>
-            <p className="text-green-100 dark:text-gray-300 text-xs flex items-center justify-center gap-2">
-              <Wallet className="h-3 w-3" />
-              {user?.email || 'Ongea Pesa Wallet'}
-            </p>
-            <p className="text-green-100 dark:text-gray-300 text-xs mt-2 opacity-80">
-              Tap to manage balance
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Voice Activation Button */}
-      <div className="flex justify-center mb-8 relative z-10">
-        <div className="relative">
-          {/* Pulsing rings */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500 to-blue-600 dark:from-[#00FF88] dark:to-[#00D4AA] animate-ping opacity-20" />
-          <div className="absolute inset-2 rounded-full bg-gradient-to-r from-green-500 to-blue-600 dark:from-[#00FF88] dark:to-[#00D4AA] animate-ping opacity-30 animation-delay-200" />
-          <div className="absolute inset-4 rounded-full bg-gradient-to-r from-green-500 to-blue-600 dark:from-[#00FF88] dark:to-[#00D4AA] animate-ping opacity-40 animation-delay-400" />
-
-          <Button
-            onClick={handleVoiceActivation}
-            className="w-24 h-24 rounded-full bg-gradient-to-r from-green-500 to-blue-600 dark:from-[#00FF88] dark:to-[#00D4AA] hover:from-green-600 hover:to-blue-700 dark:hover:from-[#00E67A] dark:hover:to-[#00C299] shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 relative z-10"
+        {/* Balance Card */}
+        <button
+          onClick={() => setIsBalanceSheetOpen(true)}
+          className="w-full rounded-3xl bg-brand p-6 text-left transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mb-6"
+          aria-label="Open balance details"
+        >
+          <p className="text-sm font-medium text-white/80 mb-3">
+            Wallet Balance
+          </p>
+          <p
+            className="text-3xl md:text-4xl font-bold tracking-tighter text-white"
+            style={{ fontVariantNumeric: "tabular-nums" }}
           >
-            <div className="flex flex-col items-center">
-              <Mic className="h-8 w-8 mb-1 animate-bounce" />
-              <span className="text-xs font-semibold">Push to Talk</span>
-            </div>
-          </Button>
+            {balance.toLocaleString("en-KE", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
+          <p className="text-xs text-white/60 mt-3 flex items-center gap-1.5">
+            <Wallet className="h-3 w-3" />
+            {user?.email || "Ongea Pesa Wallet"} · tap to manage
+          </p>
+        </button>
+
+        {/* Voice Activation Button */}
+        <div className="flex justify-center mb-8">
+          {/* Outer shell */}
+          <div className="p-1.5 bg-brand/8 border border-brand/20 rounded-full">
+            {/* Inner button */}
+            <button
+              onClick={handleVoiceActivation}
+              className="w-20 h-20 rounded-full bg-brand flex flex-col items-center justify-center gap-1 shadow-md active:scale-[0.97] transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label="Activate voice assistant"
+            >
+              <Mic className="h-7 w-7 text-white" />
+              <span className="text-[10px] font-semibold text-white/90">
+                Speak
+              </span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
-        <Card
-          className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => handleNavigate("send")}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 dark:from-[#00FF88] dark:to-[#00E67A] rounded-full flex items-center justify-center mx-auto mb-3">
-              <Send className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Send Money</h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Voice or manual</p>
-          </CardContent>
-        </Card>
+        {/* Quick Actions Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {quickActions.map((action) => (
+            <button
+              key={action.label}
+              onClick={() => handleNavigate(action.screen)}
+              className="flex flex-col items-center gap-2.5 p-4 rounded-2xl bg-card border border-border/60 hover:border-border hover:shadow-sm transition-all duration-200 active:scale-[0.97] text-left"
+            >
+              <div
+                className={cn(
+                  "w-10 h-10 rounded-xl flex items-center justify-center",
+                  action.iconBg
+                )}
+              >
+                <action.icon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {action.label}
+                </p>
+                <p className="text-xs text-muted-foreground">{action.desc}</p>
+              </div>
+            </button>
+          ))}
+        </div>
 
-        <Card
-          className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => handleNavigate("scanner")}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-[#00D4AA] dark:to-[#00C299] rounded-full flex items-center justify-center mx-auto mb-3">
-              <Camera className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Payment Scanner</h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Bills, receipts & QR</p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => handleNavigate("recurring")}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 dark:from-[#8B5CF6] dark:to-[#7C3AED] rounded-full flex items-center justify-center mx-auto mb-3">
-              <Calendar className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Recurring</h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Auto payments</p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700"
-          onClick={() => handleNavigate("analytics")}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 dark:from-[#F97316] dark:to-[#EA580C] rounded-full flex items-center justify-center mx-auto mb-3">
-              <BarChart3 className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Analytics</h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Spending stats</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Voice Commands Help */}
-      <Card className="mb-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700 relative z-10">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center text-gray-900 dark:text-white">
-            <Mic className="h-5 w-5 mr-2 text-green-600 dark:text-[#00FF88]" />
+        {/* Voice Commands Section */}
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
             Voice Commands
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="text-sm p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-gray-700/50 dark:to-gray-600/50 rounded-lg">
-            <p className="font-medium text-gray-900 dark:text-white">"Ongea Pesa, tuma 500 kwa John"</p>
-            <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">Send money to contact</p>
+          </h2>
+          <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
+            {voiceExamples.map((ex) => (
+              <div
+                key={ex.command}
+                className="px-4 py-3 flex items-start gap-3"
+              >
+                <Mic className="h-4 w-4 text-brand mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {ex.command}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{ex.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="text-sm p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-600/50 dark:to-gray-700/50 rounded-lg">
-            <p className="font-medium text-gray-900 dark:text-white">"Tuma 200 kwa namba 0712345678"</p>
-            <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">Send to unsaved number</p>
-          </div>
-          <div className="text-sm p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-700/50 dark:to-gray-600/50 rounded-lg">
-            <p className="font-medium text-gray-900 dark:text-white">"Tuma miundo hii"</p>
-            <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">Share current location</p>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Voice Test Mode */}
-      <Card
-        className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700 relative z-10"
-        onClick={() => handleNavigate("test")}
-      >
-        <CardContent className="p-4 flex items-center">
-          <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-600 dark:from-[#6366F1] dark:to-[#4F46E5] rounded-full flex items-center justify-center mr-4">
-            <TestTube className="h-6 w-6 text-white" />
+        {/* Voice Test Mode */}
+        <button
+          onClick={() => handleNavigate("test")}
+          className="w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border/60 hover:border-border hover:shadow-sm transition-all duration-200 active:scale-[0.97] mb-6"
+        >
+          <div className="w-10 h-10 bg-violet-500 rounded-xl flex items-center justify-center shrink-0">
+            <TestTube className="h-5 w-5 text-white" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Ongea Pesa</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Voice-First Financial Companion</p>
+          <div className="text-left">
+            <p className="text-sm font-semibold text-foreground">
+              Voice Test Mode
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Test voice commands &amp; responses
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </button>
+      </ScreenShell>
 
-      {/* Floating Add Balance Button */}
+      {/* Floating Add Balance Button — outside ScreenShell */}
       <Button
         onClick={() => setIsBalanceSheetOpen(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-2xl hover:shadow-green-500/50 transition-all duration-300 hover:scale-110 z-40"
+        className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-brand hover:bg-brand/90 shadow-lg shadow-brand/20 hover:shadow-brand/30 transition-all duration-200 active:scale-[0.97] z-40"
         size="icon"
+        aria-label="Add balance"
       >
         <Plus className="h-6 w-6 text-white" />
       </Button>
 
-      {/* Balance Sheet */}
+      {/* Balance Sheet — outside ScreenShell (modal/fixed) */}
       <BalanceSheet
         isOpen={isBalanceSheetOpen}
         onClose={() => setIsBalanceSheetOpen(false)}
         currentBalance={balance}
         onBalanceUpdate={(newBalance) => {
           setBalance(newBalance)
-          console.log('✅ Balance updated to:', newBalance)
+          console.log("✅ Balance updated to:", newBalance)
         }}
       />
 
-      {/* Voice Interface Modal */}
+      {/* Voice Interface Modal — outside ScreenShell (fixed) */}
       {showVoiceInterface && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm">
           <div className="relative h-full">
@@ -373,15 +434,17 @@ export default function MainDashboard({ onNavigate, onVoiceActivate }: MainDashb
             >
               ✕
             </Button>
-            <VoiceInterface onNavigate={(screen) => {
-              setShowVoiceInterface(false)
-              handleNavigate(screen)
-            }} />
+            <VoiceInterface
+              onNavigate={(screen) => {
+                setShowVoiceInterface(false)
+                handleNavigate(screen)
+              }}
+            />
           </div>
         </div>
       )}
 
-      {/* PWA Install Prompt */}
+      {/* PWA Install Prompt — outside ScreenShell */}
       <PWAInstallPrompt />
     </div>
   )

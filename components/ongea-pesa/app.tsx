@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ThemeProvider } from "next-themes"
 import { UserProvider } from "@/contexts/UserContext"
 import { ElevenLabsProvider } from "@/contexts/ElevenLabsContext"
 import { Toaster } from "@/components/ui/toaster"
@@ -108,8 +107,7 @@ export default function OngeaPesaApp() {
   return (
     <UserProvider>
       <ElevenLabsProvider>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <div className="min-h-screen pb-20 lg:pb-0 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-[#0A1A2A] dark:via-[#0F2027] dark:to-[#203A43] transition-all duration-500">
+          <div className="min-h-[100dvh] pb-20 lg:pb-0 bg-background transition-colors duration-300">
             {renderScreen()}
             {/* Hide global widget when on voice interface page to prevent overlap */}
             {currentScreen !== "voice" && <GlobalVoiceWidget />}
@@ -166,7 +164,6 @@ export default function OngeaPesaApp() {
               </div>
             </nav>
           </div>
-        </ThemeProvider>
       </ElevenLabsProvider>
     </UserProvider>
   )

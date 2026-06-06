@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { ArrowDownLeft, ArrowUpRight, ShoppingCart, CreditCard, Smartphone, Building, RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/components/providers/auth-provider';
+import { ScreenShell } from '@/components/foundation';
+import { cn } from '@/lib/utils';
 
 // Transaction fee rate: 0.05% = 0.0005
 const TRANSACTION_FEE_RATE = 0.0005;
@@ -131,100 +131,90 @@ export default function TransactionHistory() {
     return isDebit ? `- KSh ${formatted}` : `+ KSh ${formatted}`;
   };
 
-  if (loading) {
-    return (
-      <div className="p-4 md:p-6">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-green-600" />
-            <p className="text-gray-600">Loading transactions...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4 md:p-6">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={fetchTransactions}>Try Again</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-4 md:p-6 pb-24">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+    <div className="min-h-[100dvh] bg-background surface-money pb-24">
+      <ScreenShell>
+        {/* header */}
+        <div className="flex items-center justify-between pt-6 mb-6">
           <div>
-            <CardTitle>Transaction History</CardTitle>
-            <CardDescription>
-              {transactions.length} transactions • Fee rate: 0.05%
-            </CardDescription>
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">Transactions</h1>
+            <p className="text-sm text-muted-foreground">{transactions.length} records • 0.05% fee</p>
           </div>
-          <Button variant="outline" size="icon" onClick={fetchTransactions}>
+          <Button variant="ghost" size="icon-sm" onClick={fetchTransactions} aria-label="Refresh">
             <RefreshCw className="h-4 w-4" />
           </Button>
-        </CardHeader>
-        <CardContent>
-          {transactions.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No transactions yet</p>
-              <p className="text-sm mt-2">Your transaction history will appear here</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {transactions.map((tx) => {
-                const isDebit = isDebitTransaction(tx.type);
-                const fee = isDebit ? calculateFee(tx.amount) : 0;
-                const totalAmount = isDebit ? tx.amount + fee : tx.amount;
+        </div>
 
-                return (
-                  <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <div className="flex items-center space-x-4">
+        {/* loading */}
+        {loading && (
+          <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+            <RefreshCw className="h-5 w-5 animate-spin" />
+            <span className="text-sm">Loading transactions…</span>
+          </div>
+        )}
+
+        {/* error */}
+        {error && !loading && (
+          <div className="rounded-2xl border border-destructive/20 bg-destructive/8 px-4 py-4 mb-4 flex items-center justify-between gap-3">
+            <p className="text-sm text-destructive">{error}</p>
+            <Button variant="outline" size="sm" onClick={fetchTransactions}>Retry</Button>
+          </div>
+        )}
+
+        {/* empty */}
+        {!loading && !error && transactions.length === 0 && (
+          <div className="text-center py-16">
+            <p className="text-sm text-muted-foreground">No transactions yet</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Your history will appear here</p>
+          </div>
+        )}
+
+        {/* list — flat rows in hairline card container */}
+        {!loading && !error && transactions.length > 0 && (
+          <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
+            {transactions.map((tx) => {
+              const isDebit = isDebitTransaction(tx.type);
+              const fee = isDebit ? calculateFee(tx.amount) : 0;
+              return (
+                <div key={tx.id} className="flex items-center gap-3 px-4 py-3">
+                  {/* Icon */}
+                  <div className={cn(
+                    "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                    isDebit ? "bg-destructive/10" : "bg-brand/10"
+                  )}>
+                    <span className={isDebit ? "[&_svg]:!text-destructive [&_svg]:!h-4 [&_svg]:!w-4" : "[&_svg]:!text-brand [&_svg]:!h-4 [&_svg]:!w-4"}>
                       {getTransactionIcon(tx.type)}
-                      <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">
-                          {getTransactionDetails(tx)}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {formatDate(tx.created_at)}
-                        </p>
-                        {isDebit && fee > 0 && (
-                          <p className="text-xs text-gray-400 dark:text-gray-500">
-                            Fee: KSh {fee.toFixed(2)} (0.05%)
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-semibold ${isDebit ? 'text-red-500' : 'text-green-500'}`}>
-                        {formatAmount(tx.amount, isDebit)}
-                      </p>
-                      {isDebit && fee > 0 && (
-                        <p className="text-xs text-gray-400">
-                          Total: KSh {totalAmount.toFixed(2)}
-                        </p>
-                      )}
-                      <Badge
-                        variant={tx.status === 'completed' ? 'default' : tx.status === 'pending' ? 'secondary' : 'destructive'}
-                        className="mt-1"
-                      >
-                        {tx.status}
-                      </Badge>
-                    </div>
+                    </span>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  {/* details */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{getTransactionDetails(tx)}</p>
+                    <p className="text-xs text-muted-foreground truncate">{formatDate(tx.created_at)}</p>
+                    {isDebit && fee > 0 && (
+                      <p className="text-[10px] text-muted-foreground/60">Fee: KSh {fee.toFixed(2)}</p>
+                    )}
+                  </div>
+                  {/* amount + status */}
+                  <div className="text-right shrink-0">
+                    <p className={cn(
+                      "text-sm font-bold",
+                      isDebit ? "text-destructive" : "text-brand"
+                    )} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                      {formatAmount(tx.amount, isDebit)}
+                    </p>
+                    <span className={cn(
+                      "text-[10px] font-semibold capitalize",
+                      tx.status === 'completed' ? "text-brand" :
+                      tx.status === 'pending' ? "text-amber-500" :
+                      "text-destructive"
+                    )}>{tx.status}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </ScreenShell>
     </div>
   );
 }

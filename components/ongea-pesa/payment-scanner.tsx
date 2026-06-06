@@ -99,8 +99,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
         handleScan('till')
         speakText('Starting till scan')
       } else if (lower.includes('pochi')) {
-        handleScan('pochi')
-        speakText('Starting Pochi la Biashara scan')
+        speakText('Pochi la Biashara is coming soon and not available yet. You can scan a Till, Paybill, or QR code.')
       } else if (lower.includes('receipt') || lower.includes('risiti')) {
         handleScan('receipt')
         speakText('Starting receipt scan')
@@ -156,10 +155,11 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     {
       id: "pochi" as ScanMode,
       title: "Pochi la Biashara",
-      description: "Mobile business accounts",
+      description: "Coming soon",
       icon: Building2,
-      color: "bg-purple-500",
+      color: "bg-purple-300",
       voiceCommand: "Piga Pochi",
+      disabled: true,
     },
     {
       id: "qr" as ScanMode,
@@ -360,7 +360,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
         const result = await geminiVision.autoDetectPaymentType(imageData)
         console.log('Gemini result:', result);
         
-        if (result && result.confidence > 70) {
+        if (result && result.confidence > 70 && result.type !== 'buy_goods_pochi') {
           console.log('✅ Payment detected with confidence:', result.confidence);
           console.log('📋 Scan result:', result);
           
@@ -480,20 +480,36 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
   const handleCapture = async () => {
     if (!scanMode) return
-    
+
     setIsProcessing(true)
     setScanError(null)
-    
+
     try {
       const imageData = captureImage()
-      if (!imageData) {
-        throw new Error("Failed to capture image")
-      }
+      if (!imageData) throw new Error("Failed to capture image")
 
-      const result = await geminiVision.scanPaymentDocument(imageData, scanMode)
+      // Server route: OpenAI gpt-4o first, Gemini fallback. Key stays server-side.
+      const res = await fetch('/api/scan/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageData, scanMode }),
+      })
+      if (!res.ok) throw new Error(`OCR service error: ${res.status}`)
+      const result: PaymentScanResult = await res.json()
+
       setScanResult(result)
       setIsScanning(false)
       stopCamera()
+
+      if (result.data.amount) {
+        const amountNum = result.data.amount.replace(/[^0-9.]/g, '')
+        setEnteredAmount(amountNum)
+        setShowAmountInput(false)
+      } else {
+        setEnteredAmount('')
+        setShowAmountInput(true)
+        setAmountSectionExpanded(true)
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to process image"
       setScanError(errorMessage)
@@ -522,68 +538,85 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
       // Get the selected payment (if alternatives exist)
       const allPayments = [scanResult, ...(scanResult?.alternatives || [])]
       const selectedPayment = allPayments[selectedPaymentIndex] || scanResult
-      
+
       if (!selectedPayment) return
-      
-      // Add entered amount to payment data
-      selectedPayment.data.amount = `KSh ${parseFloat(enteredAmount).toLocaleString()}`
-      
-      // Save to database before proceeding
+
+      const amountNum = parseFloat(enteredAmount)
+      selectedPayment.data.amount = `KSh ${amountNum.toLocaleString()}`
+
+      // Determine whether this payment has a real NCBA rail destination
+      const { type, data } = selectedPayment
+      const isPayableTill = (type === 'buy_goods_till' || type === 'qr') && data.till
+      const isPayableBill = type === 'paybill' && data.paybill
+      const isPayablePhone = type === 'send_phone' && data.phone
+      // Receipt with an extracted till/paybill also routes via NCBA
+      const isPayableReceipt = type === 'receipt' && (data.till || data.paybill)
+      const useRealRail = isPayableTill || isPayableBill || isPayablePhone || isPayableReceipt
+
       try {
-        const response = await fetch('/api/transactions/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: selectedPayment.type,
-            data: selectedPayment.data,
-            confidence: selectedPayment.confidence,
-            status: 'completed',
-            voice_verified: false,
-            confidence_score: selectedPayment.confidence,
-            voice_command_text: '',
-            mpesa_transaction_id: '',
-            external_ref: ''
+        if (useRealRail) {
+          // Route through the real NCBA rail: processing → completed/failed
+          let destination: any
+          if (isPayableTill || isPayableReceipt && data.till) {
+            destination = { kind: 'till', till: data.till, recipientName: data.merchant }
+          } else if (isPayableBill || isPayableReceipt && data.paybill) {
+            destination = { kind: 'paybill', paybill: data.paybill, account: data.account || '', recipientName: data.merchant }
+          } else {
+            destination = { kind: 'phone', phone: data.phone, recipientName: data.merchant }
+          }
+
+          const res = await fetch('/api/wallet/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: amountNum, destination, narration: `Scanner: ${type}` }),
           })
-        })
-        
-        if (response.ok) {
-          const { transaction } = await response.json()
-          console.log('✅ Transaction saved:', transaction)
-          
-          // Show success toast
-          toast({
-            title: "✅ Payment Successful!",
-            description: `KSh ${parseFloat(enteredAmount).toLocaleString()} payment completed. Transaction ID: ${transaction.id.substring(0, 8)}...`,
-            duration: 5000,
-          })
-          
-          // Clear scan result and reset state
-          setScanResult(null)
-          setEnteredAmount('')
-          setSelectedPaymentIndex(0)
-          setAlternativesExpanded(false)
-          
-          // Navigate back to dashboard after short delay
-          setTimeout(() => {
-            onNavigate("dashboard")
-          }, 1500)
+          const result = await res.json()
+
+          if (res.ok && result.success) {
+            toast({
+              title: "✅ Payment Sent!",
+              description: `KSh ${amountNum.toLocaleString()} sent.${result.bank_ref ? ` Ref: ${result.bank_ref}` : ''} ${result.message || ''}`,
+              duration: 5000,
+            })
+            setScanResult(null); setEnteredAmount(''); setSelectedPaymentIndex(0); setAlternativesExpanded(false)
+            setTimeout(() => onNavigate("dashboard"), 1500)
+          } else {
+            toast({ title: "❌ Payment Failed", description: result.message || "Please try again.", variant: "destructive", duration: 4000 })
+          }
         } else {
-          console.error('Failed to save transaction')
-          toast({
-            title: "❌ Payment Failed",
-            description: "Failed to save payment. Please try again.",
-            variant: "destructive",
-            duration: 4000,
+          // Expense-tracking only (receipt with no till/paybill, bank details, etc.)
+          const res = await fetch('/api/transactions/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: selectedPayment.type,
+              data: selectedPayment.data,
+              confidence: selectedPayment.confidence,
+              status: 'completed',
+              voice_verified: false,
+              confidence_score: selectedPayment.confidence,
+              voice_command_text: '',
+              mpesa_transaction_id: '',
+              external_ref: ''
+            }),
           })
+
+          if (res.ok) {
+            const { transaction } = await res.json()
+            toast({
+              title: "✅ Recorded!",
+              description: `KSh ${amountNum.toLocaleString()} expense saved. ID: ${transaction.id.substring(0, 8)}...`,
+              duration: 5000,
+            })
+            setScanResult(null); setEnteredAmount(''); setSelectedPaymentIndex(0); setAlternativesExpanded(false)
+            setTimeout(() => onNavigate("dashboard"), 1500)
+          } else {
+            toast({ title: "❌ Failed to Record", description: "Please try again.", variant: "destructive", duration: 4000 })
+          }
         }
       } catch (error) {
-        console.error('Error saving transaction:', error)
-        toast({
-          title: "❌ Error",
-          description: "Error saving payment. Please try again.",
-          variant: "destructive",
-          duration: 4000,
-        })
+        console.error('Payment error:', error)
+        toast({ title: "❌ Error", description: "Error processing payment. Please try again.", variant: "destructive", duration: 4000 })
       }
     }
   }
@@ -1495,8 +1528,13 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
             {scanModes.map((mode) => (
               <Card
                 key={mode.id}
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => handleScan(mode.id)}
+                className={(mode as any).disabled
+                  ? "opacity-50 cursor-not-allowed"
+                  : "cursor-pointer hover:shadow-md transition-shadow"}
+                onClick={() => {
+                  if ((mode as any).disabled) return
+                  handleScan(mode.id)
+                }}
               >
                 <CardContent className="p-3 text-center">
                   <div className={`w-10 h-10 ${mode.color} rounded-lg flex items-center justify-center mx-auto mb-2`}>
@@ -1504,9 +1542,10 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
                   </div>
                   <h3 className="font-semibold text-xs mb-1">{mode.title}</h3>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{mode.description}</p>
-                  <Badge variant="outline" className="text-xs">
-                    "{mode.voiceCommand}"
-                  </Badge>
+                  {(mode as any).disabled
+                    ? <Badge variant="secondary" className="text-xs">Coming soon</Badge>
+                    : <Badge variant="outline" className="text-xs">"{mode.voiceCommand}"</Badge>
+                  }
                 </CardContent>
               </Card>
             ))}

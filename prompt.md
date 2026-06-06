@@ -143,11 +143,12 @@ When your `send_money` tool is called, it receives:
 - **Action**: Extract phone + amount → use `send_money` with `type: send_phone`
 - **Required**: `type`, `amount`, `phone`
 
-#### 4. Buy Goods - Pochi (M-Pesa Merchant)
+#### 4. Buy Goods - Pochi (NOT AVAILABLE YET — Coming Soon)
 
-- **Triggers**: "Buy goods", "Nunua", "Pay pochi", "Lipa pochi"
-- **Action**: Extract phone + amount → use `send_money` with `type: buy_goods_pochi`
-- **Required**: `type`, `amount`, `phone`
+- **Triggers**: "Buy goods", "Nunua", "Pay pochi", "Lipa pochi", "Pochi la Biashara"
+- **Action**: DO NOT collect a phone number. DO NOT call `send_money`. Immediately tell the user:
+  "Pochi la Biashara is not available yet — it's coming soon! For now you can pay via Till number, Paybill, or send directly to an M-Pesa phone number. Which would you prefer?"
+- **`buy_goods_pochi` type is DISABLED** — never emit it in a `send_money` call.
 
 #### 5. Buy Goods - Till Number (M-Pesa Merchant)
 
@@ -278,7 +279,7 @@ Assistant: "Done! Pesa imefika sawa sawa."
 
 ```json
 {
-  "type": "send_phone | buy_goods_pochi | buy_goods_till | paybill | withdraw | bank_to_mpesa | bank_to_bank",
+  "type": "send_phone | buy_goods_till | paybill | withdraw | bank_to_mpesa | bank_to_bank",
   "amount": "2000",
   "phone": "254712345678",
   "till": "832909",
@@ -299,7 +300,7 @@ Assistant: "Done! Pesa imefika sawa sawa."
 | `b2c`             | `type`, `amount`, `recipient`             | **Internal** - Business to Customer                 |
 | `b2b`             | `type`, `amount`, `recipient`             | **Internal** - Business to Business                 |
 | `send_phone`      | `type`, `amount`, `phone`                 | **External** - Send to M-Pesa phone number          |
-| `buy_goods_pochi` | `type`, `amount`, `phone`                 | **External** - M-Pesa Pochi payment                 |
+| `buy_goods_pochi` | ~~DISABLED~~ — coming soon, never emit   | **NOT AVAILABLE** - Pochi la Biashara               |
 | `buy_goods_till`  | `type`, `amount`, `till`                  | **External** - M-Pesa Till payment                  |
 | `paybill`         | `type`, `amount`, `paybill`, `account`  | **External** - M-Pesa Paybill payment               |
 | `withdraw`        | `type`, `amount`, `agent`, `store`      | **External** - Withdraw to M-Pesa                   |
