@@ -182,7 +182,32 @@ Flow:
 
 Notes:
 - If the amount was not on the document, take it from the user's speech.
-- Vision reads digits character-by-character; if confidence is low, ask the user to confirm the digits before paying.`;
+- Vision reads digits character-by-character; if confidence is low, ask the user to confirm the digits before paying.
+
+## Multi-Send / Batch Payments
+
+You can send to several people or pay several bills in a single conversation using the **send_batch** CLIENT tool (runs on the user's device).
+
+### When to use
+- "Send 500 to John, 300 to Mary, and pay KPLC 1,000"
+- "Pay my three bills at once"
+- "Tuma pesa kwa watu watatu pamoja"
+
+### Flow
+1. **Collect all items** in one turn — extract each destination (phone / till / paybill / bill) and amount from the user's speech. Ask only for genuinely missing fields.
+2. **Read back the list** and the running total before calling the tool:
+   - "I'll send: KSh 500 to John (0712345678), KSh 300 to Mary (0700111222), and pay KPLC KSh 1,000 — total KSh 1,800 from your wallet. Sawa?"
+3. **On confirmation** (yes / ndiyo / sawa) → call **send_batch** with the payments array.
+4. **Speak the result** — send_batch returns a summary you read back verbatim:
+   - Success: "All 3 payments sent. Done!"
+   - Partial: "2 of 3 sent. KPLC failed: insufficient funds."
+   - Insufficient funds (pre-flight): "You need KSh X more to cover all payments."
+
+### Important rules
+- Each payment is sent as an **individual request** — some may succeed while others fail. This is expected and not an error.
+- Do NOT call send_money for each item individually — use send_batch for multi-destination sends.
+- Confirm the full list **once** before calling send_batch. Do not ask for per-item confirmations.
+- Do NOT state a post-batch balance — the new balance is not returned.`;
 
 const FIRST_MESSAGE = 'Niaje {{user_name}}! Ongea Pesa hapa — una KSh {{balance}} kwa wallet. Nani tunatumia leo?';
 
@@ -226,6 +251,49 @@ const CLIENT_TOOLS = [
     expects_response: true,
     response_timeout_secs: 20,
     parameters: { type: 'object', required: [], properties: {} },
+  },
+  {
+    name: 'send_batch',
+    description:
+      "Dispatch multiple payments in one interaction. Each payment becomes an individual request (not a single combined call). " +
+      "Call after the user has confirmed the full list of recipients and amounts. " +
+      "Returns a spoken summary of which succeeded and which failed.",
+    expects_response: true,
+    response_timeout_secs: 60,
+    parameters: {
+      type: 'object',
+      required: ['payments'],
+      properties: {
+        payments: {
+          type: 'array',
+          description: 'List of payment items. Each item must have amount and at least one destination field.',
+          items: {
+            type: 'object',
+            required: ['amount'],
+            properties: {
+              amount: { type: 'number', description: 'Amount in KES to send for this item' },
+              kind: {
+                type: 'string',
+                description: 'Destination type. Inferred from other fields if omitted.',
+                enum: ['phone', 'till', 'paybill', 'bill', 'internal'],
+              },
+              phone: { type: 'string', description: 'Kenyan phone number 07XXXXXXXX or 254XXXXXXXXX for phone/pochi payments' },
+              till: { type: 'string', description: '6-7 digit till number for buy-goods payments' },
+              paybill: { type: 'string', description: '6-7 digit paybill number' },
+              account: { type: 'string', description: 'Account number for paybill or bill payments' },
+              billType: { type: 'string', description: 'Utility bill provider e.g. KPLC, NHIF, KRA' },
+              recipient: { type: 'string', description: 'Recipient name for display / narration (optional)' },
+              narration: { type: 'string', description: 'Payment note for this specific item (optional)' },
+              label: { type: 'string', description: 'Human-readable label for this item e.g. "Till 832909" (optional)' },
+            },
+          },
+        },
+        narration: {
+          type: 'string',
+          description: 'Global narration applied to all items that do not have their own narration (optional)',
+        },
+      },
+    },
   },
 ];
 
@@ -353,15 +421,18 @@ async function main() {
   const verifiedIds  = updated.conversation_config?.agent?.prompt?.tool_ids ?? [];
   const verifiedLen  = (updated.conversation_config?.agent?.prompt?.prompt ?? '').length;
   const verifiedMsg  = updated.conversation_config?.agent?.first_message ?? '';
-  const hasScanSec   = (updated.conversation_config?.agent?.prompt?.prompt ?? '').includes('Scan-to-Pay');
+  const updatedPrompt = updated.conversation_config?.agent?.prompt?.prompt ?? '';
+  const hasScanSec    = updatedPrompt.includes('Scan-to-Pay');
+  const hasBatchSec   = updatedPrompt.includes('Multi-Send / Batch');
 
   console.log(`    tool_ids : ${verifiedIds.length} entries`);
   console.log(`    prompt   : ${verifiedLen} chars`);
   console.log(`    Scan-to-Pay section present: ${hasScanSec}`);
+  console.log(`    Multi-Send/Batch section present: ${hasBatchSec}`);
   console.log(`    first_message: "${verifiedMsg.slice(0, 80)}"`);
 
   console.log(`\n${'='.repeat(54)}`);
-  if (verifiedIds.length >= merged.length && hasScanSec) {
+  if (verifiedIds.length >= merged.length && hasScanSec && hasBatchSec) {
     console.log('🎉  Configuration applied successfully!');
   } else {
     console.log('⚠️   Some checks failed — review output above');
@@ -378,7 +449,9 @@ async function main() {
   console.log('  1. npm run dev → open Voice page → start session');
   console.log('  2. Say "scan this till" — camera should open');
   console.log('  3. Say "what is my balance?" — should read from wallet');
-  console.log('  4. Ensure OPENAI_API_KEY and GEMINI_API_KEY are in .env.local');
+  console.log('  4. Say "send 500 to 0712345678 and 300 to 0700111222" → agent reads back total, calls send_batch');
+  console.log('  5. Open Multi-Send from the dashboard quick actions for the in-app batch UI');
+  console.log('  6. Ensure OPENAI_API_KEY and GEMINI_API_KEY are in .env.local');
 }
 
 main().catch(err => {

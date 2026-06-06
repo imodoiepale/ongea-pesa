@@ -3,6 +3,8 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useConversation } from '@elevenlabs/react';
 import { useUser } from './UserContext';
+import { normalizeVoiceItem, summariseBatchResults } from '@/lib/batch-payments';
+import type { BatchItem, BatchResponse } from '@/lib/batch-payments';
 
 interface Message {
   id: string;
@@ -16,6 +18,8 @@ interface ToolHandlers {
   startScan?: (mode?: string | null) => void;
   confirmPayment?: () => void;
   getBalance?: () => number;
+  /** Called after send_batch completes — navigate to batch screen and show results */
+  showBatch?: (payments: BatchItem[], results?: BatchResponse) => void;
 }
 
 interface ElevenLabsContextType {
@@ -115,6 +119,43 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
       read_balance: async () => {
         const bal = toolHandlersRef.current.getBalance?.() ?? userBalance;
         return `Your balance is KSh ${bal.toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
+      },
+      /**
+       * send_batch — dispatches multiple payments as individual requests.
+       * The agent passes { payments: Array<{ amount, kind?, phone?, till?, paybill?, account?, ... }> }.
+       * Each item is normalised by normalizeVoiceItem and sent to /api/payments/batch.
+       * Returns a spoken summary the agent can read back directly.
+       */
+      send_batch: async (params: { payments?: Record<string, any>[]; narration?: string }) => {
+        const rawItems = params?.payments ?? [];
+        if (rawItems.length === 0) return 'No payments specified. Please tell me who to send to and how much.';
+
+        const items: BatchItem[] = rawItems.map(normalizeVoiceItem);
+        const total = items.reduce((s, p) => s + p.amount, 0);
+        const n = items.length;
+
+        console.log(`🎙️ send_batch: ${n} items, KES ${total}`);
+
+        let json: BatchResponse;
+        try {
+          const res = await fetch('/api/payments/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payments: items, narration: params?.narration }),
+          });
+          json = await res.json();
+        } catch (err: any) {
+          return `Network error — payments not sent. Please try again.`;
+        }
+
+        // Notify any mounted component (e.g. BatchSend screen) with the results
+        toolHandlersRef.current.showBatch?.(items, json);
+
+        if (!json.success && json.error === 'Insufficient funds') {
+          return `Insufficient funds. You need KES ${json.shortfall?.toFixed(2) ?? '?'} more to cover all ${n} payments.`;
+        }
+
+        return summariseBatchResults(json.results ?? []);
       },
     },
   });

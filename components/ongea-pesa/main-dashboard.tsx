@@ -16,6 +16,7 @@ import {
   Shield,
   Eye,
   EyeOff,
+  SendHorizonal,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -47,6 +48,7 @@ type Screen =
   | "test"
   | "permissions"
   | "scanner"
+  | "batch"
 
 interface MainDashboardProps {
   onNavigate?: (screen: Screen) => void
@@ -73,6 +75,13 @@ const quickActions: {
     screen: "send",
     icon: Send,
     iconBg: "bg-brand",
+  },
+  {
+    label: "Multi-Send",
+    desc: "Pay multiple at once",
+    screen: "batch",
+    icon: SendHorizonal,
+    iconBg: "bg-emerald-500",
   },
   {
     label: "Pay Scanner",

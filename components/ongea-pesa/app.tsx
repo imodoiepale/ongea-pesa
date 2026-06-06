@@ -14,12 +14,14 @@ import Analytics from "./analytics"
 import VoiceTest from "./voice-test"
 import PermissionManager from "./permission-manager"
 import PaymentScanner from "./payment-scanner"
+import BatchSend from "./batch-send"
 import MpesaSettingsDialog from "./mpesa-settings-dialog"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from '@/lib/supabase/client'
 import { FluidNav, mobileNavItems } from "@/components/foundation"
+import type { BatchItem, BatchResponse } from '@/lib/batch-payments'
 
-type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner"
+type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner" | "batch"
 
 // Inner component — must be a child of ElevenLabsProvider to call useElevenLabs
 function AppShell() {
@@ -30,6 +32,8 @@ function AppShell() {
   const [mounted, setMounted] = useState(false)
   const [isMpesaDialogOpen, setIsMpesaDialogOpen] = useState(false)
   const [checkingMpesa, setCheckingMpesa] = useState(true)
+  // Batch: pre-populated payments + results from voice-triggered send_batch
+  const [pendingBatch, setPendingBatch] = useState<{ payments?: BatchItem[]; results?: BatchResponse } | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -44,12 +48,16 @@ function AppShell() {
 
   const navigate = (screen: Screen) => setCurrentScreen(screen)
 
-  // Register navigation handler so voice agent can open the scanner
+  // Register navigation handlers so voice agent can open the scanner or the batch screen
   useEffect(() => {
     registerToolHandlers({
       openScanner: () => navigate('scanner'),
+      showBatch: (payments, batchResponse) => {
+        setPendingBatch({ payments, results: batchResponse })
+        navigate('batch')
+      },
     });
-    return () => unregisterToolHandlers(['openScanner']);
+    return () => unregisterToolHandlers(['openScanner', 'showBatch']);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkMpesaNumber = async () => {
@@ -99,6 +107,14 @@ function AppShell() {
         return <PermissionManager onNavigate={navigate} />
       case "scanner":
         return <PaymentScanner onNavigate={navigate} />
+      case "batch":
+        return (
+          <BatchSend
+            onNavigate={navigate}
+            initialPayments={pendingBatch?.payments}
+            initialResults={pendingBatch?.results}
+          />
+        )
       default:
         return <MainDashboard onNavigate={navigate} onVoiceActivate={() => setIsListening(true)} />
     }

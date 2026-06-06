@@ -8,6 +8,8 @@ import { useCamera } from "@/hooks/use-camera"
 import { useVoiceActivation } from "@/hooks/use-voice-activation"
 import { useElevenLabs } from '@/contexts/ElevenLabsContext'
 import { PaymentScanResult } from "@/lib/gemini-vision"
+import { normalizeScanToBatchItem } from '@/lib/batch-payments'
+import type { BatchResponse } from '@/lib/batch-payments'
 import { calculateTransactionFees, formatFeesMessage, hasSufficientBalance } from "@/lib/transaction-fees"
 import { ScreenShell } from "@/components/foundation"
 import { cn } from "@/lib/utils"
@@ -41,6 +43,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
   const [batchMode, setBatchMode] = useState(false)
   const [scannedPayments, setScannedPayments] = useState<PaymentScanResult[]>([])
   const [showBatchSummary, setShowBatchSummary] = useState(false)
+  const [batchResults, setBatchResults] = useState<BatchResponse | null>(null)
 
   // Multiple payment methods state
   const [selectedPaymentIndex, setSelectedPaymentIndex] = useState<number>(0)
@@ -661,46 +664,56 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     try {
       setIsProcessing(true)
 
-      // Calculate total amount
-      const totalAmount = scannedPayments.reduce((sum, payment) => {
-        const amount = payment.data.amount ?
-          parseFloat(payment.data.amount.replace(/[^0-9.]/g, '')) : 0
-        return sum + amount
-      }, 0)
+      // Map scanner results to BatchItems using the shared normalizer
+      const payments = scannedPayments.map(scan => normalizeScanToBatchItem(scan))
 
-      // Check balance
-      if (balance < totalAmount) {
-        const shortfall = totalAmount - balance
-        speakText(`Insufficient balance. You need ${shortfall.toLocaleString()} shillings more.`)
-        setScanError(`Insufficient balance. Need KSh ${shortfall.toLocaleString()} more.`)
-        setIsProcessing(false)
-        return
-      }
-
-      // Process batch payment
+      // POST to the real batch route — server validates balance and sends individually
       const response = await fetch('/api/payments/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          payments: scannedPayments,
-          totalAmount,
-          balance
-        })
+        body: JSON.stringify({ payments, narration: 'Scanner batch' }),
       })
 
-      if (response.ok) {
-        speakText(`All ${scannedPayments.length} payments processed successfully!`)
+      const json: BatchResponse = await response.json()
+      setBatchResults(json)
+
+      if (!json.success && json.error === 'Insufficient funds') {
+        const shortfall = json.shortfall ?? 0
+        speakText(`Insufficient balance. You need ${shortfall.toLocaleString()} shillings more.`)
+        setScanError(`Insufficient balance. Need KSh ${shortfall.toFixed(2)} more.`)
+        return
+      }
+
+      const succeeded = (json.results ?? []).filter(r => r.success).length
+      const failed = (json.results ?? []).filter(r => !r.success).length
+
+      if (failed === 0) {
+        speakText(`All ${succeeded} payments processed successfully!`)
+        toast({ title: '✅ Batch Complete', description: `${succeeded} payment(s) sent.` })
         setScannedPayments([])
         setShowBatchSummary(false)
         setBatchMode(false)
-        // Refresh balance
-        const balanceRes = await fetch('/api/balance')
-        if (balanceRes.ok) {
-          const data = await balanceRes.json()
-          setBalance(data.balance || 0)
-        }
       } else {
-        throw new Error('Batch payment failed')
+        speakText(`${succeeded} of ${scannedPayments.length} payments sent. ${failed} failed.`)
+        toast({
+          title: `⚠️ Partial: ${succeeded} sent, ${failed} failed`,
+          description: (json.results ?? [])
+            .filter(r => !r.success)
+            .map(r => `${r.label ?? r.kind}: ${r.error}`)
+            .join(' | '),
+          variant: 'destructive',
+        })
+        // Clear only succeeded items from the batch
+        const failedIndices = new Set((json.results ?? []).filter(r => !r.success).map(r => r.index))
+        setScannedPayments(prev => prev.filter((_, i) => failedIndices.has(i)))
+        if (succeeded > 0) setShowBatchSummary(true)
+      }
+
+      // Refresh balance
+      const balanceRes = await fetch('/api/balance')
+      if (balanceRes.ok) {
+        const data = await balanceRes.json()
+        setBalance(data.balance || 0)
       }
     } catch (error) {
       console.error('Batch payment error:', error)
@@ -1243,12 +1256,32 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
             </Button>
             <Button
               variant="outline"
-              onClick={() => setShowBatchSummary(false)}
+              onClick={() => { setShowBatchSummary(false); setBatchResults(null) }}
               className="flex-1"
             >
               Back to Scan
             </Button>
           </div>
+
+          {/* Per-item results (shown after sending) */}
+          {batchResults?.results && batchResults.results.length > 0 && (
+            <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
+              <p className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b border-border/40">
+                Results — {batchResults.successCount} sent, {batchResults.failCount} failed
+              </p>
+              {batchResults.results.map((r, i) => (
+                <div key={i} className="flex items-center gap-2 px-3 py-2 border-b border-border/20 last:border-0">
+                  <span className="text-base">{r.success ? '✅' : '❌'}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{r.label ?? r.kind}</p>
+                    {!r.success && <p className="text-xs text-destructive truncate">{r.error}</p>}
+                    {r.success && r.bank_ref && <p className="text-xs text-muted-foreground">Ref: {r.bank_ref}</p>}
+                  </div>
+                  <span className="text-xs font-semibold shrink-0">KSh {r.amount.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     )

@@ -27,8 +27,12 @@ ElevenLabs Conversational AI (ONGEA PESA V2)
   │     │                               └── WalletService.resolveRailAndSend
   │     │                                     ├── internal → Supabase RPC
   │     │                                     └── external → NCBA /webhook/ncba_withdraw
-  │     └── read_balance  ──► toolHandlersRef.getBalance()
-  │                             └── returns wallet_balance from profile
+  │     ├── read_balance  ──► toolHandlersRef.getBalance()
+  │     │                       └── returns wallet_balance from profile
+  │     └── send_batch    ──► normalizeVoiceItem[] → POST /api/payments/batch
+  │                             └── WalletService.resolveRailAndSend × N (sequential)
+  │                                 └── returns per-item results; toolHandlersRef.showBatch()
+  │                                     → navigates to "batch" screen in app.tsx
   │
   └── WEBHOOK TOOL (server-side, async/immediate)
         send_money  ──► POST /api/voice/webhook
@@ -46,7 +50,7 @@ ElevenLabs → send_money webhook → /api/voice/webhook → n8n → Supabase
 
 ---
 
-## 2. The 4 Client Tools
+## 2. The 5 Client Tools
 
 All tools are `type: "client"` — they run **on the user's browser/device**, not on a server. The ElevenLabs agent calls them; the React `clientTools` map in `contexts/ElevenLabsContext.tsx:101` handles execution.
 
@@ -134,16 +138,78 @@ All tools are `type: "client"` — they run **on the user's browser/device**, no
 }
 ```
 
+#### send_batch
+
+```json
+{
+  "tool_config": {
+    "type": "client",
+    "name": "send_batch",
+    "description": "Dispatch multiple payments in one interaction. Each payment becomes an individual request. Call after the user confirms the full list. Returns a spoken summary of which succeeded and which failed.",
+    "expects_response": true,
+    "response_timeout_secs": 60,
+    "parameters": {
+      "type": "object",
+      "required": ["payments"],
+      "properties": {
+        "payments": {
+          "type": "array",
+          "description": "List of payment items.",
+          "items": {
+            "type": "object",
+            "required": ["amount"],
+            "properties": {
+              "amount":     { "type": "number",  "description": "Amount in KES" },
+              "kind":       { "type": "string",  "description": "Destination type: phone | till | paybill | bill | internal" },
+              "phone":      { "type": "string",  "description": "Kenyan phone 07XXXXXXXX or 254XXXXXXXXX" },
+              "till":       { "type": "string",  "description": "6-7 digit till number" },
+              "paybill":    { "type": "string",  "description": "6-7 digit paybill number" },
+              "account":    { "type": "string",  "description": "Account / meter number" },
+              "billType":   { "type": "string",  "description": "Utility provider e.g. KPLC, NHIF, KRA" },
+              "recipient":  { "type": "string",  "description": "Recipient name (optional)" },
+              "narration":  { "type": "string",  "description": "Per-item note (optional)" },
+              "label":      { "type": "string",  "description": "Human-readable label e.g. 'Till 832909' (optional)" }
+            }
+          }
+        },
+        "narration": { "type": "string", "description": "Global narration for all items (optional)" }
+      }
+    }
+  }
+}
+```
+
 ### 2b. Where they map in the codebase
 
 | Agent tool name  | Client handler (ElevenLabsContext.tsx:101) | Delegate (registered via registerToolHandlers) |
 |------------------|---------------------------------------------|------------------------------------------------|
-| `open_scanner`   | calls `toolHandlersRef.current.openScanner?.()` | `app.tsx:49` → `navigate('scanner')` |
+| `open_scanner`   | calls `toolHandlersRef.current.openScanner?.()` | `app.tsx` → `navigate('scanner')` |
 | `start_scan`     | calls `toolHandlersRef.current.startScan?.(mode)` | `payment-scanner.tsx` → camera capture → `/api/scan/ocr` |
 | `confirm_payment`| calls `toolHandlersRef.current.confirmPayment?.()` | `payment-scanner.tsx` → `/api/wallet/pay` |
 | `read_balance`   | calls `toolHandlersRef.current.getBalance?.()` | `payment-scanner.tsx` returns live balance |
+| `send_batch`     | `normalizeVoiceItem[]` → `POST /api/payments/batch` → `toolHandlersRef.current.showBatch?.()` | `app.tsx` → `navigate('batch')` + show results in `BatchSend` screen |
 
 > **Tool names are case-sensitive.** `open_scanner` ≠ `Open_Scanner`. The agent-side name must match the `clientTools` map key exactly.
+
+### 2c. `/api/payments/batch` contract
+
+**POST** `{ payments: BatchItem[], narration?: string }`
+
+- Server **ignores** any client-supplied `totalAmount`/`balance` — derives the total itself.
+- Pre-flight: sums estimated debits (amount + M-Pesa fee per item) and rejects `400 { success:false, error:'Insufficient funds', shortfall, totalRequested }` before sending a single payment.
+- Sequential fan-out: one `WalletService.resolveRailAndSend` call per item. On per-item failure, continues to next item.
+- **Response**: `{ success:true, totalRequested, successCount, failCount, results[] }` where each result is `{ index, label?, amount, kind, success, transaction_id?, bank_ref?, error? }`.
+- Each payment appears as its own row in the `transactions` table with its own `status`/`provider_ref`.
+
+`BatchItem` shape (from `lib/batch-payments.ts`):
+```ts
+interface BatchItem {
+  amount: number;
+  destination: RailDestination; // { kind: 'phone'|'till'|'paybill'|'bill'|'internal', ...fields }
+  narration?: string;
+  label?: string;
+}
+```
 
 ---
 
@@ -353,7 +419,7 @@ Without `OPENAI_API_KEY` and `GEMINI_API_KEY`, the scanner opens but `/api/scan/
 ```bash
 node scripts/configure-elevenlabs-agent.mjs
 # Expected: exits 0, prints "🎉 Configuration applied successfully!"
-# Shows 5 tool_ids, prompt length > 3000 chars, Scan-to-Pay section present
+# Shows 6 tool_ids, prompt contains Scan-to-Pay + Multi-Send/Batch sections
 ```
 
 ### Read back via MCP
@@ -363,8 +429,8 @@ mcp__elevenlabs__get_agent  (agent_id: agent_5301kbp2gvypf0m83e579ya9nz75)
 ```
 
 Confirm:
-- `conversation_config.agent.prompt.tool_ids` has **5 entries** (send_money + 4 client tools)
-- `conversation_config.agent.prompt.prompt` contains `"Scan-to-Pay"`
+- `conversation_config.agent.prompt.tool_ids` has **6 entries** (send_money + 5 client tools)
+- `conversation_config.agent.prompt.prompt` contains `"Scan-to-Pay"` and `"Multi-Send / Batch"`
 - `conversation_config.agent.first_message` = `"Niaje {{user_name}}!..."`
 
 ### End-to-end voice test
@@ -374,10 +440,11 @@ npm run dev
 ```
 
 1. Open Voice page → start a session
-2. Say **"scan this till"** → camera screen should open (console: `openScanner handler fired`)
+2. Say **"scan this till"** → camera screen should open
 3. Point at a till sticker → OCR runs → agent reads back "I see Till XXXXXX"
 4. Say **"yes"** → payment goes through `/api/wallet/pay`
 5. Say **"what is my balance?"** → agent calls `read_balance` → speaks wallet balance
+6. Say **"send 500 to 0712345678 and pay KPLC 1000 account 12345"** → agent reads back total, calls `send_batch` → Multi-Send screen shows per-item results
 
 ### OCR sanity check
 
@@ -392,7 +459,7 @@ curl -X POST http://localhost:3000/api/scan/ocr \
 
 ## 8. Rollback
 
-To remove the 4 client tools and revert to only `send_money`:
+To remove all client tools and revert to only `send_money`:
 
 ```bash
 curl -sX PATCH https://api.elevenlabs.io/v1/convai/agents/agent_5301kbp2gvypf0m83e579ya9nz75 \
@@ -409,9 +476,13 @@ The original prompt is archived verbatim in `docs/ELEVENLABS_AGENT_CONFIG.md` se
 
 | Symptom | Likely cause | Fix |
 |---------|-------------|-----|
-| Agent says "I cannot open the camera" | Client tools not in agent's `tool_ids` | Re-run the configure script; verify 5 tool_ids |
+| Agent says "I cannot open the camera" | Client tools not in agent's `tool_ids` | Re-run the configure script; verify 6 tool_ids |
 | Camera opens but OCR times out | `OPENAI_API_KEY` / `GEMINI_API_KEY` not set | Add to `.env.local` |
 | Agent doesn't speak fee/error details | `send_money` still `execution_mode: async` | Run script without `--no-fix-send-money` |
 | `read_balance` returns 0 | Balance fetch interval in `ElevenLabsContext` hasn't fired | Wait ~10 seconds; checks every 10s |
 | `confirm_payment` does nothing | `payment-scanner.tsx` handler not registered | Ensure scanner screen is open when agent calls it |
+| `send_batch` returns "No payments specified" | Agent passed empty `payments` array | Check agent prompt — confirm the multi-send section is present |
+| `send_batch` returns "Insufficient funds" | Balance < estimated total debit | Add funds; or send fewer/smaller items |
+| Batch screen doesn't auto-open after voice batch | `showBatch` handler not registered | Ensure `BatchSend` component is mounted (navigate to 'batch' first) or rely on `app.tsx` AppShell registration |
+| Scanner "Pay All" still fakes balance | Old stub not replaced | Verify `app/api/payments/batch/route.ts` calls `ws.resolveRailAndSend` — check for the `failCount` field in the response |
 | Script exits with 403 | Wrong/expired API key | Check `.env.local` or `.mcp.json` |
