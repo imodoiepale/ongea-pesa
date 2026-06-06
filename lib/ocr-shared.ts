@@ -191,6 +191,70 @@ export function getPromptForScanMode(scanMode: string): string {
   return prompts[scanMode] || prompts.paybill;
 }
 
+export function getAutoDetectPrompt(): string {
+  return `
+You are an expert OCR engine for Kenyan M-Pesa and bank payment documents.
+Analyze this image and detect ALL payment information present.
+
+DETECT ANY OF THESE 9 TYPES (choose the best match):
+1. send_phone    — a phone number for sending money (07XX or 01XX or 254XX)
+2. buy_goods_pochi — Pochi la Biashara phone number
+3. buy_goods_till  — Till number (6-7 digits near "Till", "Buy Goods", "Lipa na M-Pesa")
+4. paybill         — Paybill number (5-7 digits) + account number
+5. withdraw        — M-Pesa agent number + store number
+6. bank_to_mpesa   — Bank code + account for bank-to-M-Pesa transfer
+7. bank_to_bank    — Bank code + account for bank-to-bank transfer
+8. receipt         — Expense receipt (vendor, amount, date, category)
+9. qr              — M-Pesa QR code with till or paybill
+
+ACCURACY RULES:
+- Read digits character-by-character: 0≠O, 1≠I≠l, 5≠S, 6≠G, 8≠B
+- Do NOT guess or approximate any number — extract exactly as printed
+- Preserve business names as written (exact capitalization)
+- Include "KSh" prefix with all monetary amounts
+
+RETURN ONLY a single JSON object matching this schema:
+{
+  "type": "<best_match_type>",
+  "till": "<6_or_7_digit_till_if_applicable_else_omit>",
+  "paybill": "<5_to_7_digit_paybill_if_applicable_else_omit>",
+  "account": "<account_number_if_applicable_else_omit>",
+  "phone": "<254XXXXXXXXX_if_applicable_else_omit>",
+  "agent": "<agent_number_if_applicable_else_omit>",
+  "store": "<store_number_if_applicable_else_omit>",
+  "bankCode": "<bank_code_if_applicable_else_omit>",
+  "merchant": "<business_or_merchant_name_if_visible_else_omit>",
+  "amount": "<KSh_amount_if_visible_else_omit>",
+  "receiptData": {
+    "vendor": "<vendor_name>",
+    "amount": "<total_with_KSh>",
+    "date": "<YYYY-MM-DD>",
+    "category": "<fuel|groceries|restaurant|utilities|other>",
+    "till": "<6_or_7_digit_till_or_null>",
+    "paybill": "<paybill_or_null>",
+    "account": "<account_or_null>"
+  },
+  "confidence": <integer_0_to_100>,
+  "alternatives": [
+    {
+      "type": "<second_best_type_if_multiple_detected>",
+      "till": "<if_applicable>",
+      "paybill": "<if_applicable>",
+      "account": "<if_applicable>",
+      "phone": "<if_applicable>",
+      "merchant": "<if_applicable>",
+      "amount": "<if_applicable>",
+      "confidence": <integer_0_to_100>
+    }
+  ]
+}
+
+Include "alternatives" only when multiple distinct payment targets are visible.
+Omit any field that does not apply to the detected type.
+If no payment document is detected, return: {"type":"receipt","data":{},"confidence":0}
+`;
+}
+
 export function validateAndFormatNumbers(data: Record<string, any>): Record<string, any> {
   const formatted = { ...data };
 

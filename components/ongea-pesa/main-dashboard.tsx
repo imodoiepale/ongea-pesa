@@ -14,6 +14,8 @@ import {
   Wallet,
   Plus,
   Shield,
+  Eye,
+  EyeOff,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -122,6 +124,10 @@ export default function MainDashboard({
   const [loading, setLoading] = useState(true)
   const [isBalanceSheetOpen, setIsBalanceSheetOpen] = useState(false)
   const [showVoiceInterface, setShowVoiceInterface] = useState(false)
+  const [hideBalance, setHideBalance] = useState(() => {
+    if (typeof window === "undefined") return false
+    return localStorage.getItem("hide-balance") === "true"
+  })
   const supabase = createClient()
 
   // Check if user is admin
@@ -292,29 +298,49 @@ export default function MainDashboard({
           </DropdownMenu>
         </PageHeader>
 
-        {/* Balance Card */}
-        <button
-          onClick={() => setIsBalanceSheetOpen(true)}
-          className="w-full rounded-3xl bg-brand p-6 text-left transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mb-6"
-          aria-label="Open balance details"
-        >
-          <p className="text-sm font-medium text-white/80 mb-3">
-            Wallet Balance
-          </p>
-          <p
-            className="text-3xl md:text-4xl font-bold tracking-tighter text-white"
-            style={{ fontVariantNumeric: "tabular-nums" }}
+        {/* Balance Card — centered, with eye toggle */}
+        <div className="relative mb-6">
+          <button
+            onClick={() => setIsBalanceSheetOpen(true)}
+            className="w-full rounded-3xl bg-brand p-6 text-center transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            aria-label="Open balance details"
           >
-            {balance.toLocaleString("en-KE", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </p>
-          <p className="text-xs text-white/60 mt-3 flex items-center gap-1.5">
-            <Wallet className="h-3 w-3" />
-            {user?.email || "Ongea Pesa Wallet"} · tap to manage
-          </p>
-        </button>
+            <p className="text-sm font-medium text-white/80 mb-3">
+              Wallet Balance
+            </p>
+            <p
+              className="text-3xl md:text-4xl font-bold tracking-tighter text-white"
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
+              {hideBalance
+                ? "KSh ••••••"
+                : balance.toLocaleString("en-KE", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+            </p>
+            <p className="text-xs text-white/60 mt-3 flex items-center justify-center gap-1.5">
+              <Wallet className="h-3 w-3" />
+              {user?.email || "Ongea Pesa Wallet"} · tap to manage
+            </p>
+          </button>
+
+          {/* Eye toggle — positioned top-right inside the card */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setHideBalance((prev) => {
+                const next = !prev
+                localStorage.setItem("hide-balance", String(next))
+                return next
+              })
+            }}
+            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/25 active:scale-90 transition-all text-white"
+            aria-label={hideBalance ? "Show balance" : "Hide balance"}
+          >
+            {hideBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+          </button>
+        </div>
 
         {/* Voice Activation Button */}
         <div className="flex justify-center mb-8">

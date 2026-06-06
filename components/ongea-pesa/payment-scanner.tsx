@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { useCamera } from "@/hooks/use-camera"
 import { useVoiceActivation } from "@/hooks/use-voice-activation"
 import { useElevenLabs } from '@/contexts/ElevenLabsContext'
-import { geminiVision, PaymentScanResult } from "@/lib/gemini-vision"
+import { PaymentScanResult } from "@/lib/gemini-vision"
 import { calculateTransactionFees, formatFeesMessage, hasSufficientBalance } from "@/lib/transaction-fees"
 import { ScreenShell } from "@/components/foundation"
 import { cn } from "@/lib/utils"
@@ -63,7 +63,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
   } = useCamera()
 
   // Use global ElevenLabs context (no duplicate connection!)
-  const { isConnected: elevenLabsConnected, isSpeaking, conversation } = useElevenLabs()
+  const { isConnected: elevenLabsConnected, isSpeaking, conversation, registerToolHandlers, unregisterToolHandlers, sendContextualUpdate } = useElevenLabs()
 
   // Voice activation hook
   const voice = useVoiceActivation({
@@ -132,6 +132,21 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     }
     fetchBalance()
   }, [])
+
+  // Register scanner-specific client tools so the voice agent can drive the UI
+  useEffect(() => {
+    registerToolHandlers({
+      startScan: (mode) => handleScan(mode as ScanMode ?? null),
+      confirmPayment: () => {
+        // Confirm the first detected payment option (index 0)
+        if (scanResult?.type && scanResult.type !== 'receipt') {
+          handleConfirmPayment()
+        }
+      },
+      getBalance: () => balance,
+    });
+    return () => unregisterToolHandlers(['startScan', 'confirmPayment', 'getBalance']);
+  }, [scanResult, balance]); // re-register when these change so closures stay fresh
 
   const scanModes = [
     {
@@ -230,19 +245,10 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
         // Send directly to ElevenLabs conversation context in REAL-TIME
         if (elevenLabsConnected && conversation) {
-          console.log('🔴 LIVE: Sending to ElevenLabs conversation context');
-
-          // The scan data is now available in the conversation context
-          // ElevenLabs AI can access it through the session
-          try {
-            // Speak the extracted details for immediate feedback
-            speakText(data.message);
-            console.log('✅ REAL-TIME: Scan data available - ElevenLabs can access via session context');
-            console.log('📋 Extracted:', data.scanData);
-          } catch (convError) {
-            console.error('⚠️ Error with voice feedback:', convError);
-            speakText(data.message);
-          }
+          console.log('🔴 LIVE: Injecting scan result into ElevenLabs conversation context');
+          console.log('📋 Extracted:', data.scanData);
+          // Inject the formatted scan message into the live ElevenLabs session
+          await sendContextualUpdate(data.message);
         } else {
           console.log('🔊 Speaking via browser TTS (ElevenLabs not connected)');
           speakText(data.message);
@@ -341,22 +347,22 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
         }
 
         console.log('Image captured, size:', imageData.length, 'chars');
-        console.log('Checking Gemini API key...');
 
-        // Check if API key exists
-        const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-        if (!apiKey) {
-          console.error('❌ GEMINI API KEY MISSING! Add NEXT_PUBLIC_GEMINI_API_KEY to .env.local');
-          setScanError('Gemini API key not configured. Check environment setup.');
-          return;
-        }
-
-        console.log('✅ API key found, sending to Gemini...');
         setLastScanTime(now)
         setIsProcessing(true)
 
-        const result = await geminiVision.autoDetectPaymentType(imageData)
-        console.log('Gemini result:', result);
+        const ocrRes = await fetch('/api/scan/ocr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageData, scanMode: null }),
+        })
+        if (!ocrRes.ok) {
+          console.warn('Auto-scan OCR error:', ocrRes.status)
+          setIsProcessing(false)
+          return
+        }
+        const result: PaymentScanResult = await ocrRes.json()
+        console.log('OCR result:', result);
 
         if (result && result.confidence > 70 && result.type !== 'buy_goods_pochi') {
           console.log('✅ Payment detected with confidence:', result.confidence);
@@ -930,7 +936,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
                     {data.amount && !showAmountInput ? (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between p-2 rounded-lg border border-border/60 bg-card">
-                          <span className="text-xs font-medium text-muted-foreground">AI Detected</span>
+                          <span className="text-xs font-medium text-muted-foreground">Detected</span>
                           <span className="text-sm font-bold text-foreground">{data.amount}</span>
                         </div>
                         <Button
@@ -978,7 +984,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
                             }}
                             className="w-full text-xs h-6 text-brand hover:bg-brand/10"
                           >
-                            Use AI ({data.amount})
+                            Use detected value ({data.amount})
                           </Button>
                         )}
                       </div>
@@ -1022,7 +1028,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
               </div>
               <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
                 <p className="text-sm text-muted-foreground">
-                  AI: "Nimesoma Pochi la Biashara. Unataka kutuma pesa?"
+                  "Nimesoma Pochi la Biashara. Unataka kutuma pesa?"
                 </p>
               </div>
             </div>
@@ -1047,7 +1053,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
               </div>
               <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
                 <p className="text-sm text-muted-foreground">
-                  AI: "Tuma pesa kwa {data.phone}. Confirm?"
+                  "Tuma pesa kwa {data.phone}. Confirm?"
                 </p>
               </div>
             </div>
@@ -1063,7 +1069,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
               </div>
               <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
                 <p className="text-sm text-muted-foreground">
-                  AI: "Scan successful. Lipa {data.amount} to {data.merchant}?"
+                  "Scan successful. Lipa {data.amount} to {data.merchant}?"
                 </p>
               </div>
             </div>
@@ -1080,7 +1086,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
               </div>
               <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
                 <p className="text-sm text-muted-foreground">
-                  AI: "Risiti ya {data.receiptData.category} {data.receiptData.amount}. Tag under{" "}
+                  "Risiti ya {data.receiptData.category} {data.receiptData.amount}. Tag under{" "}
                   {data.receiptData.category}?"
                 </p>
               </div>
@@ -1096,7 +1102,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
               </div>
               <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
                 <p className="text-sm text-muted-foreground">
-                  AI: "Nimesoma bank details. Code {data.bankCode} account {data.account}."
+                  "Nimesoma bank details. Code {data.bankCode} account {data.account}."
                 </p>
               </div>
             </div>
@@ -1271,10 +1277,10 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
                 </Button>
                 <div className="flex-1">
                   <h1 className="text-xl font-bold text-foreground">
-                    {isProcessing ? "AI Processing..." : "🤖 Auto-Scanning"}
+                    {isProcessing ? "Processing..." : "Scanning"}
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    {isProcessing ? "Analyzing document with AI" : "Point at any payment document"}
+                    {isProcessing ? "Analyzing document" : "Point at any payment document"}
                   </p>
                 </div>
                 {/* Batch mode toggle */}
@@ -1318,7 +1324,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
                       {/* Auto-scan indicator with audio status */}
                       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-brand/90 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2 animate-bounce">
-                        🤖 AI Auto-Scanning...
+                        Scanning...
                         {currentlySpeaking && (
                           <div className="flex items-center">
                             <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
@@ -1351,7 +1357,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
               {/* Scanner Status Info */}
               <div className="rounded-2xl border border-border/60 bg-card px-4 py-3 mb-4 text-center">
                 <p className="text-sm text-muted-foreground mb-2">
-                  🤖 <strong className="text-foreground">AI Auto-Detection Active</strong>
+                  <strong className="text-foreground">Auto Detection Active</strong>
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Simply point your camera at any payment document. The AI will automatically recognize:
@@ -1379,7 +1385,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
                     className={cn(autoScanEnabled && "bg-brand/10 border-brand/20")}
                     size="sm"
                   >
-                    {autoScanEnabled ? "🤖 Auto-Scan ON" : "📷 Manual Mode"}
+                    {autoScanEnabled ? "Auto Scan ON" : "📷 Manual Mode"}
                   </Button>
                   {!autoScanEnabled && (
                     <Button onClick={handleCapture} disabled={!scanMode} size="sm">
@@ -1481,7 +1487,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
           {elevenLabsConnected && (
             <div className="mt-2 p-1 rounded-lg border border-blue-500/20 bg-blue-500/8 flex items-center gap-1">
               <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
-              <p className="text-xs text-blue-500">ElevenLabs AI Active</p>
+              <p className="text-xs text-blue-500">Voice Active</p>
             </div>
           )}
         </div>
@@ -1492,28 +1498,29 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
         {/* Compact Quick Start Auto-Scan */}
         {!scanResult && (
           <div className="mb-3">
-            <div className="rounded-2xl border border-brand/20 bg-brand/5 px-4 py-4 text-center mb-4">
+            <div className="rounded-2xl border border-brand/25 bg-gradient-to-b from-brand/8 to-brand/3 px-5 py-5 text-center mb-4">
               <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center mx-auto mb-2">
                 <Camera className="h-5 w-5 text-white" />
               </div>
-              <h3 className="text-sm font-bold text-foreground mb-1">
-                🤖 Smart Auto-Scanner
+              <h3 className="text-base font-bold text-foreground mb-1.5">
+                Auto Scan
               </h3>
-              <p className="text-xs text-muted-foreground mb-3">
-                Point camera - AI detects payment details automatically!
+              <p className="text-sm text-muted-foreground mb-4">
+                Point your camera at any bill, paybill, till, QR code, or receipt — we'll detect it instantly.
               </p>
               <Button
                 onClick={() => handleScan()}
                 size="sm"
-                className="rounded-full px-4 py-2 text-xs"
+                className="rounded-xl px-6 py-2 text-sm font-semibold"
               >
-                <Camera className="h-5 w-5 mr-2" />
-                Start Auto-Scanning
+                Start Scanning
               </Button>
             </div>
 
-            <div className="text-center mb-4">
-              <p className="text-sm text-muted-foreground">Or choose specific scan mode:</p>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 h-px bg-border/60" />
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Or scan by type</p>
+              <div className="flex-1 h-px bg-border/60" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -1534,10 +1541,9 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
                   </div>
                   <h3 className="font-semibold text-xs text-foreground mb-1">{mode.title}</h3>
                   <p className="text-xs text-muted-foreground mb-1">{mode.description}</p>
-                  {(mode as any).disabled
-                    ? <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">Coming soon</span>
-                    : <span className="text-[10px] font-medium text-muted-foreground">"{mode.voiceCommand}"</span>
-                  }
+                  {(mode as any).disabled && (
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">Coming soon</span>
+                  )}
                 </button>
               ))}
             </div>

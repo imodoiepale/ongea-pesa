@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPromptForScanMode, parseOcrResponse, PaymentScanResult } from '@/lib/ocr-shared';
+import { getPromptForScanMode, getAutoDetectPrompt, parseOcrResponse, PaymentScanResult } from '@/lib/ocr-shared';
 
 async function tryOpenAI(imageData: string, prompt: string): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -62,11 +62,13 @@ export async function POST(request: NextRequest) {
   try {
     const { imageData, scanMode } = await request.json();
 
-    if (!imageData || !scanMode) {
-      return NextResponse.json({ error: 'imageData and scanMode required' }, { status: 400 });
+    if (!imageData) {
+      return NextResponse.json({ error: 'imageData required' }, { status: 400 });
     }
 
-    const prompt = getPromptForScanMode(scanMode);
+    const prompt = (scanMode === null || scanMode === 'auto' || !scanMode)
+      ? getAutoDetectPrompt()
+      : getPromptForScanMode(scanMode);
     let rawText = '';
     let provider: 'openai' | 'gemini' = 'openai';
 
@@ -85,7 +87,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const result: PaymentScanResult = parseOcrResponse(rawText, scanMode);
+    const result: PaymentScanResult = parseOcrResponse(rawText, scanMode ?? 'auto');
     result.provider = provider;
 
     return NextResponse.json(result);

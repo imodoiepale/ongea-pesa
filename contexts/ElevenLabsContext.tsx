@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useConversation } from '@elevenlabs/react';
 import { useUser } from './UserContext';
 
@@ -9,6 +9,13 @@ interface Message {
   text: string;
   source: 'user' | 'ai';
   timestamp: Date;
+}
+
+interface ToolHandlers {
+  openScanner?: () => void;
+  startScan?: (mode?: string | null) => void;
+  confirmPayment?: () => void;
+  getBalance?: () => number;
 }
 
 interface ElevenLabsContextType {
@@ -21,6 +28,9 @@ interface ElevenLabsContextType {
   conversation: any;
   startSession: () => Promise<void>;
   endSession: () => Promise<void>;
+  registerToolHandlers: (handlers: ToolHandlers) => void;
+  unregisterToolHandlers: (keys: (keyof ToolHandlers)[]) => void;
+  sendContextualUpdate: (text: string) => Promise<void>;
 }
 
 const ElevenLabsContext = createContext<ElevenLabsContextType | undefined>(undefined);
@@ -31,6 +41,17 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [userBalance, setUserBalance] = useState<number>(0);
+
+  // Handler registry for client-tool delegates
+  const toolHandlersRef = useRef<ToolHandlers>({});
+
+  const registerToolHandlers = (handlers: ToolHandlers) => {
+    toolHandlersRef.current = { ...toolHandlersRef.current, ...handlers };
+  };
+
+  const unregisterToolHandlers = (keys: (keyof ToolHandlers)[]) => {
+    keys.forEach(k => { delete toolHandlersRef.current[k]; });
+  };
 
   // ElevenLabs conversation hook
   const conversation = useConversation({
@@ -76,7 +97,26 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     },
     onStatusChange: (status: any) => {
       console.log('📊 ElevenLabs status changed:', status);
-    }
+    },
+    clientTools: {
+      open_scanner: async () => {
+        toolHandlersRef.current.openScanner?.();
+        return 'Opening scanner now';
+      },
+      start_scan: async (params: { mode?: string }) => {
+        const mode = params?.mode ?? null;
+        toolHandlersRef.current.startScan?.(mode);
+        return `Starting ${mode ?? 'auto'} scan`;
+      },
+      confirm_payment: async () => {
+        toolHandlersRef.current.confirmPayment?.();
+        return 'Confirming payment';
+      },
+      read_balance: async () => {
+        const bal = toolHandlersRef.current.getBalance?.() ?? userBalance;
+        return `Your balance is KSh ${bal.toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
+      },
+    },
   });
 
   // Add message to chat
@@ -232,6 +272,20 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Inject text into the live ElevenLabs session
+  const sendContextualUpdate = async (text: string) => {
+    try {
+      if ((conversation as any).sendContextualUpdate) {
+        await (conversation as any).sendContextualUpdate(text);
+      } else if ((conversation as any).sendUserMessage) {
+        await (conversation as any).sendUserMessage(text);
+      }
+      // fallback: just log — the feature degrades gracefully
+    } catch (e) {
+      console.warn('sendContextualUpdate not available:', e);
+    }
+  };
+
   // End session function
   const endElevenLabsSession = async () => {
     try {
@@ -263,7 +317,10 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
     isSpeaking: conversation.isSpeaking || false,
     conversation,
     startSession: startElevenLabsSession,
-    endSession: endElevenLabsSession
+    endSession: endElevenLabsSession,
+    registerToolHandlers,
+    unregisterToolHandlers,
+    sendContextualUpdate,
   };
 
   return (

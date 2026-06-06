@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { ArrowDownLeft, ArrowUpRight, ShoppingCart, CreditCard, Smartphone, Building, RefreshCw } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, ShoppingCart, CreditCard, Smartphone, Building, RefreshCw, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/components/providers/auth-provider';
-import { ScreenShell } from '@/components/foundation';
+import { useRouter } from 'next/navigation';
+import { ScreenShell, FluidNav, mobileNavItems } from '@/components/foundation';
 import { cn } from '@/lib/utils';
 
 // Transaction fee rate: 0.05% = 0.0005
@@ -83,6 +84,7 @@ const isDebitTransaction = (type: string): boolean => {
 
 export default function TransactionHistory() {
   const { user } = useAuth();
+  const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -134,9 +136,17 @@ export default function TransactionHistory() {
   return (
     <div className="min-h-[100dvh] bg-background surface-money pb-24">
       <ScreenShell>
-        {/* header */}
-        <div className="flex items-center justify-between pt-6 mb-6">
-          <div>
+        {/* header — back arrow + title + refresh */}
+        <div className="flex items-center gap-2 pt-6 mb-6">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => router.push('/')}
+            aria-label="Back to home"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1">
             <h1 className="text-xl font-semibold text-foreground tracking-tight">Transactions</h1>
             <p className="text-sm text-muted-foreground">{transactions.length} records • 0.05% fee</p>
           </div>
@@ -215,6 +225,9 @@ export default function TransactionHistory() {
           </div>
         )}
       </ScreenShell>
+
+      {/* Canonical bottom nav — route mode (all items are Links, activeKey = "transactions") */}
+      <FluidNav items={mobileNavItems} activeKey="transactions" />
     </div>
   );
 }

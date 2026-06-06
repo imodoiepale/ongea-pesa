@@ -239,7 +239,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
       <div className="min-h-[100dvh] surface-voice flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 rounded-full border-2 border-[hsl(var(--voice-accent))] border-t-transparent animate-spin mx-auto" />
-          <p className="text-white/80 text-base font-medium">Connecting voice session&hellip;</p>
+          <p className="text-foreground text-base font-medium">Connecting voice session&hellip;</p>
         </div>
       </div>
     )
@@ -259,34 +259,34 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => onNavigate('dashboard')}
-            className="w-8 h-8 rounded-full bg-white/8 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/12 transition-all duration-200 active:scale-[0.97]"
+            className="w-8 h-8 rounded-full bg-foreground/[0.06] border border-border/30 flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-all duration-200 active:scale-[0.97]"
             aria-label="Back to dashboard"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <span className="text-white/90 font-semibold text-base">Voice Assistant</span>
+          <span className="text-foreground font-semibold text-base">Voice Assistant</span>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Balance pill */}
           <button
             onClick={() => setIsBalanceSheetOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/8 border border-white/10 hover:bg-white/12 transition-all duration-200 active:scale-[0.97]"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground/[0.06] border border-border/30 hover:bg-foreground/10 transition-all duration-200 active:scale-[0.97]"
           >
             <Wallet className="h-3.5 w-3.5 text-[hsl(var(--voice-accent))]" />
-            <span className="text-xs font-semibold text-white">
+            <span className="text-xs font-semibold text-foreground">
               {loadingBalance ? '…' : `KSh ${balance.toLocaleString('en-KE', {maximumFractionDigits:0})}`}
             </span>
           </button>
 
           {/* Status dot */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/6 border border-white/8">
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-foreground/[0.06] border border-border/30">
             <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
               isConnected ? 'bg-[hsl(var(--voice-accent))]' :
               isLoading ? 'bg-amber-400 animate-pulse' :
-              error ? 'bg-red-400' : 'bg-white/30'
+              error ? 'bg-red-400' : 'bg-muted-foreground'
             }`} />
-            <span className="text-[11px] font-medium text-white/60">
+            <span className="text-[11px] font-medium text-foreground/70">
               {isConnected ? 'Live' : isLoading ? 'Connecting' : error ? 'Error' : 'Ready'}
             </span>
           </div>
@@ -344,7 +344,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
               ) : isLoading ? (
                 <div className="w-8 h-8 rounded-full border-2 border-[hsl(var(--voice-accent))] border-t-transparent animate-spin" />
               ) : (
-                <Mic className="h-10 w-10 text-white/40" />
+                <Mic className="h-10 w-10 text-muted-foreground" />
               )}
             </div>
 
@@ -352,14 +352,14 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
             <span className={`text-xs font-semibold tracking-wide uppercase ${
               isConnected ? 'text-[hsl(var(--voice-accent))]' :
               isLoading ? 'text-amber-400' :
-              'text-white/40'
+              'text-muted-foreground'
             }`}>
               {isConnected ? (isSpeaking ? 'Speaking' : 'Listening') : isLoading ? 'Connecting' : 'Ready'}
             </span>
 
             {/* Timer */}
             {isConnected && (
-              <span className="text-[10px] text-white/30 font-mono">
+              <span className="text-[10px] text-muted-foreground font-mono">
                 {formatTime(recordingTime)}
               </span>
             )}
@@ -372,10 +372,10 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
             <>
               {/* User speech bubble */}
               <div className="glass-card rounded-2xl px-4 py-3 flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-white/10 border border-white/15 flex items-center justify-center shrink-0 mt-0.5">
-                  <Mic className="h-3 w-3 text-white/60" />
+                <div className="w-6 h-6 rounded-full bg-foreground/10 border border-border/40 flex items-center justify-center shrink-0 mt-0.5">
+                  <Mic className="h-3 w-3 text-foreground/70" />
                 </div>
-                <p className="text-sm text-white/80 leading-relaxed">"{transcript}"</p>
+                <p className="text-sm text-foreground leading-relaxed">"{transcript}"</p>
               </div>
 
               {/* Processing dots */}
@@ -384,16 +384,16 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
                   <div className="w-1.5 h-1.5 bg-[hsl(var(--voice-accent))] rounded-full animate-bounce" />
                   <div className="w-1.5 h-1.5 bg-[hsl(var(--voice-accent))] rounded-full animate-bounce animation-delay-200" />
                   <div className="w-1.5 h-1.5 bg-[hsl(var(--voice-accent))] rounded-full animate-bounce animation-delay-400" />
-                  <span className="text-xs text-white/40 ml-1">Processing…</span>
+                  <span className="text-xs text-muted-foreground ml-1">Processing…</span>
                 </div>
               )}
             </>
           ) : (
             <div className="text-center space-y-1.5">
-              <p className="text-lg font-semibold text-white/90">
+              <p className="text-lg font-semibold text-foreground">
                 {isLoading ? 'Connecting…' : isConnected ? 'Listening' : 'Ready to Talk'}
               </p>
-              <p className="text-sm text-white/40">
+              <p className="text-sm text-muted-foreground">
                 {isConnected ? "Just speak — I'm always listening" : isLoading ? 'Please wait…' : 'Press the button to connect'}
               </p>
             </div>
@@ -405,7 +405,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
               <div className="w-6 h-6 rounded-full bg-[rgba(0,255,136,0.15)] border border-[rgba(0,255,136,0.25)] flex items-center justify-center shrink-0 mt-0.5">
                 <Volume2 className="h-3 w-3 text-[hsl(var(--voice-accent))]" />
               </div>
-              <p className="text-sm text-white/80 leading-relaxed">{agentResponse}</p>
+              <p className="text-sm text-foreground leading-relaxed">{agentResponse}</p>
             </div>
           )}
         </div>
@@ -416,7 +416,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
           <div className={`p-2 rounded-full border transition-all duration-500 ${
             isConnected || isPushToTalk
               ? 'bg-[rgba(0,255,136,0.08)] border-[rgba(0,255,136,0.3)]'
-              : 'bg-white/5 border-white/10'
+              : 'bg-background/50 border-border/30'
           }`}>
             {/* Inner button */}
             <button
@@ -428,18 +428,18 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
               onTouchEnd={handleMouseUp}
               disabled={isLoading}
               aria-label={isConnected ? 'Voice connected — just speak' : 'Connect voice session'}
-              className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--voice-accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(222,47%,6%)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)] ${
+              className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--voice-accent))] focus-visible:ring-offset-2 ring-offset-background shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)] ${
                 isPushToTalk
                   ? 'bg-red-500'
                   : isConnected
                   ? 'bg-[hsl(var(--voice-accent))]'
                   : isLoading
-                  ? 'bg-white/10 cursor-not-allowed'
+                  ? 'bg-foreground/10 cursor-not-allowed'
                   : 'bg-brand'
               }`}
             >
               {isLoading ? (
-                <div className="w-6 h-6 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-foreground/40 border-t-foreground rounded-full animate-spin" />
               ) : isPushToTalk ? (
                 <MicOff className="h-8 w-8 text-white" />
               ) : (
@@ -458,7 +458,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
                 setAgentResponse('')
                 onNavigate('dashboard')
               }}
-              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-red-400 transition-colors duration-200"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-400 transition-colors duration-200"
             >
               <MicOff className="h-3.5 w-3.5" />
               End session

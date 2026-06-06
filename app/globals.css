@@ -163,18 +163,22 @@
   /* ── Voice surface (voice interface, onboarding hero, voice widget) ── */
   .surface-voice {
     --surface: transparent;
-    background: hsl(222 47% 6%);
+    --voice-fg: 222 47% 10%;
+    --voice-fg-muted: 222 47% 40%;
+    background: hsl(210 40% 97%);
   }
   .dark .surface-voice {
+    --voice-fg: 0 0% 100%;
+    --voice-fg-muted: 0 0% 70%;
     background: hsl(222 47% 4%);
   }
 
   /* Glass card within .surface-voice */
   .glass-card {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.65);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.08);
   }
   .dark .glass-card {
     background: rgba(0, 0, 0, 0.25);

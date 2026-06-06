@@ -81,7 +81,7 @@ export default function GlobalVoiceWidget() {
           <div className="flex items-center justify-between px-3 py-2.5">
             <div className="flex items-center gap-2">
               <Mic className="h-4 w-4 text-[hsl(var(--voice-accent))]" />
-              <span className="text-sm font-semibold text-white">ElevenLabs AI</span>
+              <span className="text-sm font-semibold text-white">Voice Assistant</span>
               {isConnected && (
                 <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[rgba(0,255,136,0.15)] text-[hsl(var(--voice-accent))] border border-[rgba(0,255,136,0.25)]">Live</span>
               )}
@@ -120,7 +120,7 @@ export default function GlobalVoiceWidget() {
               <Mic className={cn("h-4 w-4 text-[hsl(var(--voice-accent))]", isSpeaking && "animate-pulse")} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">ElevenLabs AI</p>
+              <p className="text-sm font-semibold text-white">Voice Assistant</p>
               <p className="text-[10px] text-white/50">
                 {isLoading ? 'Connecting…' : isConnected ? 'Live & Ready' : 'Disconnected'}
               </p>
