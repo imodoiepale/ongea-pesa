@@ -23,7 +23,7 @@ export default function AnalyticsDashboard() {
             <CardTitle>Total Income</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-500">KSh {income.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-brand">KSh {income.toLocaleString()}</p>
           </CardContent>
         </Card>
         <Card>

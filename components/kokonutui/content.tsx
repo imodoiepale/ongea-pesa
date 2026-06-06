@@ -244,22 +244,22 @@ export default function Content() {
       {/* Header with Date Filter and Refresh */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Admin Dashboard</h1>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400">Platform overview and analytics</p>
+          <h1 className="text-lg font-semibold text-foreground">Admin Dashboard</h1>
+          <p className="text-xs text-muted-foreground">Platform overview and analytics</p>
         </div>
         {/* Live Status Bar */}
         <div className={cn(
           "flex items-center gap-4 px-4 py-2 rounded-xl",
-          "bg-emerald-50 dark:bg-emerald-900/20",
-          "border border-emerald-200 dark:border-emerald-800"
+          "bg-brand/5 dark:bg-brand/10",
+          "border border-brand/20 dark:border-brand/30"
         )}>
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-pulse" />
-            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Live Data</span>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400">• {getDateRangeLabel(dateRange)}</span>
+            <Activity className="w-4 h-4 text-brand animate-pulse" />
+            <span className="text-xs font-medium text-brand">Live Data</span>
+            <span className="text-[10px] text-brand">• {getDateRangeLabel(dateRange)}</span>
           </div>
           {lastUpdated && (
-            <div className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400">
+            <div className="flex items-center gap-1 text-[10px] text-brand">
               <Clock className="w-3 h-3" />
               {lastUpdated.toLocaleTimeString("en-KE")}
             </div>
@@ -267,8 +267,8 @@ export default function Content() {
         </div>
         <div className="flex items-center gap-2">
           <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
-            <SelectTrigger className="w-[160px] bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
-              <Calendar className="w-3.5 h-3.5 mr-2 text-zinc-500" />
+            <SelectTrigger className="w-[160px] bg-muted/30 border-border/60">
+              <Calendar className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
               <SelectValue placeholder="Date Range" />
             </SelectTrigger>
             <SelectContent>
@@ -286,12 +286,12 @@ export default function Content() {
             disabled={loading}
             className={cn(
               "p-2 rounded-lg",
-              "bg-zinc-100 dark:bg-zinc-800",
-              "hover:bg-zinc-200 dark:hover:bg-zinc-700",
+              "bg-muted",
+              "hover:bg-muted",
               "transition-colors duration-200"
             )}
           >
-            <RefreshCw className={cn("w-4 h-4 text-zinc-600 dark:text-zinc-400", loading && "animate-spin")} />
+            <RefreshCw className={cn("w-4 h-4 text-muted-foreground", loading && "animate-spin")} />
           </button>
         </div>
       </div>
@@ -300,21 +300,21 @@ export default function Content() {
       <div
         className={cn(
           "p-4 rounded-xl",
-          "bg-gradient-to-r from-emerald-500 to-emerald-600",
-          "border border-emerald-400/20",
+          "bg-brand",
+          "border border-brand/20",
           "shadow-lg"
         )}
       >
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-white">Platform Revenue ({getDateRangeLabel(dateRange)})</h3>
-            <p className="text-xs text-emerald-100">Fees earned (0.05% on transactions, deposits free)</p>
+            <p className="text-xs text-white/70">Fees earned (0.05% on transactions, deposits free)</p>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-white">
               {loading ? "..." : formatCurrency(stats.totalFees)}
             </p>
-            <div className="flex items-center gap-1 text-emerald-100 text-xs justify-end">
+            <div className="flex items-center gap-1 text-white/70 text-xs justify-end">
               <ArrowUpRight className="w-3 h-3" />
               <span>{stats.completedTransactions} completed transactions</span>
             </div>
@@ -327,7 +327,7 @@ export default function Content() {
         {[
           { label: "Total Users", value: loading ? "..." : stats.totalUsers, icon: Users, color: "text-blue-600 dark:text-blue-400", href: "/admin-analytics/users" },
           { label: "All Transactions", value: loading ? "..." : stats.totalTransactions, icon: CreditCard, color: "text-purple-600 dark:text-purple-400", href: "/admin-analytics/transactions" },
-          { label: "Completed", value: loading ? "..." : stats.completedTransactions, icon: CreditCard, color: "text-emerald-600 dark:text-emerald-400", href: "/admin-analytics/transactions" },
+          { label: "Completed", value: loading ? "..." : stats.completedTransactions, icon: CreditCard, color: "text-brand", href: "/admin-analytics/transactions" },
           { label: "Pending", value: loading ? "..." : stats.pendingTransactions, icon: Clock, color: "text-amber-600 dark:text-amber-400", href: "/admin-analytics/transactions" },
           { label: "Voice Sessions", value: loading ? "..." : stats.activeVoiceSessions, icon: Mic, color: "text-orange-600 dark:text-orange-400", href: "/admin-analytics/voice-sessions" },
           { label: "Today Volume", value: loading ? "..." : formatCurrency(stats.todayVolume), icon: TrendingUp, color: "text-cyan-600 dark:text-cyan-400", href: "/admin-analytics/revenue" },
@@ -336,20 +336,20 @@ export default function Content() {
             <div
               className={cn(
                 "p-3 rounded-xl",
-                "bg-white dark:bg-zinc-900/70",
-                "border border-zinc-100 dark:border-zinc-800",
+                "bg-card",
+                "border border-border/40",
                 "shadow-sm backdrop-blur-xl",
-                "hover:border-zinc-300 dark:hover:border-zinc-600",
+                "hover:border-border",
                 "transition-all duration-200 cursor-pointer"
               )}
             >
               <div className="flex items-center gap-2">
-                <div className={cn("p-1.5 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
+                <div className={cn("p-1.5 rounded-lg", "bg-muted")}>
                   <stat.icon className={cn("w-3.5 h-3.5", stat.color)} />
                 </div>
                 <div>
                   <p className={cn("text-sm font-semibold", stat.color)}>{stat.value}</p>
-                  <p className="text-[10px] text-zinc-600 dark:text-zinc-400">{stat.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{stat.label}</p>
                 </div>
               </div>
             </div>
@@ -363,17 +363,17 @@ export default function Content() {
         <div
           className={cn(
             "rounded-xl overflow-hidden",
-            "bg-white dark:bg-zinc-900/70",
-            "border border-zinc-100 dark:border-zinc-800",
+            "bg-card",
+            "border border-border/40",
             "shadow-sm backdrop-blur-xl"
           )}
         >
-          <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+          <div className="p-4 border-b border-border/40">
             <div className="flex items-center gap-2">
-              <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
-                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <div className={cn("p-2 rounded-lg", "bg-muted")}>
+                <TrendingUp className="w-4 h-4 text-brand" />
               </div>
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Daily Revenue ({getDateRangeLabel(dateRange)})</h2>
+              <h2 className="text-sm font-semibold text-foreground">Daily Revenue ({getDateRangeLabel(dateRange)})</h2>
             </div>
           </div>
           <div className="p-4 h-[200px]">
@@ -406,17 +406,17 @@ export default function Content() {
         <div
           className={cn(
             "rounded-xl overflow-hidden",
-            "bg-white dark:bg-zinc-900/70",
-            "border border-zinc-100 dark:border-zinc-800",
+            "bg-card",
+            "border border-border/40",
             "shadow-sm backdrop-blur-xl"
           )}
         >
-          <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+          <div className="p-4 border-b border-border/40">
             <div className="flex items-center gap-2">
-              <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
+              <div className={cn("p-2 rounded-lg", "bg-muted")}>
                 <CreditCard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               </div>
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Transaction Count ({getDateRangeLabel(dateRange)})</h2>
+              <h2 className="text-sm font-semibold text-foreground">Transaction Count ({getDateRangeLabel(dateRange)})</h2>
             </div>
           </div>
           <div className="p-4 h-[200px]">
@@ -446,36 +446,36 @@ export default function Content() {
         <div
           className={cn(
             "rounded-xl overflow-hidden",
-            "bg-white dark:bg-zinc-900/70",
-            "border border-zinc-100 dark:border-zinc-800",
+            "bg-card",
+            "border border-border/40",
             "shadow-sm backdrop-blur-xl"
           )}
         >
-          <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+          <div className="p-4 border-b border-border/40">
             <div className="flex items-center gap-2">
-              <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
-                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <div className={cn("p-2 rounded-lg", "bg-muted")}>
+                <TrendingUp className="w-4 h-4 text-brand" />
               </div>
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Platform Performance</h2>
+              <h2 className="text-sm font-semibold text-foreground">Platform Performance</h2>
             </div>
           </div>
           <div className="p-3 space-y-2">
             {[
-              { label: "Total Volume (All Time)", value: formatCurrency(stats.totalVolume), color: "text-zinc-900 dark:text-zinc-100" },
-              { label: "Platform Fees Earned", value: formatCurrency(stats.totalFees), color: "text-emerald-600 dark:text-emerald-400" },
-              { label: "Avg Transaction Size", value: formatCurrency(stats.totalVolume / (stats.completedTransactions || 1)), color: "text-zinc-900 dark:text-zinc-100" },
+              { label: "Total Volume (All Time)", value: formatCurrency(stats.totalVolume), color: "text-foreground" },
+              { label: "Platform Fees Earned", value: formatCurrency(stats.totalFees), color: "text-brand" },
+              { label: "Avg Transaction Size", value: formatCurrency(stats.totalVolume / (stats.completedTransactions || 1)), color: "text-foreground" },
               { label: "Fee Rate", value: "0.05% (deposits free)", color: "text-blue-600 dark:text-blue-400" },
               { label: "Today's Volume", value: formatCurrency(stats.todayVolume), color: "text-cyan-600 dark:text-cyan-400" },
-              { label: "Today's Fees", value: formatCurrency(stats.todayFees), color: "text-emerald-600 dark:text-emerald-400" },
+              { label: "Today's Fees", value: formatCurrency(stats.todayFees), color: "text-brand" },
             ].map((item, i) => (
               <div
                 key={i}
                 className={cn(
                   "flex items-center justify-between p-2 rounded-lg",
-                  "bg-zinc-50 dark:bg-zinc-800/50"
+                  "bg-muted/30"
                 )}
               >
-                <span className="text-[11px] text-zinc-600 dark:text-zinc-400">{item.label}</span>
+                <span className="text-[11px] text-muted-foreground">{item.label}</span>
                 <span className={cn("text-xs font-medium", item.color)}>{item.value}</span>
               </div>
             ))}
@@ -486,38 +486,38 @@ export default function Content() {
         <div
           className={cn(
             "rounded-xl overflow-hidden",
-            "bg-white dark:bg-zinc-900/70",
-            "border border-zinc-100 dark:border-zinc-800",
+            "bg-card",
+            "border border-border/40",
             "shadow-sm backdrop-blur-xl"
           )}
         >
-          <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+          <div className="p-4 border-b border-border/40">
             <div className="flex items-center gap-2">
-              <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
+              <div className={cn("p-2 rounded-lg", "bg-muted")}>
                 <Wallet className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               </div>
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Transaction Breakdown</h2>
+              <h2 className="text-sm font-semibold text-foreground">Transaction Breakdown</h2>
             </div>
           </div>
           <div className="p-3 max-h-[200px] overflow-y-auto space-y-2">
             {typeBreakdown.length === 0 ? (
-              <div className="text-center text-xs text-zinc-500 py-4">No transaction data</div>
+              <div className="text-center text-xs text-muted-foreground py-4">No transaction data</div>
             ) : (
               typeBreakdown.map((item, i) => (
                 <div
                   key={i}
                   className={cn(
                     "flex items-center justify-between p-2 rounded-lg",
-                    "bg-zinc-50 dark:bg-zinc-800/50"
+                    "bg-muted/30"
                   )}
                 >
                   <div>
-                    <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100 capitalize">{item.type || "unknown"}</span>
-                    <span className="text-[10px] text-zinc-500 ml-2">({item.count} tx)</span>
+                    <span className="text-xs font-medium text-foreground capitalize">{item.type || "unknown"}</span>
+                    <span className="text-[10px] text-muted-foreground ml-2">({item.count} tx)</span>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">{formatCurrency(item.fees)}</p>
-                    <p className="text-[10px] text-zinc-500">{formatCurrency(item.volume)} vol</p>
+                    <p className="text-xs font-medium text-brand">{formatCurrency(item.fees)}</p>
+                    <p className="text-[10px] text-muted-foreground">{formatCurrency(item.volume)} vol</p>
                   </div>
                 </div>
               ))
@@ -530,30 +530,30 @@ export default function Content() {
       <div
         className={cn(
           "rounded-xl overflow-hidden",
-          "bg-white dark:bg-zinc-900/70",
-          "border border-zinc-100 dark:border-zinc-800",
+          "bg-card",
+          "border border-border/40",
           "shadow-sm backdrop-blur-xl"
         )}
       >
-        <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="p-4 border-b border-border/40">
           <div className="flex items-center gap-2">
-            <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
+            <div className={cn("p-2 rounded-lg", "bg-muted")}>
               <ArrowUpRight className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </div>
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Quick Actions</h2>
+            <h2 className="text-sm font-semibold text-foreground">Quick Actions</h2>
           </div>
         </div>
         <div className="p-3 grid grid-cols-1 md:grid-cols-4 gap-2">
           <Link href="/admin-analytics/revenue">
-            <div className="flex items-center gap-3 p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors duration-200">
-              <div className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                <DollarSign className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <div className="flex items-center gap-3 p-2 rounded-lg bg-brand/5 dark:bg-brand/10 hover:bg-brand/10 dark:hover:bg-brand/20 transition-colors duration-200">
+              <div className="p-1.5 rounded-lg bg-brand/10 dark:bg-brand/20">
+                <DollarSign className="w-3.5 h-3.5 text-brand" />
               </div>
               <div className="flex-1">
-                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Revenue Dashboard</p>
-                <p className="text-[10px] text-emerald-600 dark:text-emerald-400">View detailed revenue analytics</p>
+                <p className="text-xs font-medium text-brand">Revenue Dashboard</p>
+                <p className="text-[10px] text-brand">View detailed revenue analytics</p>
               </div>
-              <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+              <ArrowRight className="w-3.5 h-3.5 text-brand" />
             </div>
           </Link>
           <Link href="/admin-analytics/transactions">

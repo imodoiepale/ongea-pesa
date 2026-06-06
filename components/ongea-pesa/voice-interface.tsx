@@ -2,9 +2,8 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Mic, MicOff, Volume2, ArrowLeft, AlertCircle, BarChart3, LogOut, Menu, Wallet, Plus } from "lucide-react"
+import { Mic, MicOff, Volume2, ArrowLeft, AlertCircle, BarChart3, LogOut, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import VoiceWaveform from "./voice-waveform"
@@ -13,6 +12,7 @@ import { createClient } from '@/lib/supabase/client'
 import BalanceSheet from "./balance-sheet"
 import { useUser } from '@/contexts/UserContext';
 import { useElevenLabs } from '@/contexts/ElevenLabsContext';
+import { GlassCard, ScreenShell } from "@/components/foundation"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -82,7 +82,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
     // if (inactivityTimerRef.current) {
     //   clearTimeout(inactivityTimerRef.current);
     // }
-    // 
+    //
     // // Set new timer for 60 seconds of inactivity (increased from 5s)
     // inactivityTimerRef.current = setTimeout(async () => {
     //   console.log('60 seconds of inactivity - closing session');
@@ -236,73 +236,67 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   // Show loading state while userId is being fetched
   if (userContextLoading || !userId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-700 text-lg font-medium">Authenticating user...</p>
-          <p className="text-gray-500 text-sm mt-2">Please wait</p>
+      <div className="min-h-[100dvh] surface-voice flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 rounded-full border-2 border-[hsl(var(--voice-accent))] border-t-transparent animate-spin mx-auto" />
+          <p className="text-white/80 text-base font-medium">Connecting voice session&hellip;</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 relative overflow-hidden">
-      {/* Soft Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+    <div className="min-h-[100dvh] surface-voice flex flex-col relative overflow-hidden">
+      {/* Dark voice orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-[hsl(var(--voice-accent))] opacity-[0.04] blur-3xl animate-blob" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-[hsl(var(--voice-accent-2))] opacity-[0.04] blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-[hsl(var(--brand))] opacity-[0.03] blur-3xl animate-blob animation-delay-4000" />
       </div>
 
-      {/* Clean Header with Navigation */}
-      <div className="flex items-center justify-between pt-6 pb-6 px-6 relative z-10">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-            Ongea Pesa
-          </h1>
+      {/* Header */}
+      <div className="flex items-center justify-between pt-6 pb-4 px-5 relative z-10">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => onNavigate('dashboard')}
+            className="w-8 h-8 rounded-full bg-white/8 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/12 transition-all duration-200 active:scale-[0.97]"
+            aria-label="Back to dashboard"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <span className="text-white/90 font-semibold text-base">Voice Assistant</span>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Balance Display - Clickable */}
-          <Button
+        <div className="flex items-center gap-2">
+          {/* Balance pill */}
+          <button
             onClick={() => setIsBalanceSheetOpen(true)}
-            variant="ghost"
-            className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-all shadow-sm hover:shadow-md"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/8 border border-white/10 hover:bg-white/12 transition-all duration-200 active:scale-[0.97]"
           >
-            <Wallet className="h-4 w-4 text-green-600 mr-2" />
-            <div className="text-left">
-              <p className="text-xs text-gray-600">Balance</p>
-              <p className="text-sm font-bold text-gray-900">
-                {loadingBalance ? '...' : `KSh ${balance.toLocaleString()}`}
-              </p>
-            </div>
-          </Button>
+            <Wallet className="h-3.5 w-3.5 text-[hsl(var(--voice-accent))]" />
+            <span className="text-xs font-semibold text-white">
+              {loadingBalance ? '…' : `KSh ${balance.toLocaleString('en-KE', {maximumFractionDigits:0})}`}
+            </span>
+          </button>
 
-          {/* Status Indicator */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/60 backdrop-blur-sm rounded-full">
-            <div className={`w-2 h-2 rounded-full transition-colors ${isConnected ? 'bg-green-500 animate-pulse' :
-                isLoading ? 'bg-yellow-500 animate-pulse' :
-                  error ? 'bg-red-500' : 'bg-gray-400'
-              }`}></div>
-            <p className="text-xs font-medium text-gray-700">
-              {isConnected ? 'Connected' :
-                isLoading ? 'Connecting' :
-                  error ? 'Error' : 'Starting'}
-            </p>
+          {/* Status dot */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/6 border border-white/8">
+            <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
+              isConnected ? 'bg-[hsl(var(--voice-accent))]' :
+              isLoading ? 'bg-amber-400 animate-pulse' :
+              error ? 'bg-red-400' : 'bg-white/30'
+            }`} />
+            <span className="text-[11px] font-medium text-white/60">
+              {isConnected ? 'Live' : isLoading ? 'Connecting' : error ? 'Error' : 'Ready'}
+            </span>
           </div>
 
-          {/* User Menu */}
+          {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-semibold text-sm">
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
-                </div>
-                <span className="hidden md:inline text-sm font-medium text-gray-700">
-                  {user?.email?.split('@')[0] || 'User'}
-                </span>
-              </Button>
+              <button className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white font-semibold text-sm hover:bg-brand/90 transition-all active:scale-[0.97]">
+                {user?.email?.charAt(0).toUpperCase() || 'U'}
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5">
@@ -312,7 +306,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onNavigate("dashboard")}>
                 <BarChart3 className="mr-2 h-4 w-4" />
-                <span>Dashboard & Reports</span>
+                <span>Dashboard</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut} className="text-red-600 focus:text-red-600">
@@ -324,233 +318,154 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
         </div>
       </div>
 
-      <div className="px-6 relative z-10 flex flex-col items-center">
-        {/* Error Alert */}
-        {error && (
-          <Alert className="mb-6 border-red-200 bg-red-50 animate-in slide-in-from-top-2 max-w-md w-full">
-            <AlertCircle className="h-4 w-4 text-red-500" />
-            <AlertDescription className="text-red-700">
-              {error}
-            </AlertDescription>
+      {/* Error alert */}
+      {error && (
+        <div className="px-5 relative z-10 mb-4">
+          <Alert className="border-red-500/30 bg-red-500/10 text-red-300">
+            <AlertCircle className="h-4 w-4 text-red-400" />
+            <AlertDescription className="text-red-300">{error}</AlertDescription>
           </Alert>
-        )}
+        </div>
+      )}
 
-        {/* 3D Orb Container */}
-        <div className="relative mb-8">
-          {/* 3D Glassmorphic Orb */}
-          <div className={`relative w-48 h-48 rounded-full transition-all duration-700 ${isPushToTalk
-              ? 'bg-gradient-to-br from-red-200 via-pink-100 to-red-200 shadow-2xl shadow-red-200/50'
-              : isProcessing
-                ? 'bg-gradient-to-br from-blue-200 via-purple-100 to-blue-200 shadow-2xl shadow-blue-200/50 animate-pulse'
-                : isConnected
-                  ? 'bg-gradient-to-br from-green-200 via-emerald-100 to-green-200 shadow-2xl shadow-green-200/50'
-                  : isLoading
-                    ? 'bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 shadow-xl shadow-gray-200/30'
-                    : 'bg-gradient-to-br from-blue-100 via-sky-50 to-blue-100 shadow-xl shadow-blue-200/40'
-            }`}>
-            {/* Inner glow effect */}
-            <div className={`absolute inset-4 rounded-full transition-all duration-500 ${isPushToTalk
-                ? 'bg-gradient-to-br from-red-300/50 to-pink-300/50 animate-pulse'
-                : isProcessing
-                  ? 'bg-gradient-to-br from-blue-300/50 to-purple-300/50 animate-pulse'
-                  : isConnected
-                    ? 'bg-gradient-to-br from-green-300/50 to-emerald-300/50'
-                    : isLoading
-                      ? 'bg-gradient-to-br from-gray-300/30 to-gray-300/30'
-                      : 'bg-gradient-to-br from-blue-200/40 to-sky-200/40'
-              }`}></div>
-
-            {/* Animated rings for active states */}
-            {isPushToTalk && (
-              <>
-                <div className="absolute -inset-4 rounded-full border-2 border-red-300 opacity-60 animate-ping"></div>
-                <div className="absolute -inset-8 rounded-full border border-red-200 opacity-40 animate-ping animation-delay-200"></div>
-              </>
-            )}
-
-            {isProcessing && !isPushToTalk && (
-              <>
-                <div className="absolute -inset-4 rounded-full border-2 border-blue-300 opacity-60 animate-pulse"></div>
-                <div className="absolute -inset-8 rounded-full border border-blue-200 opacity-40 animate-pulse animation-delay-400"></div>
-              </>
-            )}
-
-            {/* Center icon */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              {isLoading ? (
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
-              ) : isPushToTalk ? (
-                <Mic className="h-16 w-16 text-red-600 animate-pulse" />
-              ) : isProcessing ? (
-                <Volume2 className="h-16 w-16 text-blue-600 animate-pulse" />
-              ) : isConnected ? (
-                <Mic className="h-16 w-16 text-green-600" />
+      {/* Main content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-5 relative z-10 gap-8">
+        {/* GlassCard Double-Bezel orb */}
+        <GlassCard
+          size="lg"
+          glow={isConnected || isPushToTalk}
+          className={`transition-all duration-700 ${isConnected || isPushToTalk ? 'glow-green' : ''}`}
+        >
+          <div className="w-44 h-44 flex flex-col items-center justify-center gap-3 rounded-[calc(2rem-0.375rem)]">
+            {/* Voice waveform */}
+            <div className="h-12 flex items-center">
+              {isConnected ? (
+                <VoiceWaveform isListening={isConnected} />
+              ) : isLoading ? (
+                <div className="w-8 h-8 rounded-full border-2 border-[hsl(var(--voice-accent))] border-t-transparent animate-spin" />
               ) : (
-                <Mic className="h-16 w-16 text-blue-500" />
+                <Mic className="h-10 w-10 text-white/40" />
               )}
             </div>
-          </div>
-        </div>
 
-        {/* Status Text */}
-        <div className="text-center mb-8 max-w-md">
+            {/* Status label */}
+            <span className={`text-xs font-semibold tracking-wide uppercase ${
+              isConnected ? 'text-[hsl(var(--voice-accent))]' :
+              isLoading ? 'text-amber-400' :
+              'text-white/40'
+            }`}>
+              {isConnected ? (isSpeaking ? 'Speaking' : 'Listening') : isLoading ? 'Connecting' : 'Ready'}
+            </span>
+
+            {/* Timer */}
+            {isConnected && (
+              <span className="text-[10px] text-white/30 font-mono">
+                {formatTime(recordingTime)}
+              </span>
+            )}
+          </div>
+        </GlassCard>
+
+        {/* Transcript + response */}
+        <div className="w-full max-w-sm space-y-3">
           {transcript ? (
-            <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-              <h2 className="text-xl font-medium text-gray-800 leading-relaxed">
-                "{transcript}"
-              </h2>
+            <>
+              {/* User speech bubble */}
+              <div className="glass-card rounded-2xl px-4 py-3 flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-white/10 border border-white/15 flex items-center justify-center shrink-0 mt-0.5">
+                  <Mic className="h-3 w-3 text-white/60" />
+                </div>
+                <p className="text-sm text-white/80 leading-relaxed">"{transcript}"</p>
+              </div>
+
+              {/* Processing dots */}
               {isProcessing && (
-                <div className="text-blue-600 text-sm flex items-center justify-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce animation-delay-200"></div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce animation-delay-400"></div>
-                  <span className="ml-2">AI is thinking...</span>
+                <div className="flex items-center gap-1.5 px-4">
+                  <div className="w-1.5 h-1.5 bg-[hsl(var(--voice-accent))] rounded-full animate-bounce" />
+                  <div className="w-1.5 h-1.5 bg-[hsl(var(--voice-accent))] rounded-full animate-bounce animation-delay-200" />
+                  <div className="w-1.5 h-1.5 bg-[hsl(var(--voice-accent))] rounded-full animate-bounce animation-delay-400" />
+                  <span className="text-xs text-white/40 ml-1">Processing…</span>
                 </div>
               )}
-            </div>
+            </>
           ) : (
-            <div className="space-y-3">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                {isLoading ? (
-                  "Connecting to AI..."
-                ) : isConnected ? (
-                  isPushToTalk ? (
-                    "Listening..."
-                  ) : (
-                    "Greetings, human!"
-                  )
-                ) : (
-                  "Ready to Talk"
-                )}
-              </h2>
-              <p className="text-gray-600">
-                {isConnected && !isPushToTalk ? (
-                  "How may I assist you today?"
-                ) : isPushToTalk ? (
-                  "Speak now..."
-                ) : isLoading ? (
-                  "Please wait..."
-                ) : (
-                  "Press and hold the button to start"
-                )}
+            <div className="text-center space-y-1.5">
+              <p className="text-lg font-semibold text-white/90">
+                {isLoading ? 'Connecting…' : isConnected ? 'Listening' : 'Ready to Talk'}
               </p>
+              <p className="text-sm text-white/40">
+                {isConnected ? "Just speak — I'm always listening" : isLoading ? 'Please wait…' : 'Press the button to connect'}
+              </p>
+            </div>
+          )}
+
+          {/* Agent response bubble */}
+          {agentResponse && (
+            <div className="glass-card rounded-2xl px-4 py-3 flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-[rgba(0,255,136,0.15)] border border-[rgba(0,255,136,0.25)] flex items-center justify-center shrink-0 mt-0.5">
+                <Volume2 className="h-3 w-3 text-[hsl(var(--voice-accent))]" />
+              </div>
+              <p className="text-sm text-white/80 leading-relaxed">{agentResponse}</p>
             </div>
           )}
         </div>
 
-        {/* Push-to-Talk Button */}
-        <div className="relative mb-12">
-          <Button
-            ref={buttonRef}
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onTouchStart={handleMouseDown}
-            onTouchEnd={handleMouseUp}
-            disabled={isLoading}
-            className={`w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${isPushToTalk
-                ? "bg-red-500 hover:bg-red-600 scale-110 shadow-red-200"
-                : isConnected
-                  ? "bg-green-500 hover:bg-green-600 shadow-green-200"
+        {/* Primary mic action button (Double-Bezel) + End call */}
+        <div className="flex flex-col items-center gap-4 pb-4">
+          {/* Outer shell */}
+          <div className={`p-2 rounded-full border transition-all duration-500 ${
+            isConnected || isPushToTalk
+              ? 'bg-[rgba(0,255,136,0.08)] border-[rgba(0,255,136,0.3)]'
+              : 'bg-white/5 border-white/10'
+          }`}>
+            {/* Inner button */}
+            <button
+              ref={buttonRef}
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onTouchStart={handleMouseDown}
+              onTouchEnd={handleMouseUp}
+              disabled={isLoading}
+              aria-label={isConnected ? 'Voice connected — just speak' : 'Connect voice session'}
+              className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--voice-accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(222,47%,6%)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)] ${
+                isPushToTalk
+                  ? 'bg-red-500'
+                  : isConnected
+                  ? 'bg-[hsl(var(--voice-accent))]'
                   : isLoading
-                    ? "bg-gray-400 cursor-not-allowed shadow-gray-200"
-                    : "bg-blue-500 hover:bg-blue-600 shadow-blue-200 hover:scale-105"
+                  ? 'bg-white/10 cursor-not-allowed'
+                  : 'bg-brand'
               }`}
-          >
-            {isPushToTalk ? (
-              <div className="relative">
-                <Mic className="h-8 w-8 text-white" />
-                <div className="absolute inset-0 animate-ping opacity-50">
-                  <Mic className="h-8 w-8 text-white" />
-                </div>
-              </div>
-            ) : (
-              <Mic className="h-8 w-8 text-white" />
-            )}
-          </Button>
+            >
+              {isLoading ? (
+                <div className="w-6 h-6 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              ) : isPushToTalk ? (
+                <MicOff className="h-8 w-8 text-white" />
+              ) : (
+                <Mic className={`h-8 w-8 ${isConnected ? 'text-black' : 'text-white'}`} />
+              )}
+            </button>
+          </div>
 
-          {/* Instructions */}
-          <p className="text-center text-gray-600 mt-4 text-sm">
-            {isLoading ? "Connecting..." : isConnected ? "Just speak - I'm listening" : "Press to connect"}
-          </p>
+          {/* End call button — only when connected */}
+          {isConnected && (
+            <button
+              onClick={async () => {
+                await endSession()
+                setIsPushToTalk(false)
+                setTranscript('')
+                setAgentResponse('')
+                onNavigate('dashboard')
+              }}
+              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-red-400 transition-colors duration-200"
+            >
+              <MicOff className="h-3.5 w-3.5" />
+              End session
+            </button>
+          )}
         </div>
-
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-4 max-w-md w-full mb-8">
-          <Button
-            variant="outline"
-            onClick={() => onNavigate('dashboard')}
-            className="h-12 rounded-xl border-gray-300 text-gray-700 hover:bg-gray-50"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <Button
-            variant="outline"
-            onClick={async () => {
-              await endSession();
-              setIsPushToTalk(false);
-              setTranscript('');
-              setAgentResponse('');
-              onNavigate('dashboard');
-            }}
-            className="h-12 rounded-xl border-red-300 text-red-700 hover:bg-red-50"
-            disabled={!isConnected}
-          >
-            <MicOff className="h-4 w-4 mr-2" />
-            End Call
-          </Button>
-        </div>
-
-        {/* Conversation History */}
-        {transcript && (
-          <Card className="mb-4 bg-white/80 backdrop-blur-sm border-gray-200 shadow-sm animate-in slide-in-from-left-4 duration-500 max-w-md w-full">
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Mic className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm text-gray-600 mb-1">You</p>
-                  <p className="text-gray-800 text-sm leading-relaxed">{transcript}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {agentResponse && (
-          <Card className="mb-6 bg-white/80 backdrop-blur-sm border-gray-200 shadow-sm animate-in slide-in-from-right-4 duration-500 max-w-md w-full">
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <Volume2 className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm text-gray-600 mb-1 flex items-center gap-2">
-                    AI assistant
-                    {isProcessing && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                        Thinking...
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-gray-800 text-sm leading-relaxed">{agentResponse}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
-
-      {/* Floating Add Balance Button */}
-      <Button
-        onClick={() => setIsBalanceSheetOpen(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-2xl hover:shadow-green-500/50 transition-all duration-300 hover:scale-110 z-40"
-        size="icon"
-      >
-        <Plus className="h-6 w-6 text-white" />
-      </Button>
 
       {/* Balance Sheet */}
       <BalanceSheet

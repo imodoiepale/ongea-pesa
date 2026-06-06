@@ -65,13 +65,13 @@ export default function Support() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[100dvh] bg-background surface-money py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">How Can We Help?</h1>
-          <p className="text-lg text-gray-600">Find answers to common questions or contact our support team</p>
+          <h1 className="text-4xl font-bold text-foreground mb-4">How Can We Help?</h1>
+          <p className="text-lg text-muted-foreground">Find answers to common questions or contact our support team</p>
         </div>
 
         {/* Search Bar */}
@@ -80,9 +80,9 @@ export default function Support() {
             <input
               type="text"
               placeholder="Search for help..."
-              className="w-full px-6 py-4 text-lg border border-gray-300 rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-6 py-4 text-lg border border-border/60 rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
-            <button className="absolute right-4 top-1/2 transform -translate-y-1/2 text-green-600">
+            <button className="absolute right-4 top-1/2 transform -translate-y-1/2 text-brand">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -103,8 +103,8 @@ export default function Support() {
               onClick={() => setSelectedCategory(cat.id)}
               className={`px-6 py-3 rounded-xl font-medium transition-all ${
                 selectedCategory === cat.id
-                  ? 'bg-green-600 text-white shadow-lg'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                  ? 'bg-brand text-white shadow-lg'
+                  : 'bg-card text-foreground hover:bg-muted'
               }`}
             >
               {cat.icon} {cat.label}
@@ -113,16 +113,16 @@ export default function Support() {
         </div>
 
         {/* FAQs */}
-        <div className="bg-white rounded-2xl shadow-sm p-8 mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Frequently Asked Questions</h2>
+        <div className="bg-card rounded-2xl shadow-sm p-8 mb-12">
+          <h2 className="text-2xl font-semibold text-foreground mb-6">Frequently Asked Questions</h2>
           <div className="space-y-4">
             {faqs[selectedCategory as keyof typeof faqs].map((faq, idx) => (
-              <details key={idx} className="group border-b border-gray-200 pb-4">
+              <details key={idx} className="group border-b border-border/60 pb-4">
                 <summary className="flex justify-between items-center cursor-pointer list-none">
-                  <span className="text-lg font-medium text-gray-900">{faq.q}</span>
-                  <span className="text-green-600 group-open:rotate-180 transition-transform">▼</span>
+                  <span className="text-lg font-medium text-foreground">{faq.q}</span>
+                  <span className="text-brand group-open:rotate-180 transition-transform">▼</span>
                 </summary>
-                <p className="mt-3 text-gray-600 leading-relaxed">{faq.a}</p>
+                <p className="mt-3 text-muted-foreground leading-relaxed">{faq.a}</p>
               </details>
             ))}
           </div>
@@ -130,42 +130,42 @@ export default function Support() {
 
         {/* Contact Options */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
+          <div className="bg-card rounded-2xl shadow-sm p-6 text-center">
             <div className="text-4xl mb-4">📧</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Email Support</h3>
-            <p className="text-sm text-gray-600 mb-4">Average response: 2-4 hours</p>
-            <a href="mailto:support@ongeapesa.com" className="text-green-600 hover:underline">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Email Support</h3>
+            <p className="text-sm text-muted-foreground mb-4">Average response: 2-4 hours</p>
+            <a href="mailto:support@ongeapesa.com" className="text-brand hover:underline">
               support@ongeapesa.com
             </a>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
+          <div className="bg-card rounded-2xl shadow-sm p-6 text-center">
             <div className="text-4xl mb-4">💬</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Live Chat</h3>
-            <p className="text-sm text-gray-600 mb-4">Available 24/7</p>
-            <button className="text-green-600 hover:underline">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Live Chat</h3>
+            <p className="text-sm text-muted-foreground mb-4">Available 24/7</p>
+            <button className="text-brand hover:underline">
               Start Chat
             </button>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
+          <div className="bg-card rounded-2xl shadow-sm p-6 text-center">
             <div className="text-4xl mb-4">📞</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Phone Support</h3>
-            <p className="text-sm text-gray-600 mb-4">Mon-Fri, 8AM-8PM EAT</p>
-            <a href="tel:+254700123456" className="text-green-600 hover:underline">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Phone Support</h3>
+            <p className="text-sm text-muted-foreground mb-4">Mon-Fri, 8AM-8PM EAT</p>
+            <a href="tel:+254700123456" className="text-brand hover:underline">
               +254 700 123 456
             </a>
           </div>
         </div>
 
         {/* Status Page */}
-        <div className="bg-green-50 rounded-2xl p-8 text-center">
+        <div className="bg-brand/5 rounded-2xl p-8 text-center">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-3"></div>
-            <h3 className="text-xl font-semibold text-gray-900">All Systems Operational</h3>
+            <div className="w-3 h-3 bg-brand rounded-full animate-pulse mr-3"></div>
+            <h3 className="text-xl font-semibold text-foreground">All Systems Operational</h3>
           </div>
-          <p className="text-gray-600 mb-4">Check our status page for real-time service updates</p>
-          <a href="/status" className="text-green-600 hover:underline">
+          <p className="text-muted-foreground mb-4">Check our status page for real-time service updates</p>
+          <a href="/status" className="text-brand hover:underline">
             View Status Page →
           </a>
         </div>

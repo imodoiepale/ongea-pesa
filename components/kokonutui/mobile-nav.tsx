@@ -26,7 +26,7 @@ export default function MobileNav() {
   return (
     <>
       {/* Bottom Navigation Bar - Mobile Only */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 safe-area-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/60 safe-area-bottom">
         <div className="flex items-center justify-around h-16 px-2">
           {navItems.map((item) => {
             const isActive = pathname === item.href || 
@@ -38,9 +38,9 @@ export default function MobileNav() {
                 href={item.href}
                 className={cn(
                   "flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-colors",
-                  isActive 
-                    ? "text-emerald-600 dark:text-emerald-400" 
-                    : "text-zinc-500 dark:text-zinc-400"
+                  isActive
+                    ? "text-brand"
+                    : "text-muted-foreground"
                 )}
               >
                 <item.icon className={cn(

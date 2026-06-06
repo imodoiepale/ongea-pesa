@@ -79,8 +79,8 @@ export default function VoiceTest({ onNavigate }: VoiceTestProps) {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Voice Test Mode</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Test AI voice responses</p>
+          <h1 className="text-xl font-bold text-foreground">Voice Test Mode</h1>
+          <p className="text-sm text-muted-foreground">Test AI voice responses</p>
         </div>
       </div>
 
@@ -91,14 +91,14 @@ export default function VoiceTest({ onNavigate }: VoiceTestProps) {
             <div className="flex items-center space-x-3">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  isRecording ? "bg-red-500 animate-pulse" : isPlaying ? "bg-green-500 animate-pulse" : "bg-gray-300"
+                  isRecording ? "bg-red-500 animate-pulse" : isPlaying ? "bg-brand animate-pulse" : "bg-muted-foreground/30"
                 }`}
               />
               <div>
                 <p className="font-semibold text-sm">
                   {isRecording ? "Recording..." : isPlaying ? "Playing Response..." : "Ready to Test"}
                 </p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   {isRecording
                     ? "Listening to your command"
                     : isPlaying
@@ -120,7 +120,7 @@ export default function VoiceTest({ onNavigate }: VoiceTestProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-lg">{scenario.title}</CardTitle>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Category: {scenario.category}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Category: {scenario.category}</p>
                 </div>
                 <Button
                   onClick={() => handleTestVoice(scenario)}
@@ -129,7 +129,7 @@ export default function VoiceTest({ onNavigate }: VoiceTestProps) {
                     currentTest === scenario.id && isRecording
                       ? "bg-red-500 animate-pulse"
                       : currentTest === scenario.id && isPlaying
-                        ? "bg-green-500 animate-pulse"
+                        ? "bg-brand animate-pulse"
                         : "bg-indigo-500 hover:bg-indigo-600"
                   }`}
                 >
@@ -150,8 +150,8 @@ export default function VoiceTest({ onNavigate }: VoiceTestProps) {
                   <p className="text-sm bg-blue-50 dark:bg-blue-900/20 p-2 rounded">"{scenario.userInput}"</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-green-600 dark:text-green-400 mb-1">Expected AI Response:</p>
-                  <p className="text-sm bg-green-50 dark:bg-green-900/20 p-2 rounded">"{scenario.expectedResponse}"</p>
+                  <p className="text-xs font-medium text-brand mb-1">Expected AI Response:</p>
+                  <p className="text-sm bg-brand/5 p-2 rounded">"{scenario.expectedResponse}"</p>
                 </div>
               </div>
             </CardContent>
@@ -169,7 +169,7 @@ export default function VoiceTest({ onNavigate }: VoiceTestProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-sm">TTS Provider</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">ElevenLabs</p>
+                <p className="text-xs text-muted-foreground">ElevenLabs</p>
               </div>
               <Button variant="outline" size="sm">
                 Configure
@@ -178,7 +178,7 @@ export default function VoiceTest({ onNavigate }: VoiceTestProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-sm">Voice Model</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Multilingual (Swahili/English)</p>
+                <p className="text-xs text-muted-foreground">Multilingual (Swahili/English)</p>
               </div>
               <Button variant="outline" size="sm">
                 Change
@@ -187,7 +187,7 @@ export default function VoiceTest({ onNavigate }: VoiceTestProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-sm">Conversation Flow</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Vapi Integration</p>
+                <p className="text-xs text-muted-foreground">Vapi Integration</p>
               </div>
               <Button variant="outline" size="sm">
                 Test
@@ -204,13 +204,13 @@ export default function VoiceTest({ onNavigate }: VoiceTestProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded">
+            <div className="flex items-center justify-between p-2 bg-brand/5 rounded">
               <span className="text-sm">Send Money Command</span>
-              <span className="text-xs text-green-600 dark:text-green-400">✓ Passed</span>
+              <span className="text-xs text-brand">✓ Passed</span>
             </div>
-            <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded">
+            <div className="flex items-center justify-between p-2 bg-brand/5 rounded">
               <span className="text-sm">Balance Inquiry</span>
-              <span className="text-xs text-green-600 dark:text-green-400">✓ Passed</span>
+              <span className="text-xs text-brand">✓ Passed</span>
             </div>
             <div className="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
               <span className="text-sm">Location Sharing</span>

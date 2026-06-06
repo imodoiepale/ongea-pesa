@@ -73,7 +73,7 @@ export default function ResetPasswordPage() {
     return (
       <AuthLayout>
         <div className="w-full max-w-sm">
-          <div className="text-center bg-secondary p-8 rounded-lg">
+          <div className="text-center rounded-2xl border border-border/60 bg-card p-8">
             <div className="mb-4">
               <svg
                 className="w-16 h-16 mx-auto text-destructive"
@@ -112,10 +112,10 @@ export default function ResetPasswordPage() {
         </p>
         
         {success ? (
-          <div className="text-center bg-secondary p-8 rounded-lg">
+          <div className="text-center rounded-2xl border border-border/60 bg-card p-8">
             <div className="mb-4">
               <svg
-                className="w-16 h-16 mx-auto text-green-500"
+                className="w-16 h-16 mx-auto text-brand"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

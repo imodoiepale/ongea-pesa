@@ -2,262 +2,347 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── BASE TOKENS ─────────────────────────────────────────────────────────── */
 @layer base {
   :root {
+    /* shadcn semantic palette */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 0 0% 3.9%;
+    /* Brand green as primary (was slate) */
+    --primary: 142.1 76.2% 36.3%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 142.1 76.2% 36.3%;
+    --radius: 0.75rem;
+
+    /* Chart tokens (from orphaned styles/globals.css) */
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+
+    /* Sidebar tokens (from orphaned styles/globals.css) */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 142.1 76.2% 36.3%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 142.1 76.2% 36.3%;
+
+    /* ─ Brand tokens ─ */
+    --brand: 142.1 76.2% 36.3%;             /* #22c55e */
+    --brand-foreground: 355.7 100% 97.3%;
+    --brand-muted: 142.1 76.2% 94%;
+
+    /* ─ Voice/accent tokens ─ */
+    --voice-accent: 150 100% 50%;           /* #00FF88 */
+    --voice-accent-2: 171 100% 41%;         /* #00D4AA */
+
+    /* ─ Font token ─ */
+    --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+
+    /* ─ Surface-mode base vars (overridden per mode below) ─ */
+    --surface: var(--card);
+    --surface-border: var(--border);
+    --surface-elevated: 0 0% 98%;
+    --glass-bg: 255 255 255 / 0.08;
+    --glass-border: 255 255 255 / 0.15;
+    --glass-blur: 16px;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 142.1 70.6% 45.3%;
+    --primary-foreground: 144.9 80.4% 10%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 142.1 76.2% 36.3%;
+
+    /* Dark chart tokens */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
+    /* Dark sidebar tokens */
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 142.1 70.6% 45.3%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 142.1 76.2% 36.3%;
+
+    /* Dark brand tokens */
+    --brand: 142.1 70.6% 45.3%;
+    --brand-foreground: 144.9 80.4% 10%;
+    --brand-muted: 142.1 76.2% 10%;
+
+    /* Dark glass vars */
+    --glass-bg: 0 0 0 / 0.25;
+    --glass-border: 255 255 255 / 0.08;
+    --glass-blur: 20px;
   }
 }
 
+/* ─── BASE STYLES ──────────────────────────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    /* NO global transition — only interactive elements get transitions */
+  }
+  /* Utility text balance */
+  .text-balance {
+    text-wrap: balance;
   }
 }
 
-/* Custom animations */
-.animation-delay-200 {
-  animation-delay: 200ms;
-}
-
-.animation-delay-400 {
-  animation-delay: 400ms;
-}
-
-.animation-delay-600 {
-  animation-delay: 600ms;
-}
-
-.animation-delay-1000 {
-  animation-delay: 1000ms;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2000ms;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4000ms;
-}
-
-/* Blob animations for voice interface */
-@keyframes blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
+/* ─── SURFACE MODES ────────────────────────────────────────────────────────── */
+/*
+ * Two composable classes applied per-screen via a wrapper div.
+ * Both resolve from the SAME CSS variables so light/dark toggle
+ * keeps working on every screen.
+ *
+ * .surface-money  → Shopify-Polaris clarity: light, legible, flat cards
+ * .surface-voice  → Apple liquid-glass: dark, frosted, cinematic
+ */
+@layer components {
+  /* ── Money surface (dashboards, send, transactions, chama, escrow) ── */
+  .surface-money {
+    --surface: var(--card);
+    --surface-border: var(--border);
+    --surface-elevated: hsl(0 0% 98%);
   }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
+  .dark .surface-money {
+    --surface: hsl(0 0% 8%);
+    --surface-elevated: hsl(0 0% 11%);
   }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-}
 
-.animate-blob {
-  animation: blob 7s infinite;
-}
-
-/* Voice pulse animation */
-@keyframes voice-pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
+  /* Canonical big-number display inside .surface-money */
+  .surface-money .stat-num {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    font-feature-settings: "tnum";
   }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.8;
-  }
-}
 
-.animate-voice-pulse {
-  animation: voice-pulse 2s ease-in-out infinite;
-}
-
-/* Gradient text animation */
-@keyframes gradient-shift {
-  0%, 100% {
-    background-position: 0% 50%;
+  /* ── Voice surface (voice interface, onboarding hero, voice widget) ── */
+  .surface-voice {
+    --surface: transparent;
+    background: hsl(222 47% 6%);
   }
-  50% {
-    background-position: 100% 50%;
+  .dark .surface-voice {
+    background: hsl(222 47% 4%);
   }
-}
 
-.animate-gradient {
-  background: linear-gradient(-45deg, #00ff88, #00d4aa, #0099cc, #6366f1);
-  background-size: 400% 400%;
-  animation: gradient-shift 3s ease infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Enhanced push-to-talk animations */
-@keyframes record-pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+  /* Glass card within .surface-voice */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 40px rgba(239, 68, 68, 0.8);
+  .dark .glass-card {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  /* Neon voice glow — only on .surface-voice */
+  .surface-voice .voice-glow {
+    box-shadow: 0 0 24px rgba(0, 255, 136, 0.25), 0 0 48px rgba(0, 255, 136, 0.10);
+  }
+  .surface-voice .voice-glow-text {
+    color: hsl(var(--voice-accent));
+  }
+
+  /* ── Hairline card — flat minimal (surface-money) ── */
+  .card-hairline {
+    @apply bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl;
+  }
+
+  /* ── Interactive transition helper (explicit, not global) ── */
+  .transition-interactive {
+    transition: background-color 200ms cubic-bezier(0.32, 0.72, 0, 1),
+                border-color 200ms cubic-bezier(0.32, 0.72, 0, 1),
+                box-shadow 200ms cubic-bezier(0.32, 0.72, 0, 1),
+                opacity 200ms cubic-bezier(0.32, 0.72, 0, 1);
   }
 }
 
-.animate-record-pulse {
-  animation: record-pulse 1s ease-in-out infinite;
-}
-
-/* Microphone glow effect */
-@keyframes mic-glow {
-  0%, 100% {
-    filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.5));
-  }
-  50% {
-    filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.8));
-  }
-}
-
-.animate-mic-glow {
-  animation: mic-glow 2s ease-in-out infinite;
-}
-
-/* Floating animation for background elements */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  33% {
-    transform: translateY(-20px) rotate(5deg);
-  }
-  66% {
-    transform: translateY(10px) rotate(-5deg);
-  }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-/* Ripple effect */
-@keyframes ripple {
-  0% {
-    transform: scale(0);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
-
-.animate-ripple {
-  animation: ripple 0.6s linear;
-}
-
-/* Enhanced border animations */
-.border-animate {
-  background: linear-gradient(45deg, transparent, rgba(34, 197, 94, 0.5), transparent);
-  background-size: 200% 200%;
-  animation: border-flow 2s linear infinite;
-}
-
-@keyframes border-flow {
-  0% {
-    background-position: 0% 0%;
-  }
-  100% {
-    background-position: 200% 200%;
-  }
-}
-
-/* Glassmorphism effects */
+/* ─── GLASSMORPHISM UTILITY ─────────────────────────────────────────────────── */
 .glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
-
 .dark .glass {
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-/* Smooth transitions */
-* {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+/* ─── ANIMATIONS (all wrapped in prefers-reduced-motion) ───────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  /* Blob — used on voice surface */
+  @keyframes blob {
+    0%   { transform: translate(0px, 0px) scale(1); }
+    33%  { transform: translate(30px, -50px) scale(1.1); }
+    66%  { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+
+  /* Voice pulse — mic button breathing */
+  @keyframes voice-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%       { transform: scale(1.04); opacity: 0.85; }
+  }
+  .animate-voice-pulse {
+    animation: voice-pulse 2.4s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+  }
+
+  /* Gradient text shift */
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50%       { background-position: 100% 50%; }
+  }
+  .animate-gradient {
+    background: linear-gradient(-45deg, #00ff88, #00d4aa, #0099cc, #22c55e);
+    background-size: 400% 400%;
+    animation: gradient-shift 4s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Record pulse — active recording state */
+  @keyframes record-pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.35); }
+    50%       { transform: scale(1.04); box-shadow: 0 0 36px rgba(239, 68, 68, 0.7); }
+  }
+  .animate-record-pulse {
+    animation: record-pulse 1.2s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+  }
+
+  /* Mic glow */
+  @keyframes mic-glow {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.45)); }
+    50%       { filter: drop-shadow(0 0 18px rgba(34, 197, 94, 0.75)); }
+  }
+  .animate-mic-glow {
+    animation: mic-glow 2.4s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+  }
+
+  /* Float — decorative bg elements */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33%       { transform: translateY(-16px) rotate(4deg); }
+    66%       { transform: translateY(8px) rotate(-4deg); }
+  }
+  .animate-float {
+    animation: float 6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+  }
+
+  /* Ripple — tap feedback */
+  @keyframes ripple {
+    0%   { transform: scale(0); opacity: 1; }
+    100% { transform: scale(4); opacity: 0; }
+  }
+  .animate-ripple {
+    animation: ripple 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  /* Slide up — sheet / modal entry */
+  @keyframes slide-up {
+    0%   { transform: translateY(100%); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  .animate-slide-up {
+    animation: slide-up 0.35s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+
+  /* Fade in — generic entry */
+  @keyframes fade-in {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
+/* Static fallback for users with reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob,
+  .animate-voice-pulse,
+  .animate-gradient,
+  .animate-record-pulse,
+  .animate-mic-glow,
+  .animate-float,
+  .animate-ripple,
+  .animate-ping,
+  .animate-bounce,
+  .animate-spin {
+    animation: none !important;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+/* ─── ANIMATION DELAY HELPERS ──────────────────────────────────────────────── */
+.animation-delay-200  { animation-delay: 200ms; }
+.animation-delay-400  { animation-delay: 400ms; }
+.animation-delay-600  { animation-delay: 600ms; }
+.animation-delay-1000 { animation-delay: 1000ms; }
+.animation-delay-2000 { animation-delay: 2000ms; }
+.animation-delay-4000 { animation-delay: 4000ms; }
+
+/* ─── SCROLLBAR (voice surface only) ──────────────────────────────────────── */
+.surface-voice ::-webkit-scrollbar { width: 4px; }
+.surface-voice ::-webkit-scrollbar-track { background: transparent; }
+.surface-voice ::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 136, 0.25);
+  border-radius: 2px;
+}
+.surface-voice ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 136, 0.45);
 }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 136, 0.3);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 255, 136, 0.5);
-}
-
-/* Glow effects */
-.glow-green {
-  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
-}
-
-.dark .glow-green {
-  box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+/* ─── GLOW EFFECTS (voice surface only) ───────────────────────────────────── */
+.surface-voice .glow-green {
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.28), 0 0 40px rgba(0, 255, 136, 0.12);
 }

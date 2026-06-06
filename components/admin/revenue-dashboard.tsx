@@ -111,7 +111,7 @@ export default function RevenueDashboard() {
 
   const getTransactionTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      'deposit': 'bg-green-500',
+      'deposit': 'bg-brand',
       'withdraw': 'bg-red-500',
       'send_phone': 'bg-blue-500',
       'paybill': 'bg-purple-500',
@@ -141,7 +141,7 @@ export default function RevenueDashboard() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600 dark:text-gray-400">Loading revenue data...</p>
+          <p className="text-muted-foreground">Loading revenue data...</p>
         </div>
       </div>
     )
@@ -167,15 +167,15 @@ export default function RevenueDashboard() {
   const { summary, by_transaction_type, daily_breakdown } = data
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
+    <div className="min-h-[100dvh] bg-background surface-money p-4 md:p-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-foreground">
               Ongea Pesa Revenue Dashboard
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-muted-foreground mt-1">
               Platform profits and analytics
             </p>
           </div>
@@ -241,7 +241,7 @@ export default function RevenueDashboard() {
         </div>
 
         {/* Date Range Display */}
-        <div className="mt-4 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
           <span>
             {data.date_range.start} to {data.date_range.end}
@@ -254,16 +254,16 @@ export default function RevenueDashboard() {
         {/* Total Revenue */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Revenue
             </CardTitle>
-            <DollarSign className="h-5 w-5 text-green-600" />
+            <DollarSign className="h-5 w-5 text-brand" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-brand">
               {formatCurrency(summary.total_revenue)}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Platform fees earned (0.00005%)
             </p>
           </CardContent>
@@ -272,7 +272,7 @@ export default function RevenueDashboard() {
         {/* Transaction Count */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Transactions
             </CardTitle>
             <CreditCard className="h-5 w-5 text-blue-600" />
@@ -281,7 +281,7 @@ export default function RevenueDashboard() {
             <div className="text-2xl font-bold text-blue-600">
               {formatNumber(summary.transaction_count)}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Total volume: {formatCurrency(summary.transaction_value)}
             </p>
           </CardContent>
@@ -290,7 +290,7 @@ export default function RevenueDashboard() {
         {/* Active Users */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Active Users
             </CardTitle>
             <Users className="h-5 w-5 text-purple-600" />
@@ -299,7 +299,7 @@ export default function RevenueDashboard() {
             <div className="text-2xl font-bold text-purple-600">
               {formatNumber(summary.unique_users)}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Unique users this period
             </p>
           </CardContent>
@@ -308,7 +308,7 @@ export default function RevenueDashboard() {
         {/* Average Revenue */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Avg Revenue/Tx
             </CardTitle>
             <TrendingUp className="h-5 w-5 text-orange-600" />
@@ -317,7 +317,7 @@ export default function RevenueDashboard() {
             <div className="text-2xl font-bold text-orange-600">
               {formatCurrency(summary.average_revenue_per_transaction)}
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Per transaction
             </p>
           </CardContent>
@@ -349,12 +349,12 @@ export default function RevenueDashboard() {
                       <div className="text-sm font-bold">
                         {formatCurrency(txType.revenue)}
                       </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         {txType.count} transactions ({txType.percentage.toFixed(1)}%)
                       </div>
                     </div>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="w-full bg-muted rounded-full h-2">
                     <div
                       className={`${getTransactionTypeColor(txType.type)} h-2 rounded-full transition-all duration-500`}
                       style={{ width: `${txType.percentage}%` }}
@@ -377,7 +377,7 @@ export default function RevenueDashboard() {
         <CardContent>
           <div className="space-y-2">
             {daily_breakdown.slice(-14).map((day) => (
-              <div key={day.date} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+              <div key={day.date} className="flex items-center justify-between py-2 border-b border-border/60">
                 <div>
                   <div className="text-sm font-medium">
                     {new Date(day.date).toLocaleDateString('en-KE', {
@@ -386,11 +386,11 @@ export default function RevenueDashboard() {
                       day: 'numeric',
                     })}
                   </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                  <div className="text-xs text-muted-foreground">
                     {day.transactions} transactions
                   </div>
                 </div>
-                <div className="text-sm font-bold text-green-600">
+                <div className="text-sm font-bold text-brand">
                   {formatCurrency(day.revenue)}
                 </div>
               </div>
@@ -406,14 +406,14 @@ export default function RevenueDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <div className="p-4 bg-brand/5 rounded-lg">
               <div className="flex items-start gap-3">
-                <ArrowUpRight className="h-5 w-5 text-green-600 mt-0.5" />
+                <ArrowUpRight className="h-5 w-5 text-brand mt-0.5" />
                 <div>
-                  <p className="font-medium text-green-700 dark:text-green-300">
+                  <p className="font-medium text-brand">
                     Revenue Growth
                   </p>
-                  <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                  <p className="text-sm text-brand mt-1">
                     Platform earned {formatCurrency(summary.total_revenue)} from {formatNumber(summary.transaction_count)} transactions
                   </p>
                 </div>

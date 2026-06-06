@@ -100,8 +100,8 @@ export default function CameraCapture({ onNavigate }: CameraCaptureProps) {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Share Location</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Camera + GPS capture</p>
+          <h1 className="text-xl font-bold text-foreground">Share Location</h1>
+          <p className="text-sm text-muted-foreground">Camera + GPS capture</p>
         </div>
       </div>
 
@@ -111,9 +111,9 @@ export default function CameraCapture({ onNavigate }: CameraCaptureProps) {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-sm">Voice Command</h3>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Say: "Ongea Pesa, tuma miundo hii"</p>
+              <p className="text-xs text-muted-foreground">Say: "Ongea Pesa, tuma miundo hii"</p>
             </div>
-            <Button onClick={handleVoiceCapture} className="rounded-full bg-green-500 hover:bg-green-600">
+            <Button onClick={handleVoiceCapture} className="rounded-full bg-brand hover:bg-brand/90">
               <Mic className="h-4 w-4" />
             </Button>
           </div>
@@ -153,7 +153,7 @@ export default function CameraCapture({ onNavigate }: CameraCaptureProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4 relative overflow-hidden">
+          <div className="aspect-video bg-muted rounded-lg flex items-center justify-center mb-4 relative overflow-hidden">
             {capturedImage ? (
               <img
                 src={capturedImage || "/placeholder.svg"}
@@ -164,13 +164,13 @@ export default function CameraCapture({ onNavigate }: CameraCaptureProps) {
               <div className="text-center">
                 {isCapturing ? (
                   <div className="animate-pulse">
-                    <ScanFace className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-500">Scanning...</p>
+                    <ScanFace className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Scanning...</p>
                   </div>
                 ) : (
                   <>
-                    <Camera className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-500">Tap to capture location</p>
+                    <Camera className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Tap to capture location</p>
                   </>
                 )}
               </div>
@@ -178,9 +178,9 @@ export default function CameraCapture({ onNavigate }: CameraCaptureProps) {
           </div>
 
           {ocrResult && (
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg mb-4">
-              <p className="text-sm font-medium text-green-700 dark:text-green-300">OCR Result</p>
-              <p className="text-xs text-green-600 dark:text-green-400 mt-1">{ocrResult}</p>
+            <div className="p-3 bg-brand/5 rounded-lg mb-4">
+              <p className="text-sm font-medium text-brand">OCR Result</p>
+              <p className="text-xs text-brand mt-1">{ocrResult}</p>
             </div>
           )}
 
@@ -215,11 +215,11 @@ export default function CameraCapture({ onNavigate }: CameraCaptureProps) {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="font-medium">Accuracy</p>
-                  <p className="text-gray-600 dark:text-gray-400">±5 meters</p>
+                  <p className="text-muted-foreground">±5 meters</p>
                 </div>
                 <div>
                   <p className="font-medium">Timestamp</p>
-                  <p className="text-gray-600 dark:text-gray-400">{new Date().toLocaleTimeString()}</p>
+                  <p className="text-muted-foreground">{new Date().toLocaleTimeString()}</p>
                 </div>
               </div>
             </div>
@@ -255,7 +255,7 @@ export default function CameraCapture({ onNavigate }: CameraCaptureProps) {
       {/* Send Button */}
       {capturedImage && location && (
         <div className="fixed bottom-6 left-4 right-4">
-          <Button className="w-full h-12 bg-gradient-to-r from-blue-500 to-green-600 hover:from-blue-600 hover:to-green-700">
+          <Button className="w-full h-12">
             <Send className="h-5 w-5 mr-2" />
             Share Location Now
           </Button>

@@ -1,47 +1,47 @@
 export default function TermsOfService() {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm p-8 lg:p-12">
+      <div className="min-h-[100dvh] bg-background surface-money py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto bg-card rounded-2xl shadow-sm p-8 lg:p-12">
           
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Terms of Service</h1>
-          <p className="text-sm text-gray-500 mb-8">Last Updated: January 2025</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Terms of Service</h1>
+          <p className="text-sm text-muted-foreground mb-8">Last Updated: January 2025</p>
   
           <div className="prose prose-lg max-w-none">
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">1. Acceptance of Terms</h2>
+              <p className="text-foreground leading-relaxed">
                 By accessing or using Ongea Pesa ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the Service.
               </p>
               <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded">
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-foreground">
                   <strong>Important:</strong> These Terms constitute a legally binding agreement. Please read them carefully before using our service.
                 </p>
               </div>
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Service Description</h2>
-              <p className="text-gray-700 leading-relaxed mb-4">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">2. Service Description</h2>
+              <p className="text-foreground leading-relaxed mb-4">
                 Ongea Pesa is a voice-powered payment platform that enables users to:
               </p>
-              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+              <ul className="list-disc pl-6 space-y-2 text-foreground">
                 <li>Execute M-Pesa transactions using voice commands in English and Swahili</li>
                 <li>Send money, pay bills, buy goods, and withdraw cash via voice</li>
                 <li>Manage payment methods and view transaction history</li>
                 <li>Access AI-powered financial insights and analytics</li>
               </ul>
-              <p className="text-sm text-gray-600 mt-4 italic">
+              <p className="text-sm text-muted-foreground mt-4 italic">
                 Ongea Pesa acts as a facilitator; actual transactions are processed by third-party payment providers (M-Pesa, banks, card networks).
               </p>
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">3. Pricing & Fees</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">3. Pricing & Fees</h2>
               
-              <h3 className="text-xl font-medium text-gray-800 mt-6 mb-3">3.1 Transaction Fees</h3>
-              <div className="bg-green-50 rounded-lg p-6 mb-4">
-                <p className="text-gray-700 mb-3">
+              <h3 className="text-xl font-medium text-foreground mt-6 mb-3">3.1 Transaction Fees</h3>
+              <div className="bg-brand/5 rounded-lg p-6 mb-4">
+                <p className="text-foreground mb-3">
                   Ongea Pesa charges a service fee on all outgoing transactions:
                 </p>
                 <table className="w-full text-sm">
@@ -70,17 +70,17 @@ export default function TermsOfService() {
                     </tr>
                   </tbody>
                 </table>
-                <p className="text-xs text-gray-600 mt-3">
+                <p className="text-xs text-muted-foreground mt-3">
                   <strong>Note:</strong> M-Pesa and other payment providers charge their own separate fees, which are not controlled by Ongea Pesa.
                 </p>
               </div>
   
-              <h3 className="text-xl font-medium text-gray-800 mt-6 mb-3">3.2 Subscription Plans (Voice Minutes)</h3>
+              <h3 className="text-xl font-medium text-foreground mt-6 mb-3">3.2 Subscription Plans (Voice Minutes)</h3>
               <div className="grid md:grid-cols-2 gap-4 mb-4">
-                <div className="border border-gray-200 rounded-lg p-5">
-                  <h4 className="font-semibold text-gray-800 mb-2">Free Tier</h4>
-                  <p className="text-2xl font-bold text-green-600 mb-2">0 KES/month</p>
-                  <ul className="text-sm text-gray-600 space-y-1">
+                <div className="border border-border/60 rounded-lg p-5">
+                  <h4 className="font-semibold text-foreground mb-2">Free Tier</h4>
+                  <p className="text-2xl font-bold text-brand mb-2">0 KES/month</p>
+                  <ul className="text-sm text-muted-foreground space-y-1">
                     <li>✓ 5 voice minutes/month</li>
                     <li>✓ Unlimited transactions</li>
                     <li>✓ 2% transaction fee</li>
@@ -88,11 +88,11 @@ export default function TermsOfService() {
                   </ul>
                 </div>
   
-                <div className="border-2 border-green-500 rounded-lg p-5 relative">
-                  <span className="absolute -top-3 left-4 bg-green-500 text-white text-xs px-3 py-1 rounded-full">POPULAR</span>
-                  <h4 className="font-semibold text-gray-800 mb-2">Basic Plan</h4>
-                  <p className="text-2xl font-bold text-green-600 mb-2">799 KES/month</p>
-                  <ul className="text-sm text-gray-600 space-y-1">
+                <div className="border-2 border-brand rounded-lg p-5 relative">
+                  <span className="absolute -top-3 left-4 bg-brand/50 text-white text-xs px-3 py-1 rounded-full">POPULAR</span>
+                  <h4 className="font-semibold text-foreground mb-2">Basic Plan</h4>
+                  <p className="text-2xl font-bold text-brand mb-2">799 KES/month</p>
+                  <ul className="text-sm text-muted-foreground space-y-1">
                     <li>✓ 50 voice minutes/month</li>
                     <li>✓ Unlimited transactions</li>
                     <li>✓ 1% transaction fee</li>
@@ -100,10 +100,10 @@ export default function TermsOfService() {
                   </ul>
                 </div>
   
-                <div className="border border-gray-200 rounded-lg p-5">
-                  <h4 className="font-semibold text-gray-800 mb-2">Pro Plan</h4>
-                  <p className="text-2xl font-bold text-green-600 mb-2">2,499 KES/month</p>
-                  <ul className="text-sm text-gray-600 space-y-1">
+                <div className="border border-border/60 rounded-lg p-5">
+                  <h4 className="font-semibold text-foreground mb-2">Pro Plan</h4>
+                  <p className="text-2xl font-bold text-brand mb-2">2,499 KES/month</p>
+                  <ul className="text-sm text-muted-foreground space-y-1">
                     <li>✓ 200 voice minutes/month</li>
                     <li>✓ Unlimited transactions</li>
                     <li>✓ 0.9% transaction fee</li>
@@ -112,10 +112,10 @@ export default function TermsOfService() {
                   </ul>
                 </div>
   
-                <div className="border border-gray-200 rounded-lg p-5">
-                  <h4 className="font-semibold text-gray-800 mb-2">Business Plan</h4>
-                  <p className="text-2xl font-bold text-green-600 mb-2">4,999 KES/month</p>
-                  <ul className="text-sm text-gray-600 space-y-1">
+                <div className="border border-border/60 rounded-lg p-5">
+                  <h4 className="font-semibold text-foreground mb-2">Business Plan</h4>
+                  <p className="text-2xl font-bold text-brand mb-2">4,999 KES/month</p>
+                  <ul className="text-sm text-muted-foreground space-y-1">
                     <li>✓ Unlimited voice minutes</li>
                     <li>✓ Unlimited transactions</li>
                     <li>✓ 0.7% transaction fee</li>
@@ -126,25 +126,25 @@ export default function TermsOfService() {
                 </div>
               </div>
   
-              <h3 className="text-xl font-medium text-gray-800 mt-6 mb-3">3.3 Premium Add-Ons</h3>
-              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+              <h3 className="text-xl font-medium text-foreground mt-6 mb-3">3.3 Premium Add-Ons</h3>
+              <ul className="list-disc pl-6 space-y-2 text-foreground">
                 <li><strong>Voice Receipts via WhatsApp:</strong> 499 KES/month</li>
                 <li><strong>Advanced Analytics Dashboard:</strong> 999 KES/month</li>
                 <li><strong>Multi-User Business Accounts:</strong> 3,299 KES/month (up to 5 users)</li>
               </ul>
   
               <div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-foreground">
                   <strong>Billing:</strong> Subscriptions are billed monthly in advance. You can cancel anytime; cancellation takes effect at the end of your current billing period.
                 </p>
               </div>
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">4. User Responsibilities</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">4. User Responsibilities</h2>
               
-              <h3 className="text-lg font-medium text-gray-800 mb-3">You agree to:</h3>
-              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+              <h3 className="text-lg font-medium text-foreground mb-3">You agree to:</h3>
+              <ul className="list-disc pl-6 space-y-2 text-foreground">
                 <li>Provide accurate, current, and complete information</li>
                 <li>Maintain the security of your account credentials</li>
                 <li>Use the Service only for lawful purposes</li>
@@ -154,8 +154,8 @@ export default function TermsOfService() {
                 <li>Comply with all applicable laws and regulations</li>
               </ul>
   
-              <h3 className="text-lg font-medium text-gray-800 mt-6 mb-3">You agree NOT to:</h3>
-              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+              <h3 className="text-lg font-medium text-foreground mt-6 mb-3">You agree NOT to:</h3>
+              <ul className="list-disc pl-6 space-y-2 text-foreground">
                 <li>Use the Service for fraudulent or illegal activities</li>
                 <li>Attempt to reverse-engineer or hack the platform</li>
                 <li>Use automated tools (bots) to access the Service</li>
@@ -166,12 +166,12 @@ export default function TermsOfService() {
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">5. Transaction Processing & Limits</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">5. Transaction Processing & Limits</h2>
               
-              <h3 className="text-lg font-medium text-gray-800 mb-3">5.1 Transaction Limits</h3>
+              <h3 className="text-lg font-medium text-foreground mb-3">5.1 Transaction Limits</h3>
               <table className="w-full border-collapse text-sm mb-4">
                 <thead>
-                  <tr className="bg-gray-100">
+                  <tr className="bg-muted">
                     <th className="border p-3 text-left">Account Tier</th>
                     <th className="border p-3 text-left">Daily Limit</th>
                     <th className="border p-3 text-left">Per Transaction</th>
@@ -201,8 +201,8 @@ export default function TermsOfService() {
                 </tbody>
               </table>
   
-              <h3 className="text-lg font-medium text-gray-800 mb-3">5.2 Transaction Processing</h3>
-              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+              <h3 className="text-lg font-medium text-foreground mb-3">5.2 Transaction Processing</h3>
+              <ul className="list-disc pl-6 space-y-2 text-foreground">
                 <li><strong>Processing Time:</strong> Most transactions complete within 7 seconds to 15 seconds</li>
                 <li><strong>Confirmation:</strong> You'll receive SMS/in-app notification upon completion</li>
                 <li><strong>Failed Transactions:</strong> Automatically refunded within 2-4 hours</li>
@@ -211,34 +211,34 @@ export default function TermsOfService() {
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Voice Command Accuracy & Liability</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">6. Voice Command Accuracy & Liability</h2>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                <p className="text-gray-700 mb-3">
+                <p className="text-foreground mb-3">
                   <strong>Important Notice:</strong> While our AI voice recognition is highly accurate, errors can occur. You are responsible for:
                 </p>
-                <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                <ul className="list-disc pl-6 space-y-2 text-foreground">
                   <li>Reviewing the interpreted command before confirming</li>
                   <li>Speaking clearly in a quiet environment</li>
                   <li>Confirming transaction details (amount, recipient) verbally or via UI</li>
                 </ul>
-                <p className="text-sm text-gray-600 mt-3">
+                <p className="text-sm text-muted-foreground mt-3">
                   Ongea Pesa is NOT liable for transactions executed based on incorrectly interpreted voice commands that you confirmed.
                 </p>
               </div>
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Refunds & Cancellations</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">7. Refunds & Cancellations</h2>
               
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Transaction Refunds:</h3>
-              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+              <h3 className="text-lg font-medium text-foreground mb-3">Transaction Refunds:</h3>
+              <ul className="list-disc pl-6 space-y-2 text-foreground">
                 <li>Ongea Pesa service fees are <strong>non-refundable</strong> once a transaction is processed</li>
                 <li>Failed transactions are automatically refunded (minus any third-party fees)</li>
                 <li>Fraudulent transactions may be refunded after investigation</li>
               </ul>
   
-              <h3 className="text-lg font-medium text-gray-800 mt-6 mb-3">Subscription Cancellations:</h3>
-              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+              <h3 className="text-lg font-medium text-foreground mt-6 mb-3">Subscription Cancellations:</h3>
+              <ul className="list-disc pl-6 space-y-2 text-foreground">
                 <li>Cancel anytime from account settings</li>
                 <li>Cancellation takes effect at the end of current billing period</li>
                 <li>No pro-rated refunds for unused portion of subscription</li>
@@ -247,38 +247,38 @@ export default function TermsOfService() {
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">8. Intellectual Property</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">8. Intellectual Property</h2>
+              <p className="text-foreground leading-relaxed">
                 All content, features, and functionality of Ongea Pesa (including but not limited to software, AI models, UI design, logos, and trademarks) are owned by Ongea Pesa Ltd and protected by international copyright, trademark, and other intellectual property laws.
               </p>
-              <p className="text-sm text-gray-600 mt-3">
+              <p className="text-sm text-muted-foreground mt-3">
                 You may not copy, modify, distribute, sell, or lease any part of our Service without explicit written permission.
               </p>
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Limitation of Liability</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">9. Limitation of Liability</h2>
               <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                <p className="text-gray-700 mb-3">
+                <p className="text-foreground mb-3">
                   <strong>TO THE MAXIMUM EXTENT PERMITTED BY LAW:</strong>
                 </p>
-                <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                <ul className="list-disc pl-6 space-y-2 text-foreground">
                   <li>Ongea Pesa is NOT liable for any indirect, incidental, or consequential damages</li>
                   <li>Our total liability for any claim is limited to the fees you paid in the last 12 months (max 10,000 KES)</li>
                   <li>We are NOT responsible for third-party payment processor failures (M-Pesa, banks)</li>
                   <li>We do NOT guarantee uninterrupted or error-free service</li>
                 </ul>
-                <p className="text-sm text-gray-600 mt-3">
+                <p className="text-sm text-muted-foreground mt-3">
                   You use the Service at your own risk. We provide the platform "AS IS" without warranties of any kind.
                 </p>
               </div>
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">10. Account Termination</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">10. Account Termination</h2>
               
-              <h3 className="text-lg font-medium text-gray-800 mb-3">We may suspend or terminate your account if:</h3>
-              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+              <h3 className="text-lg font-medium text-foreground mb-3">We may suspend or terminate your account if:</h3>
+              <ul className="list-disc pl-6 space-y-2 text-foreground">
                 <li>You violate these Terms of Service</li>
                 <li>We suspect fraudulent or illegal activity</li>
                 <li>You provide false information</li>
@@ -286,39 +286,39 @@ export default function TermsOfService() {
                 <li>We are required to do so by law</li>
               </ul>
   
-              <p className="text-sm text-gray-600 mt-4">
+              <p className="text-sm text-muted-foreground mt-4">
                 You may close your account at any time via settings. Upon closure, you will no longer have access to transaction history (export recommended).
               </p>
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">11. Dispute Resolution</h2>
-              <p className="text-gray-700 leading-relaxed mb-3">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">11. Dispute Resolution</h2>
+              <p className="text-foreground leading-relaxed mb-3">
                 Any disputes arising from these Terms shall be resolved through:
               </p>
-              <ol className="list-decimal pl-6 space-y-2 text-gray-700">
+              <ol className="list-decimal pl-6 space-y-2 text-foreground">
                 <li><strong>Informal Negotiation:</strong> Contact our support team first</li>
                 <li><strong>Mediation:</strong> If unresolved, submit to mediation under Kenyan law</li>
                 <li><strong>Arbitration:</strong> Binding arbitration in Nairobi, Kenya (NCIA rules)</li>
               </ol>
-              <p className="text-sm text-gray-600 mt-3">
+              <p className="text-sm text-muted-foreground mt-3">
                 These Terms are governed by the laws of Kenya. Jurisdiction: Nairobi, Kenya.
               </p>
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Changes to Terms</h2>
-              <p className="text-gray-700 leading-relaxed">
+              <h2 className="text-2xl font-semibold text-foreground mb-4">12. Changes to Terms</h2>
+              <p className="text-foreground leading-relaxed">
                 We reserve the right to modify these Terms at any time. Material changes will be communicated via email and in-app notification at least 30 days before taking effect. Continued use after changes constitutes acceptance.
               </p>
             </section>
   
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">13. Contact Information</h2>
-              <div className="bg-gray-50 rounded-lg p-6">
-                <p className="text-gray-700 mb-4">For questions about these Terms, contact us:</p>
-                <div className="space-y-2 text-sm text-gray-700">
-                  <p><strong>Legal Department:</strong> <a href="mailto:legal@ongeapesa.com" className="text-green-600 hover:underline">legal@ongeapesa.com</a></p>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">13. Contact Information</h2>
+              <div className="bg-muted/30 rounded-lg p-6">
+                <p className="text-foreground mb-4">For questions about these Terms, contact us:</p>
+                <div className="space-y-2 text-sm text-foreground">
+                  <p><strong>Legal Department:</strong> <a href="mailto:legal@ongeapesa.com" className="text-brand hover:underline">legal@ongeapesa.com</a></p>
                   <p><strong>Phone:</strong> +254 700 123 456</p>
                   <p><strong>Address:</strong> Ongea Pesa Ltd, PO Box 12345-00100, Nairobi, Kenya</p>
                 </div>

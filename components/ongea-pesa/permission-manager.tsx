@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Shield, Camera, ContactIcon as Contacts, Mic, MessageSquare, MapPin, Bell, Phone } from "lucide-react"
+import { Shield, Camera, ContactIcon as Contacts, Mic, MessageSquare, MapPin, Bell, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import MpesaSettingsDialog from "./mpesa-settings-dialog"
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from "@/components/providers/auth-provider"
+import { ScreenShell } from "@/components/foundation"
+import { cn } from "@/lib/utils"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -93,7 +94,7 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
 
   const checkMpesaNumber = async () => {
     if (!user?.id) return
-    
+
     try {
       const supabase = createClient()
       const { data: profile } = await supabase
@@ -121,153 +122,132 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
   }
 
   return (
-    <div className="min-h-screen p-4 pb-20">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">App Permissions</h1>
-        <p className="text-md text-gray-500 dark:text-gray-400 mt-2">Ongea Pesa needs access to some features to work correctly.</p>
-      </div>
+    <div className="min-h-[100dvh] bg-background surface-money pb-24">
+      <ScreenShell>
+        {/* Header */}
+        <div className="pt-6 mb-6 text-center">
+          <h1 className="text-xl font-semibold text-foreground tracking-tight">App Permissions</h1>
+          <p className="text-sm text-muted-foreground mt-1">Ongea Pesa needs access to some features to work correctly.</p>
+        </div>
 
-      {/* M-Pesa Settings Card */}
-      <Card className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Phone className="h-6 w-6 text-green-600 dark:text-green-400" />
-              <div>
-                <p className="font-semibold text-sm text-gray-900 dark:text-white">M-Pesa Number</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {mpesaNumber ? mpesaNumber : 'Not set - Click to add'}
-                </p>
-              </div>
-            </div>
-            <Button
-              size="sm"
-              onClick={() => setIsMpesaDialogOpen(true)}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              {mpesaNumber ? 'Change' : 'Set Now'}
-            </Button>
+        {/* M-Pesa Number setup */}
+        <div className="rounded-2xl border border-brand/20 bg-brand/5 px-4 py-3 mb-5 flex items-center gap-3">
+          <Phone className="h-5 w-5 text-brand shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">M-Pesa Number</p>
+            <p className="text-xs text-muted-foreground">{mpesaNumber ? mpesaNumber : 'Not set — tap to add'}</p>
           </div>
-        </CardContent>
-      </Card>
+          <Button
+            size="sm"
+            onClick={() => setIsMpesaDialogOpen(true)}
+            className="h-7 text-xs px-3 shrink-0"
+          >
+            {mpesaNumber ? 'Change' : 'Set Now'}
+          </Button>
+        </div>
 
-      {/* Permission Status */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="flex items-center space-x-3">
-            <Shield className="h-6 w-6 text-green-600" />
-            <div>
-              <p className="font-semibold text-sm">Privacy & Security</p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                All permissions can be managed through voice commands
-              </p>
-            </div>
+        {/* Privacy & Security banner */}
+        <div className="rounded-2xl border border-border/60 bg-card px-4 py-3 mb-5 flex items-center gap-3">
+          <Shield className="h-5 w-5 text-brand shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-foreground">Privacy & Security</p>
+            <p className="text-xs text-muted-foreground">All permissions can be managed through voice commands</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Permissions List */}
-      <div className="space-y-4">
-        {permissions.map((permission) => (
-          <Card key={permission.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 flex-1">
-                  <div
-                    className={`p-2 rounded-lg ${
-                      permission.enabled ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-800"
-                    }`}
-                  >
-                    <permission.icon
-                      className={`h-5 w-5 ${
-                        permission.enabled ? "text-green-600 dark:text-green-400" : "text-gray-400"
-                      }`}
-                    />
+        {/* Permissions list */}
+        <div className="mb-5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Permissions</p>
+          <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
+            {permissions.map((permission) => {
+              const Icon = permission.icon;
+              return (
+                <div key={permission.id} className="flex items-center gap-3 px-4 py-3">
+                  <div className={cn(
+                    "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                    permission.enabled ? "bg-brand/10" : "bg-muted"
+                  )}>
+                    <Icon className={cn("h-4 w-4", permission.enabled ? "text-brand" : "text-muted-foreground")} />
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold text-sm">{permission.name}</h3>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium text-foreground">{permission.name}</p>
                       {permission.required && (
-                        <span className="px-2 py-1 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs rounded-full">
-                          Required
-                        </span>
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive">Required</span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{permission.description}</p>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 italic">
-                      Voice: "{permission.voicePrompt}"
-                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{permission.description}</p>
+                    <p className="text-[10px] text-brand/70 italic mt-0.5">Voice: "{permission.voicePrompt}"</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => handleVoicePermission(permission)}
+                      className="h-7 w-7 rounded-lg flex items-center justify-center border border-border/60 hover:bg-muted transition-colors"
+                      aria-label="Voice command"
+                    >
+                      <Mic className="h-3 w-3 text-muted-foreground" />
+                    </button>
+                    <Switch
+                      checked={permission.enabled}
+                      onCheckedChange={() => togglePermission(permission.id)}
+                      disabled={permission.required}
+                    />
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleVoicePermission(permission)}
-                    className="text-xs"
-                  >
-                    <Mic className="h-3 w-3 mr-1" />
-                    Voice
-                  </Button>
-                  <Switch
-                    checked={permission.enabled}
-                    onCheckedChange={() => togglePermission(permission.id)}
-                    disabled={permission.required}
-                  />
-                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Voice commands help */}
+        <div className="mb-5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Voice Permission Commands</p>
+          <div className="space-y-2">
+            {[
+              { label: 'Grant Permission', example: '"Ongea Pesa, ruhusu kutumia [permission]"', color: 'brand' },
+              { label: 'Revoke Permission', example: '"Ongea Pesa, zuia kutumia [permission]"', color: 'destructive' },
+              { label: 'Check Status', example: '"Ongea Pesa, onyesha ruhusa zote"', color: 'blue' },
+            ].map((cmd) => (
+              <div key={cmd.label} className={cn(
+                "rounded-2xl border px-4 py-3",
+                cmd.color === 'brand' ? "border-brand/20 bg-brand/5" :
+                cmd.color === 'destructive' ? "border-destructive/20 bg-destructive/5" :
+                "border-blue-500/20 bg-blue-500/8"
+              )}>
+                <p className={cn(
+                  "text-sm font-semibold",
+                  cmd.color === 'brand' ? "text-brand" :
+                  cmd.color === 'destructive' ? "text-destructive" :
+                  "text-blue-600 dark:text-blue-400"
+                )}>{cmd.label}</p>
+                <p className="text-xs text-muted-foreground mt-1">{cmd.example}</p>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Voice Commands Help */}
-      <Card className="mt-6 mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Voice Permission Commands</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Grant Permission</p>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">"Ongea Pesa, ruhusu kutumia [permission]"</p>
-            </div>
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <p className="text-sm font-medium text-red-700 dark:text-red-300">Revoke Permission</p>
-              <p className="text-xs text-red-600 dark:text-red-400 mt-1">"Ongea Pesa, zuia kutumia [permission]"</p>
-            </div>
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <p className="text-sm font-medium text-green-700 dark:text-green-300">Check Status</p>
-              <p className="text-xs text-green-600 dark:text-green-400 mt-1">"Ongea Pesa, onyesha ruhusa zote"</p>
-            </div>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Privacy Notice */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Privacy Notice</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-            <p>• Voice commands are processed locally when possible</p>
-            <p>• Financial data is encrypted end-to-end</p>
-            <p>• Location data is only used for sharing features</p>
-            <p>• Contact access is limited to sending money</p>
-            <p>• You can revoke permissions anytime via voice</p>
+        {/* Privacy notice */}
+        <div className="mb-5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Privacy Notice</p>
+          <div className="rounded-2xl border border-border/60 bg-card px-4 py-3 space-y-1.5">
+            {[
+              'Voice commands are processed locally when possible',
+              'Financial data is encrypted end-to-end',
+              'Location data is only used for sharing features',
+              'Contact access is limited to sending money',
+              'You can revoke permissions anytime via voice',
+            ].map((notice) => (
+              <p key={notice} className="text-xs text-muted-foreground">• {notice}</p>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </ScreenShell>
 
-      {/* M-Pesa Settings Dialog */}
+      {/* M-Pesa Settings Dialog — untouched */}
       <MpesaSettingsDialog
         isOpen={isMpesaDialogOpen}
         onClose={() => setIsMpesaDialogOpen(false)}
-        onSave={() => {
-          checkMpesaNumber()
-        }}
+        onSave={() => { checkMpesaNumber() }}
       />
     </div>
   )

@@ -44,7 +44,7 @@ export default function ScheduledPayments() {
                 <div>
                   <p className="font-semibold">{payment.recipient}</p>
                   <p className="text-lg font-bold">{payment.amount}</p>
-                  <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-1">
                     <Calendar className="h-4 w-4" />
                     <span>Next run: {payment.nextRun}</span>
                   </div>

@@ -44,7 +44,7 @@ export default function SmartConfirmation({
   const getRiskColor = () => {
     switch (riskLevel) {
       case "low":
-        return "text-green-600 bg-green-50 dark:bg-green-900/20"
+        return "text-brand bg-brand/10"
       case "medium":
         return "text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20"
       case "high":
@@ -92,7 +92,7 @@ export default function SmartConfirmation({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
@@ -160,9 +160,9 @@ export default function SmartConfirmation({
 
           {/* Historical Data */}
           {historicalData && (
-            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="p-3 bg-muted/30 rounded-lg">
               <h4 className="font-medium text-sm mb-2">Transaction History</h4>
-              <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+              <div className="space-y-1 text-xs text-muted-foreground">
                 <p>Previous transactions: {historicalData.previousTransactions}</p>
                 <p>Last transaction: {historicalData.lastTransaction}</p>
                 <p>Average amount: {historicalData.averageAmount}</p>
@@ -178,7 +178,7 @@ export default function SmartConfirmation({
                 size="sm"
                 onClick={handleVoiceConfirm}
                 disabled={isListening}
-                className={`rounded-full ${isListening ? "bg-red-500 animate-pulse" : "bg-green-500"}`}
+                className={`rounded-full ${isListening ? "bg-red-500 animate-pulse" : "bg-brand"}`}
               >
                 <Mic className="h-3 w-3" />
               </Button>
@@ -190,7 +190,7 @@ export default function SmartConfirmation({
             </div>
 
             {voiceConfirmation && (
-              <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-sm text-green-700 dark:text-green-300">
+              <div className="p-2 bg-brand/10 rounded text-sm text-brand">
                 <Mic className="h-3 w-3 inline mr-1" />
                 You: "{voiceConfirmation}"
               </div>
@@ -198,7 +198,7 @@ export default function SmartConfirmation({
 
             {isListening && (
               <div className="text-center py-2">
-                <div className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400">
+                <div className="inline-flex items-center text-sm text-muted-foreground">
                   <div className="animate-pulse w-2 h-2 bg-red-500 rounded-full mr-2"></div>
                   Listening for confirmation...
                 </div>
@@ -213,7 +213,7 @@ export default function SmartConfirmation({
             </Button>
             <Button
               onClick={onConfirm}
-              className="flex-1 bg-green-500 hover:bg-green-600"
+              className="flex-1 bg-brand hover:bg-brand/90"
               disabled={riskLevel === "high" && !voiceConfirmation}
             >
               {riskLevel === "high" ? "Voice Confirm Required" : "Confirm Payment"}
@@ -221,9 +221,9 @@ export default function SmartConfirmation({
           </div>
 
           {/* Voice Commands Help */}
-          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Voice Responses:</p>
-            <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+          <div className="p-3 bg-muted/30 rounded-lg">
+            <p className="text-xs font-medium text-foreground mb-1">Voice Responses:</p>
+            <div className="space-y-1 text-xs text-muted-foreground">
               <p>• "Ndio, endelea" or "Yes, proceed" (Confirm)</p>
               <p>• "Hapana" or "No" (Cancel)</p>
               <p>• "Badilisha kiasi" (Change amount)</p>

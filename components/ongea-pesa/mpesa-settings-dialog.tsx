@@ -120,10 +120,10 @@ export default function MpesaSettingsDialog({ isOpen, onClose, onSave, required 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 relative">
+        <div className="bg-brand p-6 relative">
           {!required && (
             <button
               onClick={onClose}
@@ -161,21 +161,21 @@ export default function MpesaSettingsDialog({ isOpen, onClose, onSave, required 
 
           {/* Phone Number Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               M-Pesa Phone Number *
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
               <input
                 type="tel"
                 value={phone}
                 onChange={handlePhoneChange}
                 placeholder="0712345678"
-                className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                className="w-full pl-11 pr-4 py-3 border border-border/60 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent bg-card text-foreground"
                 required
               />
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Enter your Safaricom or Airtel M-Pesa number
             </p>
           </div>
@@ -189,8 +189,8 @@ export default function MpesaSettingsDialog({ isOpen, onClose, onSave, required 
 
           {/* Success Message */}
           {success && (
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-3">
-              <p className="text-sm text-green-700 dark:text-green-400">{success}</p>
+            <div className="bg-brand/5 border border-brand/20 rounded-xl p-3">
+              <p className="text-sm text-brand">{success}</p>
             </div>
           )}
 
@@ -198,7 +198,7 @@ export default function MpesaSettingsDialog({ isOpen, onClose, onSave, required 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-brand hover:bg-brand/90 active:scale-[0.97] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -214,9 +214,9 @@ export default function MpesaSettingsDialog({ isOpen, onClose, onSave, required 
           </button>
 
           {/* Supported Formats */}
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3">
-            <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Supported formats:</p>
-            <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+          <div className="bg-muted/30 rounded-xl p-3">
+            <p className="text-xs font-medium text-foreground mb-2">Supported formats:</p>
+            <div className="space-y-1 text-xs text-muted-foreground">
               <p>✓ 0712345678 (Safaricom)</p>
               <p>✓ 0112345678 (Airtel)</p>
               <p>✓ +254712345678 (International)</p>

@@ -120,12 +120,12 @@ export default function VoiceSessionsPage() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      active: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
+      active: "bg-brand/10 text-brand",
       completed: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
       expired: "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",
       error: "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400",
     }
-    return colors[status] || "bg-zinc-100 dark:bg-zinc-800 text-zinc-600"
+    return colors[status] || "bg-muted text-muted-foreground"
   }
 
   const formatDuration = (seconds: number | null | undefined) => {
@@ -160,20 +160,20 @@ export default function VoiceSessionsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Voice Sessions</h1>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400">Monitor ElevenLabs voice interaction sessions</p>
+            <h1 className="text-lg font-semibold text-foreground">Voice Sessions</h1>
+            <p className="text-xs text-muted-foreground">Monitor ElevenLabs voice interaction sessions</p>
           </div>
           <button
             onClick={fetchSessions}
             disabled={loading}
             className={cn(
               "p-2 rounded-lg",
-              "bg-zinc-100 dark:bg-zinc-800",
-              "hover:bg-zinc-200 dark:hover:bg-zinc-700",
+              "bg-muted",
+              "hover:bg-muted",
               "transition-colors duration-200"
             )}
           >
-            <RefreshCw className={cn("w-4 h-4 text-zinc-600 dark:text-zinc-400", loading && "animate-spin")} />
+            <RefreshCw className={cn("w-4 h-4 text-muted-foreground", loading && "animate-spin")} />
           </button>
         </div>
 
@@ -181,7 +181,7 @@ export default function VoiceSessionsPage() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
             { label: "Total Sessions", value: sessions.length, icon: Mic, color: "text-blue-600 dark:text-blue-400" },
-            { label: "Active Now", value: activeSessions, icon: Mic, color: "text-emerald-600 dark:text-emerald-400" },
+            { label: "Active Now", value: activeSessions, icon: Mic, color: "text-brand" },
             { label: "Completed", value: completedSessions, icon: CheckCircle, color: "text-blue-600 dark:text-blue-400" },
             { label: "Errors", value: errorSessions, icon: XCircle, color: "text-red-600 dark:text-red-400" },
             { label: "Total Duration", value: formatDuration(totalDuration), icon: Timer, color: "text-purple-600 dark:text-purple-400" },
@@ -191,18 +191,18 @@ export default function VoiceSessionsPage() {
               key={i}
               className={cn(
                 "p-3 rounded-xl",
-                "bg-white dark:bg-zinc-900/70",
-                "border border-zinc-100 dark:border-zinc-800",
+                "bg-card",
+                "border border-border/40",
                 "shadow-sm backdrop-blur-xl"
               )}
             >
               <div className="flex items-center gap-2">
-                <div className={cn("p-1.5 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
+                <div className={cn("p-1.5 rounded-lg", "bg-muted")}>
                   <stat.icon className={cn("w-3.5 h-3.5", stat.color)} />
                 </div>
                 <div>
                   <p className={cn("text-sm font-semibold", stat.color)}>{stat.value}</p>
-                  <p className="text-[10px] text-zinc-600 dark:text-zinc-400">{stat.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{stat.label}</p>
                 </div>
               </div>
             </div>
@@ -215,22 +215,22 @@ export default function VoiceSessionsPage() {
           <div
             className={cn(
               "rounded-xl overflow-hidden",
-              "bg-white dark:bg-zinc-900/70",
-              "border border-zinc-100 dark:border-zinc-800",
+              "bg-card",
+              "border border-border/40",
               "shadow-sm backdrop-blur-xl"
             )}
           >
-            <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="p-4 border-b border-border/40">
               <div className="flex items-center gap-2">
-                <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
+                <div className={cn("p-2 rounded-lg", "bg-muted")}>
                   <TrendingUp className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                 </div>
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Top Voice Users</h2>
+                <h2 className="text-sm font-semibold text-foreground">Top Voice Users</h2>
               </div>
             </div>
-            <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <div className="divide-y divide-border/40">
               {topUsers.length === 0 ? (
-                <div className="p-4 text-center text-xs text-zinc-500">No user data</div>
+                <div className="p-4 text-center text-xs text-muted-foreground">No user data</div>
               ) : (
                 topUsers.map((user, index) => (
                   <div 
@@ -240,23 +240,23 @@ export default function VoiceSessionsPage() {
                       "flex items-center gap-3 p-3 cursor-pointer transition-colors",
                       selectedUserId === user.user_id 
                         ? "bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-500" 
-                        : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                        : "hover:bg-muted/50"
                     )}
                   >
                     <div className={cn(
                       "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
                       index === 0 ? "bg-amber-100 text-amber-600" :
-                      index === 1 ? "bg-zinc-200 text-zinc-600" :
+                      index === 1 ? "bg-muted text-muted-foreground" :
                       index === 2 ? "bg-orange-100 text-orange-600" :
-                      "bg-zinc-100 text-zinc-500"
+                      "bg-muted text-muted-foreground"
                     )}>
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                      <p className="text-xs font-medium text-foreground truncate">
                         {user.email || user.user_id.slice(0, 12) + "..."}
                       </p>
-                      <p className="text-[10px] text-zinc-500">{user.session_count} sessions</p>
+                      <p className="text-[10px] text-muted-foreground">{user.session_count} sessions</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs font-mono text-purple-600 dark:text-purple-400">
@@ -273,16 +273,16 @@ export default function VoiceSessionsPage() {
           <div
             className={cn(
               "lg:col-span-2 rounded-xl overflow-hidden",
-              "bg-white dark:bg-zinc-900/70",
-              "border border-zinc-100 dark:border-zinc-800",
+              "bg-card",
+              "border border-border/40",
               "shadow-sm backdrop-blur-xl"
             )}
           >
-            <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between flex-wrap gap-2">
+            <div className="p-4 border-b border-border/40 flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                <h2 className="text-sm font-semibold text-foreground">
                   Session History
-                  <span className="text-xs font-normal text-zinc-600 dark:text-zinc-400 ml-1">
+                  <span className="text-xs font-normal text-muted-foreground ml-1">
                     ({filteredSessions.length} sessions)
                   </span>
                 </h2>
@@ -297,39 +297,39 @@ export default function VoiceSessionsPage() {
                 )}
               </div>
               <div className="relative w-48">
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 h-8 text-xs bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
+                  className="pl-8 h-8 text-xs bg-muted/30 border-border/60"
                 />
               </div>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
-                <thead className="sticky top-0 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+                <thead className="sticky top-0 bg-muted/30 border-b border-border/60">
                   <tr>
-                    <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400 w-10">#</th>
-                    <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Session ID</th>
-                    <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">User</th>
-                    <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Started</th>
-                    <th className="px-3 py-2 text-right font-semibold text-zinc-600 dark:text-zinc-400">Duration</th>
-                    <th className="px-3 py-2 text-center font-semibold text-zinc-600 dark:text-zinc-400">Status</th>
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground w-10">#</th>
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Session ID</th>
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground">User</th>
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Started</th>
+                    <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Duration</th>
+                    <th className="px-3 py-2 text-center font-semibold text-muted-foreground">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                <tbody className="divide-y divide-border/40">
                   {loading ? (
                     <tr>
                       <td colSpan={6} className="px-3 py-8 text-center">
-                        <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-zinc-400" />
-                        <p className="text-zinc-600 dark:text-zinc-400">Loading sessions...</p>
+                        <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-muted-foreground">Loading sessions...</p>
                       </td>
                     </tr>
                   ) : filteredSessions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-3 py-8 text-center text-zinc-500">
+                      <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
                         No voice sessions found
                       </td>
                     </tr>
@@ -337,18 +337,18 @@ export default function VoiceSessionsPage() {
                     filteredSessions.map((session, index) => (
                       <tr
                         key={session.id}
-                        className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                        className="hover:bg-muted/50 transition-colors"
                       >
-                        <td className="px-3 py-2 text-zinc-500 font-mono">{index + 1}</td>
+                        <td className="px-3 py-2 text-muted-foreground font-mono">{index + 1}</td>
                         <td className="px-3 py-2">
-                          <code className="text-[10px] font-mono bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-700 dark:text-zinc-300">
+                          <code className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">
                             {session.session_id?.slice(0, 16)}...
                           </code>
                         </td>
-                        <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
+                        <td className="px-3 py-2 text-foreground">
                           {session.profiles?.email || session.user_id?.slice(0, 12) + "..."}
                         </td>
-                        <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+                        <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
                           {new Date(session.created_at).toLocaleDateString("en-KE", {
                             month: "short",
                             day: "numeric",

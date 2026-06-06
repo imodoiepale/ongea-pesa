@@ -267,22 +267,22 @@ export default function RevenuePage() {
         {/* Header with Date Filter */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Revenue & Partnerships</h1>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400">Platform earnings, partnerships, and licensing</p>
+            <h1 className="text-lg font-semibold text-foreground">Revenue & Partnerships</h1>
+            <p className="text-xs text-muted-foreground">Platform earnings, partnerships, and licensing</p>
           </div>
           {/* Live Status Bar */}
         <div className={cn(
           "flex items-center justify-between px-4 py-2 rounded-xl",
-          "bg-emerald-50 dark:bg-emerald-900/20",
-          "border border-emerald-200 dark:border-emerald-800"
+          "bg-brand/5",
+          "border border-brand/20"
         )}>
           <div className="flex items-center gap-2 p-2">
-            <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-pulse" />
-            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Live Data</span>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400">• {getDateRangeLabel(dateRange)}</span>
+            <Activity className="w-4 h-4 text-brand animate-pulse" />
+            <span className="text-xs font-medium text-brand">Live Data</span>
+            <span className="text-[10px] text-brand">• {getDateRangeLabel(dateRange)}</span>
           </div>
           {lastUpdated && (
-            <div className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400">
+            <div className="flex items-center gap-1 text-[10px] text-brand">
               <Clock className="w-3 h-3" />
               Last updated: {lastUpdated.toLocaleTimeString("en-KE")}
             </div>
@@ -290,8 +290,8 @@ export default function RevenuePage() {
         </div>
           <div className="flex items-center gap-2">
             <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
-              <SelectTrigger className="w-[160px] bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
-                <Calendar className="w-3.5 h-3.5 mr-2 text-zinc-500" />
+              <SelectTrigger className="w-[160px] bg-muted/30 border-border/60">
+                <Calendar className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
                 <SelectValue placeholder="Date Range" />
               </SelectTrigger>
               <SelectContent>
@@ -309,12 +309,12 @@ export default function RevenuePage() {
               disabled={loading}
               className={cn(
                 "p-2 rounded-lg",
-                "bg-zinc-100 dark:bg-zinc-800",
-                "hover:bg-zinc-200 dark:hover:bg-zinc-700",
+                "bg-muted",
+                "hover:bg-muted",
                 "transition-colors duration-200"
               )}
             >
-              <RefreshCw className={cn("w-4 h-4 text-zinc-600 dark:text-zinc-400", loading && "animate-spin")} />
+              <RefreshCw className={cn("w-4 h-4 text-muted-foreground", loading && "animate-spin")} />
             </button>
           </div>
         </div>
@@ -323,21 +323,21 @@ export default function RevenuePage() {
         <div
           className={cn(
             "p-4 rounded-xl",
-            "bg-gradient-to-r from-emerald-500 to-emerald-600",
-            "border border-emerald-400/20",
+            "bg-brand",
+            "border border-brand/20",
             "shadow-lg"
           )}
         >
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-white">Total Platform Revenue ({getDateRangeLabel(dateRange)})</h3>
-              <p className="text-xs text-emerald-100">Transaction fees + Premium subscriptions + Partnership fees</p>
+              <p className="text-xs text-white/70">Transaction fees + Premium subscriptions + Partnership fees</p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-white">
                 {formatCurrency(stats.totalPlatformFees + totalPremiumRevenue + totalPartnershipRevenue)}
               </p>
-              <div className="flex items-center gap-1 text-emerald-100 text-xs justify-end">
+              <div className="flex items-center gap-1 text-white/70 text-xs justify-end">
                 <ArrowUpRight className="w-3 h-3" />
                 <span>{stats.totalTransactions} transactions</span>
               </div>
@@ -350,7 +350,7 @@ export default function RevenuePage() {
         {/* Revenue Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: "Platform Fees", value: formatCurrency(stats.totalPlatformFees), icon: DollarSign, color: "text-emerald-600 dark:text-emerald-400" },
+            { label: "Platform Fees", value: formatCurrency(stats.totalPlatformFees), icon: DollarSign, color: "text-brand" },
             { label: "Premium Revenue", value: formatCurrency(totalPremiumRevenue), icon: Crown, color: "text-amber-600 dark:text-amber-400" },
             { label: "Partnership Fees", value: formatCurrency(totalPartnershipRevenue), icon: Building2, color: "text-blue-600 dark:text-blue-400" },
             { label: "Total Monthly", value: formatCurrency(stats.totalPlatformFees + totalPremiumRevenue + totalPartnershipRevenue), icon: TrendingUp, color: "text-purple-600 dark:text-purple-400" },
@@ -359,18 +359,18 @@ export default function RevenuePage() {
               key={i}
               className={cn(
                 "p-4 rounded-xl",
-                "bg-white dark:bg-zinc-900/70",
-                "border border-zinc-100 dark:border-zinc-800",
+                "bg-card",
+                "border border-border/40",
                 "shadow-sm backdrop-blur-xl"
               )}
             >
               <div className="flex items-center gap-3">
-                <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
+                <div className={cn("p-2 rounded-lg", "bg-muted")}>
                   <stat.icon className={cn("w-4 h-4", stat.color)} />
                 </div>
                 <div>
                   <p className={cn("text-lg font-semibold", stat.color)}>{stat.value}</p>
-                  <p className="text-[11px] text-zinc-600 dark:text-zinc-400">{stat.label}</p>
+                  <p className="text-[11px] text-muted-foreground">{stat.label}</p>
                 </div>
               </div>
             </div>
@@ -383,17 +383,17 @@ export default function RevenuePage() {
           <div
             className={cn(
               "rounded-xl overflow-hidden",
-              "bg-white dark:bg-zinc-900/70",
-              "border border-zinc-100 dark:border-zinc-800",
+              "bg-card",
+              "border border-border/40",
               "shadow-sm backdrop-blur-xl"
             )}
           >
-            <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="p-4 border-b border-border/40">
               <div className="flex items-center gap-2">
-                <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
-                  <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <div className={cn("p-2 rounded-lg", "bg-muted")}>
+                  <TrendingUp className="w-4 h-4 text-brand" />
                 </div>
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Daily Revenue ({getDateRangeLabel(dateRange)})</h2>
+                <h2 className="text-sm font-semibold text-foreground">Daily Revenue ({getDateRangeLabel(dateRange)})</h2>
               </div>
             </div>
             <div className="p-4 h-[200px]">
@@ -426,17 +426,17 @@ export default function RevenuePage() {
           <div
             className={cn(
               "rounded-xl overflow-hidden",
-              "bg-white dark:bg-zinc-900/70",
-              "border border-zinc-100 dark:border-zinc-800",
+              "bg-card",
+              "border border-border/40",
               "shadow-sm backdrop-blur-xl"
             )}
           >
-            <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="p-4 border-b border-border/40">
               <div className="flex items-center gap-2">
-                <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
+                <div className={cn("p-2 rounded-lg", "bg-muted")}>
                   <CreditCard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Transaction Volume ({getDateRangeLabel(dateRange)})</h2>
+                <h2 className="text-sm font-semibold text-foreground">Transaction Volume ({getDateRangeLabel(dateRange)})</h2>
               </div>
             </div>
             <div className="p-4 h-[200px]">
@@ -469,54 +469,54 @@ export default function RevenuePage() {
           <div
             className={cn(
               "rounded-xl overflow-hidden",
-              "bg-white dark:bg-zinc-900/70",
-              "border border-zinc-100 dark:border-zinc-800",
+              "bg-card",
+              "border border-border/40",
               "shadow-sm backdrop-blur-xl"
             )}
           >
-            <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="p-4 border-b border-border/40">
               <div className="flex items-center gap-2">
-                <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
-                  <Percent className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <div className={cn("p-2 rounded-lg", "bg-muted")}>
+                  <Percent className="w-4 h-4 text-brand" />
                 </div>
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee Breakdown by Type</h2>
+                <h2 className="text-sm font-semibold text-foreground">Fee Breakdown by Type</h2>
               </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
-                <thead className="bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+                <thead className="bg-muted/30 border-b border-border/60">
                   <tr>
-                    <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">#</th>
-                    <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Type</th>
-                    <th className="px-3 py-2 text-right font-semibold text-zinc-600 dark:text-zinc-400">Count</th>
-                    <th className="px-3 py-2 text-right font-semibold text-zinc-600 dark:text-zinc-400">Volume</th>
-                    <th className="px-3 py-2 text-right font-semibold text-zinc-600 dark:text-zinc-400">Fees Earned</th>
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground">#</th>
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Type</th>
+                    <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Count</th>
+                    <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Volume</th>
+                    <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Fees Earned</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                <tbody className="divide-y divide-border/40">
                   {loading ? (
                     <tr>
                       <td colSpan={5} className="px-3 py-6 text-center">
-                        <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-1 text-zinc-400" />
-                        <p className="text-zinc-500">Loading...</p>
+                        <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-1 text-muted-foreground" />
+                        <p className="text-muted-foreground">Loading...</p>
                       </td>
                     </tr>
                   ) : breakdown.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-3 py-6 text-center text-zinc-500">No data</td>
+                      <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">No data</td>
                     </tr>
                   ) : (
                     breakdown.map((item, index) => (
-                      <tr key={item.type} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                        <td className="px-3 py-2 text-zinc-500 font-mono">{index + 1}</td>
+                      <tr key={item.type} className="hover:bg-muted/50">
+                        <td className="px-3 py-2 text-muted-foreground font-mono">{index + 1}</td>
                         <td className="px-3 py-2">
-                          <span className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px]">
+                          <span className="px-1.5 py-0.5 rounded bg-muted text-foreground text-[10px]">
                             {item.type}
                           </span>
                         </td>
-                        <td className="px-3 py-2 text-right font-mono text-zinc-700 dark:text-zinc-300">{item.count}</td>
-                        <td className="px-3 py-2 text-right font-mono text-zinc-700 dark:text-zinc-300">{formatCurrency(item.volume)}</td>
-                        <td className="px-3 py-2 text-right font-mono text-emerald-600 dark:text-emerald-400 font-medium">
+                        <td className="px-3 py-2 text-right font-mono text-foreground">{item.count}</td>
+                        <td className="px-3 py-2 text-right font-mono text-foreground">{formatCurrency(item.volume)}</td>
+                        <td className="px-3 py-2 text-right font-mono text-brand font-medium">
                           {formatCurrency(item.fees)}
                         </td>
                       </tr>
@@ -531,41 +531,41 @@ export default function RevenuePage() {
           <div
             className={cn(
               "rounded-xl overflow-hidden",
-              "bg-white dark:bg-zinc-900/70",
-              "border border-zinc-100 dark:border-zinc-800",
+              "bg-card",
+              "border border-border/40",
               "shadow-sm backdrop-blur-xl"
             )}
           >
-            <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="p-4 border-b border-border/40">
               <div className="flex items-center gap-2">
-                <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
+                <div className={cn("p-2 rounded-lg", "bg-muted")}>
                   <Landmark className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Bank & Mobile Money Partnerships</h2>
+                <h2 className="text-sm font-semibold text-foreground">Bank & Mobile Money Partnerships</h2>
               </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
-                <thead className="bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+                <thead className="bg-muted/30 border-b border-border/60">
                   <tr>
-                    <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">#</th>
-                    <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Partner</th>
-                    <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Type</th>
-                    <th className="px-3 py-2 text-center font-semibold text-zinc-600 dark:text-zinc-400">Status</th>
-                    <th className="px-3 py-2 text-right font-semibold text-zinc-600 dark:text-zinc-400">Monthly Fee</th>
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground">#</th>
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Partner</th>
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Type</th>
+                    <th className="px-3 py-2 text-center font-semibold text-muted-foreground">Status</th>
+                    <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Monthly Fee</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                <tbody className="divide-y divide-border/40">
                   {partnerships.map((partner, index) => (
-                    <tr key={partner.name} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                      <td className="px-3 py-2 text-zinc-500 font-mono">{index + 1}</td>
-                      <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-100">{partner.name}</td>
-                      <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">{partner.type}</td>
+                    <tr key={partner.name} className="hover:bg-muted/50">
+                      <td className="px-3 py-2 text-muted-foreground font-mono">{index + 1}</td>
+                      <td className="px-3 py-2 font-medium text-foreground">{partner.name}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{partner.type}</td>
                       <td className="px-3 py-2 text-center">
                         <span className={cn(
                           "px-1.5 py-0.5 rounded text-[10px] font-medium",
                           partner.status === "active"
-                            ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+                            ? "bg-brand/10 text-brand"
                             : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
                         )}>
                           {partner.status}
@@ -586,57 +586,57 @@ export default function RevenuePage() {
         <div
           className={cn(
             "rounded-xl overflow-hidden",
-            "bg-white dark:bg-zinc-900/70",
-            "border border-zinc-100 dark:border-zinc-800",
+            "bg-card",
+            "border border-border/40",
             "shadow-sm backdrop-blur-xl"
           )}
         >
-          <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+          <div className="p-4 border-b border-border/40">
             <div className="flex items-center gap-2">
-              <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
+              <div className={cn("p-2 rounded-lg", "bg-muted")}>
                 <Crown className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               </div>
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Premium Subscriptions & Licensing</h2>
+              <h2 className="text-sm font-semibold text-foreground">Premium Subscriptions & Licensing</h2>
             </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="sticky top-0 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+              <thead className="sticky top-0 bg-muted/30 border-b border-border/60">
                 <tr>
-                  <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">#</th>
-                  <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Tier</th>
-                  <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Features</th>
-                  <th className="px-3 py-2 text-right font-semibold text-zinc-600 dark:text-zinc-400">Users</th>
-                  <th className="px-3 py-2 text-right font-semibold text-zinc-600 dark:text-zinc-400">Monthly Fee</th>
-                  <th className="px-3 py-2 text-right font-semibold text-zinc-600 dark:text-zinc-400">Total Revenue</th>
+                  <th className="px-3 py-2 text-left font-semibold text-muted-foreground">#</th>
+                  <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Tier</th>
+                  <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Features</th>
+                  <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Users</th>
+                  <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Monthly Fee</th>
+                  <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Total Revenue</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              <tbody className="divide-y divide-border/40">
                 {premiumTiers.map((tier, index) => (
-                  <tr key={tier.tier} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                    <td className="px-3 py-2 text-zinc-500 font-mono">{index + 1}</td>
+                  <tr key={tier.tier} className="hover:bg-muted/50">
+                    <td className="px-3 py-2 text-muted-foreground font-mono">{index + 1}</td>
                     <td className="px-3 py-2">
                       <span className={cn(
                         "px-1.5 py-0.5 rounded text-[10px] font-medium",
                         tier.tier === "Enterprise" ? "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400" :
                         tier.tier === "Business" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" :
-                        tier.tier === "Pro" ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" :
-                        "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                        tier.tier === "Pro" ? "bg-brand/10 text-brand" :
+                        "bg-muted text-muted-foreground"
                       )}>
                         {tier.tier}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">{tier.features}</td>
-                    <td className="px-3 py-2 text-right font-mono text-zinc-700 dark:text-zinc-300">{tier.users}</td>
-                    <td className="px-3 py-2 text-right font-mono text-zinc-700 dark:text-zinc-300">{formatCurrency(tier.monthlyFee)}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{tier.features}</td>
+                    <td className="px-3 py-2 text-right font-mono text-foreground">{tier.users}</td>
+                    <td className="px-3 py-2 text-right font-mono text-foreground">{formatCurrency(tier.monthlyFee)}</td>
                     <td className="px-3 py-2 text-right font-mono text-amber-600 dark:text-amber-400 font-medium">
                       {formatCurrency(tier.users * tier.monthlyFee)}
                     </td>
                   </tr>
                 ))}
-                <tr className="bg-zinc-50 dark:bg-zinc-800/50 font-semibold">
-                  <td colSpan={3} className="px-3 py-2 text-zinc-900 dark:text-zinc-100">Total Premium Revenue</td>
-                  <td className="px-3 py-2 text-right font-mono text-zinc-700 dark:text-zinc-300">
+                <tr className="bg-muted/30/50 font-semibold">
+                  <td colSpan={3} className="px-3 py-2 text-foreground">Total Premium Revenue</td>
+                  <td className="px-3 py-2 text-right font-mono text-foreground">
                     {premiumTiers.reduce((sum, t) => sum + t.users, 0)}
                   </td>
                   <td className="px-3 py-2"></td>
@@ -653,21 +653,21 @@ export default function RevenuePage() {
         <div
           className={cn(
             "p-4 rounded-xl",
-            "bg-gradient-to-r from-emerald-500 to-emerald-600",
-            "border border-emerald-400/20",
+            "bg-brand",
+            "border border-brand/20",
             "shadow-sm"
           )}
         >
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-white">Total Platform Revenue (Monthly)</h3>
-              <p className="text-xs text-emerald-100">Transaction fees + Premium subscriptions + Partnership fees</p>
+              <p className="text-xs text-white/70">Transaction fees + Premium subscriptions + Partnership fees</p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-white">
                 {formatCurrency(stats.totalPlatformFees + totalPremiumRevenue + totalPartnershipRevenue)}
               </p>
-              <div className="flex items-center gap-1 text-emerald-100 text-xs">
+              <div className="flex items-center gap-1 text-white/70 text-xs">
                 <ArrowUpRight className="w-3 h-3" />
                 <span>+12.5% from last month</span>
               </div>

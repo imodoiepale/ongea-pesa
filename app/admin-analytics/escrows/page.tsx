@@ -112,14 +112,14 @@ export default function AdminEscrowsPage() {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      draft: "bg-zinc-100 text-zinc-600",
+      draft: "bg-muted text-muted-foreground",
       pending_funding: "bg-amber-100 text-amber-700",
       funded: "bg-blue-100 text-blue-700",
       in_progress: "bg-purple-100 text-purple-700",
       pending_release: "bg-orange-100 text-orange-700",
-      completed: "bg-emerald-100 text-emerald-700",
+      completed: "bg-brand/10 text-brand",
       disputed: "bg-red-100 text-red-700",
-      cancelled: "bg-zinc-100 text-zinc-600",
+      cancelled: "bg-muted text-muted-foreground",
     }
     return styles[status] || styles.draft
   }
@@ -154,11 +154,11 @@ export default function AdminEscrowsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Escrow Monitor</h1>
-            <p className="text-xs text-zinc-500">Monitor all escrow transactions in the system</p>
+            <h1 className="text-lg font-semibold text-foreground">Escrow Monitor</h1>
+            <p className="text-xs text-muted-foreground">Monitor all escrow transactions in the system</p>
           </div>
-          <button onClick={fetchAllEscrows} disabled={loading} className={cn("p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700")}>
-            <RefreshCw className={cn("w-4 h-4 text-zinc-600", loading && "animate-spin")} />
+          <button onClick={fetchAllEscrows} disabled={loading} className={cn("p-2 rounded-lg bg-muted hover:bg-muted/50")}>
+            <RefreshCw className={cn("w-4 h-4 text-muted-foreground", loading && "animate-spin")} />
           </button>
         </div>
 
@@ -166,21 +166,21 @@ export default function AdminEscrowsPage() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
             { label: "Total", value: escrows.length, icon: FileText, gradient: "from-slate-500 to-slate-600" },
-            { label: "Active", value: activeCount, icon: Zap, gradient: "from-emerald-500 to-emerald-600" },
+            { label: "Active", value: activeCount, icon: Zap, gradient: "from-brand to-brand" },
             { label: "Pending", value: pendingCount, icon: Clock, gradient: "from-amber-500 to-amber-600" },
             { label: "Completed", value: completedCount, icon: CheckCircle, gradient: "from-blue-500 to-blue-600" },
             { label: "Disputed", value: disputedCount, icon: AlertTriangle, gradient: "from-red-500 to-red-600" },
             { label: "Value", value: formatCurrency(totalValue), icon: Wallet, gradient: "from-purple-500 to-purple-600" },
           ].map((stat, i) => (
-            <div key={i} className="relative overflow-hidden p-3 rounded-xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
+            <div key={i} className="relative overflow-hidden p-3 rounded-xl bg-card border border-border/40 shadow-sm">
               <div className={cn("absolute top-0 right-0 w-12 h-12 -mr-4 -mt-4 rounded-full opacity-20 bg-gradient-to-br", stat.gradient)} />
               <div className="flex items-center gap-2 relative">
                 <div className={cn("p-1.5 rounded-lg bg-gradient-to-br shadow", stat.gradient)}>
                   <stat.icon className="w-3.5 h-3.5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{stat.value}</p>
-                  <p className="text-[10px] text-zinc-500">{stat.label}</p>
+                  <p className="text-sm font-bold text-foreground">{stat.value}</p>
+                  <p className="text-[10px] text-muted-foreground">{stat.label}</p>
                 </div>
               </div>
             </div>
@@ -189,9 +189,9 @@ export default function AdminEscrowsPage() {
 
         {/* Financial Summary - Compact */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
-            <p className="text-[10px] text-emerald-600 uppercase font-medium">Total Value</p>
-            <p className="text-lg font-bold text-emerald-700">{formatCurrency(totalValue)}</p>
+          <div className="p-3 rounded-xl bg-brand/5 border border-brand/20">
+            <p className="text-[10px] text-brand uppercase font-medium">Total Value</p>
+            <p className="text-lg font-bold text-brand">{formatCurrency(totalValue)}</p>
           </div>
           <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
             <p className="text-[10px] text-blue-600 uppercase font-medium">Funded</p>
@@ -206,10 +206,10 @@ export default function AdminEscrowsPage() {
         {/* Search & Filters */}
         <div className="flex flex-wrap gap-2">
           <div className="relative flex-1 min-w-[180px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-            <Input placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 h-9 text-sm bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 rounded-lg" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 h-9 text-sm bg-card border-border/60 rounded-lg" />
           </div>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 rounded-lg text-xs font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 rounded-lg text-xs font-medium bg-card border border-border/60">
             <option value="all">All Status</option>
             <option value="draft">Draft</option>
             <option value="pending_funding">Pending</option>
@@ -218,7 +218,7 @@ export default function AdminEscrowsPage() {
             <option value="completed">Completed</option>
             <option value="disputed">Disputed</option>
           </select>
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-3 py-2 rounded-lg text-xs font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-3 py-2 rounded-lg text-xs font-medium bg-card border border-border/60">
             <option value="all">All Types</option>
             <option value="two_party">Two Party</option>
             <option value="multi_party">Multi Party</option>
@@ -228,62 +228,62 @@ export default function AdminEscrowsPage() {
         </div>
 
         {/* Escrows Table */}
-        <div className="rounded-xl overflow-hidden bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
-          <div className="p-3 border-b border-zinc-100 dark:border-zinc-700/50">
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              All Escrows <span className="text-xs font-normal text-zinc-500 ml-1">({filteredEscrows.length})</span>
+        <div className="rounded-xl overflow-hidden bg-card border border-border/40 shadow-sm">
+          <div className="p-3 border-b border-border/40">
+            <h2 className="text-sm font-semibold text-foreground">
+              All Escrows <span className="text-xs font-normal text-muted-foreground ml-1">({filteredEscrows.length})</span>
             </h2>
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-16"><RefreshCw className="w-8 h-8 text-zinc-400 animate-spin" /></div>
+            <div className="flex items-center justify-center py-16"><RefreshCw className="w-8 h-8 text-muted-foreground animate-spin" /></div>
           ) : filteredEscrows.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center mx-auto mb-4"><Shield className="w-8 h-8 text-zinc-400" /></div>
-              <p className="text-zinc-500">No escrows found</p>
+              <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4"><Shield className="w-8 h-8 text-muted-foreground" /></div>
+              <p className="text-muted-foreground">No escrows found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-zinc-50 dark:bg-zinc-700/30">
+                <thead className="bg-muted/30">
                   <tr>
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-zinc-500 uppercase">Escrow</th>
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-zinc-500 uppercase">Creator</th>
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-zinc-500 uppercase">Type</th>
-                    <th className="px-5 py-4 text-right text-xs font-semibold text-zinc-500 uppercase">Amount</th>
-                    <th className="px-5 py-4 text-right text-xs font-semibold text-zinc-500 uppercase">Funded</th>
-                    <th className="px-5 py-4 text-center text-xs font-semibold text-zinc-500 uppercase">Status</th>
-                    <th className="px-5 py-4 text-center text-xs font-semibold text-zinc-500 uppercase">Security</th>
-                    <th className="px-5 py-4 text-center text-xs font-semibold text-zinc-500 uppercase">Created</th>
-                    <th className="px-5 py-4 text-center text-xs font-semibold text-zinc-500 uppercase">Actions</th>
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">Escrow</th>
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">Creator</th>
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">Type</th>
+                    <th className="px-5 py-4 text-right text-xs font-semibold text-muted-foreground uppercase">Amount</th>
+                    <th className="px-5 py-4 text-right text-xs font-semibold text-muted-foreground uppercase">Funded</th>
+                    <th className="px-5 py-4 text-center text-xs font-semibold text-muted-foreground uppercase">Status</th>
+                    <th className="px-5 py-4 text-center text-xs font-semibold text-muted-foreground uppercase">Security</th>
+                    <th className="px-5 py-4 text-center text-xs font-semibold text-muted-foreground uppercase">Created</th>
+                    <th className="px-5 py-4 text-center text-xs font-semibold text-muted-foreground uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-700/50">
+                <tbody className="divide-y divide-border/40">
                   {filteredEscrows.map((escrow) => (
-                    <tr key={escrow.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-700/20">
+                    <tr key={escrow.id} className="hover:bg-muted/50/50">
                       <td className="px-5 py-4">
                         <div>
-                          <p className="font-semibold text-zinc-900 dark:text-zinc-100">{escrow.title}</p>
-                          <p className="text-xs text-zinc-500 truncate max-w-[150px]">{escrow.id.slice(0, 8)}...</p>
+                          <p className="font-semibold text-foreground">{escrow.title}</p>
+                          <p className="text-xs text-muted-foreground truncate max-w-[150px]">{escrow.id.slice(0, 8)}...</p>
                         </div>
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-zinc-200 flex items-center justify-center"><User className="w-3.5 h-3.5 text-zinc-500" /></div>
+                          <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center"><User className="w-3.5 h-3.5 text-muted-foreground" /></div>
                           <div>
-                            <p className="text-xs font-medium text-zinc-700 truncate max-w-[120px]">{escrow.creator?.email || "Unknown"}</p>
-                            <p className="text-[10px] text-zinc-400">{escrow.creator?.phone_number || ""}</p>
+                            <p className="text-xs font-medium text-foreground truncate max-w-[120px]">{escrow.creator?.email || "Unknown"}</p>
+                            <p className="text-[10px] text-muted-foreground">{escrow.creator?.phone_number || ""}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-zinc-100 text-zinc-600 capitalize">{escrow.escrow_type.replace("_", " ")}</span>
+                        <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-muted text-muted-foreground capitalize">{escrow.escrow_type.replace("_", " ")}</span>
                       </td>
                       <td className="px-5 py-4 text-right">
-                        <span className="font-mono font-semibold text-zinc-900">{formatCurrency(escrow.total_amount)}</span>
+                        <span className="font-mono font-semibold text-foreground">{formatCurrency(escrow.total_amount)}</span>
                       </td>
                       <td className="px-5 py-4 text-right">
-                        <span className={cn("font-mono font-semibold", escrow.funded_amount > 0 ? "text-emerald-600" : "text-zinc-400")}>{formatCurrency(escrow.funded_amount)}</span>
+                        <span className={cn("font-mono font-semibold", escrow.funded_amount > 0 ? "text-brand" : "text-muted-foreground")}>{formatCurrency(escrow.funded_amount)}</span>
                       </td>
                       <td className="px-5 py-4 text-center">
                         <span className={cn("px-2.5 py-1 text-xs font-semibold rounded-full", getStatusBadge(escrow.status))}>{escrow.status.replace("_", " ")}</span>
@@ -296,10 +296,10 @@ export default function AdminEscrowsPage() {
                         </div>
                       </td>
                       <td className="px-5 py-4 text-center">
-                        <span className="text-xs text-zinc-500">{new Date(escrow.created_at).toLocaleDateString()}</span>
+                        <span className="text-xs text-muted-foreground">{new Date(escrow.created_at).toLocaleDateString()}</span>
                       </td>
                       <td className="px-5 py-4 text-center">
-                        <button onClick={() => { setSelectedEscrow(escrow); setShowDetailModal(true) }} className="p-2 hover:bg-zinc-100 rounded-lg"><Eye className="w-5 h-5 text-zinc-500" /></button>
+                        <button onClick={() => { setSelectedEscrow(escrow); setShowDetailModal(true) }} className="p-2 hover:bg-muted/50 rounded-lg"><Eye className="w-5 h-5 text-muted-foreground" /></button>
                       </td>
                     </tr>
                   ))}
@@ -312,7 +312,7 @@ export default function AdminEscrowsPage() {
         {/* Detail Modal */}
       {showDetailModal && selectedEscrow && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 shadow-2xl">
+          <div className="w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-card shadow-2xl">
             <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-slate-700 to-slate-900">
               <div>
                 <h2 className="text-xl font-bold text-white">{selectedEscrow.title}</h2>
@@ -327,58 +327,58 @@ export default function AdminEscrowsPage() {
             <div className="p-6 overflow-y-auto max-h-[70vh] space-y-5">
               <div className="grid grid-cols-4 gap-4">
                 {[
-                  { label: "Total", value: formatCurrency(selectedEscrow.total_amount), bg: "bg-zinc-50" },
-                  { label: "Funded", value: formatCurrency(selectedEscrow.funded_amount), bg: "bg-emerald-50" },
+                  { label: "Total", value: formatCurrency(selectedEscrow.total_amount), bg: "bg-muted/30" },
+                  { label: "Funded", value: formatCurrency(selectedEscrow.funded_amount), bg: "bg-brand/5" },
                   { label: "Released", value: formatCurrency(selectedEscrow.released_amount), bg: "bg-blue-50" },
                   { label: "Participants", value: selectedEscrow.participants?.length || 0, bg: "bg-purple-50" },
                 ].map((s, i) => (
                   <div key={i} className={cn("p-4 rounded-xl text-center", s.bg)}>
-                    <p className="text-xs text-zinc-600 mb-1">{s.label}</p>
-                    <p className="text-xl font-bold text-zinc-900">{s.value}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{s.label}</p>
+                    <p className="text-xl font-bold text-foreground">{s.value}</p>
                   </div>
                 ))}
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="p-4 bg-zinc-50 rounded-xl">
-                  <p className="text-zinc-500 mb-1">Escrow ID</p>
-                  <p className="font-mono text-zinc-900 text-xs">{selectedEscrow.id}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <p className="text-muted-foreground mb-1">Escrow ID</p>
+                  <p className="font-mono text-foreground text-xs">{selectedEscrow.id}</p>
                 </div>
-                <div className="p-4 bg-zinc-50 rounded-xl">
-                  <p className="text-zinc-500 mb-1">Creator</p>
-                  <p className="font-medium text-zinc-900">{selectedEscrow.creator?.email || "Unknown"}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <p className="text-muted-foreground mb-1">Creator</p>
+                  <p className="font-medium text-foreground">{selectedEscrow.creator?.email || "Unknown"}</p>
                 </div>
-                <div className="p-4 bg-zinc-50 rounded-xl">
-                  <p className="text-zinc-500 mb-1">Created</p>
-                  <p className="font-medium text-zinc-900">{new Date(selectedEscrow.created_at).toLocaleString()}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <p className="text-muted-foreground mb-1">Created</p>
+                  <p className="font-medium text-foreground">{new Date(selectedEscrow.created_at).toLocaleString()}</p>
                 </div>
-                <div className="p-4 bg-zinc-50 rounded-xl">
-                  <p className="text-zinc-500 mb-1">Fee</p>
-                  <p className="font-medium text-zinc-900">{selectedEscrow.fee_percentage}%</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <p className="text-muted-foreground mb-1">Fee</p>
+                  <p className="font-medium text-foreground">{selectedEscrow.fee_percentage}%</p>
                 </div>
               </div>
 
               {selectedEscrow.description && (
                 <div>
-                  <h4 className="text-sm font-semibold text-zinc-500 mb-2">Description</h4>
-                  <p className="text-sm text-zinc-700 bg-zinc-50 p-4 rounded-xl">{selectedEscrow.description}</p>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2">Description</h4>
+                  <p className="text-sm text-foreground bg-muted/30 p-4 rounded-xl">{selectedEscrow.description}</p>
                 </div>
               )}
 
               {selectedEscrow.participants && selectedEscrow.participants.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-zinc-500 mb-2">Participants ({selectedEscrow.participants.length})</h4>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2">Participants ({selectedEscrow.participants.length})</h4>
                   <div className="space-y-2">
                     {selectedEscrow.participants.map((p: any) => (
-                      <div key={p.id} className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl">
+                      <div key={p.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center"><User className="w-4 h-4 text-zinc-500" /></div>
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><User className="w-4 h-4 text-muted-foreground" /></div>
                           <div>
-                            <p className="text-sm font-medium text-zinc-900 capitalize">{p.role}</p>
-                            <p className="text-xs text-zinc-500">{p.phone_number}</p>
+                            <p className="text-sm font-medium text-foreground capitalize">{p.role}</p>
+                            <p className="text-xs text-muted-foreground">{p.phone_number}</p>
                           </div>
                         </div>
-                        <span className={cn("px-2 py-1 text-xs rounded-full font-medium", p.status === "accepted" ? "bg-emerald-100 text-emerald-700" : p.status === "exit_requested" ? "bg-amber-100 text-amber-700" : "bg-zinc-100 text-zinc-600")}>{p.status}</span>
+                        <span className={cn("px-2 py-1 text-xs rounded-full font-medium", p.status === "accepted" ? "bg-brand/10 text-brand" : p.status === "exit_requested" ? "bg-amber-100 text-amber-700" : "bg-muted text-muted-foreground")}>{p.status}</span>
                       </div>
                     ))}
                   </div>
@@ -387,14 +387,14 @@ export default function AdminEscrowsPage() {
 
               {selectedEscrow.milestones && selectedEscrow.milestones.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-zinc-500 mb-2">Milestones ({selectedEscrow.milestones.length})</h4>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2">Milestones ({selectedEscrow.milestones.length})</h4>
                   <div className="space-y-2">
                     {selectedEscrow.milestones.map((m: any, i: number) => (
-                      <div key={m.id} className="flex items-center gap-3 p-3 bg-zinc-50 rounded-xl">
-                        <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", m.status === "released" ? "bg-emerald-500 text-white" : "bg-zinc-200 text-zinc-600")}>{i + 1}</div>
-                        <div className="flex-1"><p className="text-sm font-medium text-zinc-900">{m.title}</p></div>
-                        <span className="text-sm font-mono text-zinc-600">{formatCurrency(m.amount)}</span>
-                        <span className={cn("px-2 py-1 text-xs rounded-full", m.status === "released" ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-600")}>{m.status}</span>
+                      <div key={m.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl">
+                        <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", m.status === "released" ? "bg-brand/50 text-white" : "bg-muted text-muted-foreground")}>{i + 1}</div>
+                        <div className="flex-1"><p className="text-sm font-medium text-foreground">{m.title}</p></div>
+                        <span className="text-sm font-mono text-muted-foreground">{formatCurrency(m.amount)}</span>
+                        <span className={cn("px-2 py-1 text-xs rounded-full", m.status === "released" ? "bg-brand/10 text-brand" : "bg-muted text-muted-foreground")}>{m.status}</span>
                       </div>
                     ))}
                   </div>
@@ -403,7 +403,7 @@ export default function AdminEscrowsPage() {
 
               {/* Security Features */}
               <div>
-                <h4 className="text-sm font-semibold text-zinc-500 mb-2">Security Features</h4>
+                <h4 className="text-sm font-semibold text-muted-foreground mb-2">Security Features</h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedEscrow.requires_multi_sig && (
                     <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 rounded-lg">
@@ -427,8 +427,8 @@ export default function AdminEscrowsPage() {
               </div>
             </div>
 
-            <div className="p-6 border-t bg-zinc-50">
-              <p className="text-xs text-zinc-500 text-center">Admin view only - No actions available</p>
+            <div className="p-6 border-t bg-muted/30">
+              <p className="text-xs text-muted-foreground text-center">Admin view only - No actions available</p>
             </div>
           </div>
         </div>

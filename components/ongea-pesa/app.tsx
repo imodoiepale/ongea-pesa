@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ThemeProvider } from "next-themes"
 import { UserProvider } from "@/contexts/UserContext"
 import { ElevenLabsProvider } from "@/contexts/ElevenLabsContext"
 import { Toaster } from "@/components/ui/toaster"
@@ -19,10 +18,18 @@ import MpesaSettingsDialog from "./mpesa-settings-dialog"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from '@/lib/supabase/client'
 import { Home, Mic, Users, ShieldCheck, Wallet } from "lucide-react"
-import Link from "next/link"
-import { cn } from "@/lib/utils"
+import { FluidNav } from "@/components/foundation"
+import type { FluidNavItem } from "@/components/foundation"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner"
+
+const mobileNavItems: FluidNavItem[] = [
+  { key: "dashboard", href: "/", icon: Home, label: "Home", isInternal: true },
+  { key: "voice", href: "/dashboard", icon: Mic, label: "Voice", isInternal: true },
+  { key: "chama", href: "/chama", icon: Users, label: "Chama" },
+  { key: "escrow", href: "/escrow", icon: ShieldCheck, label: "Escrow" },
+  { key: "transactions", href: "/transactions", icon: Wallet, label: "Wallet" },
+]
 
 export default function OngeaPesaApp() {
   const { user } = useAuth()
@@ -45,7 +52,7 @@ export default function OngeaPesaApp() {
 
   const checkMpesaNumber = async () => {
     if (!user?.id) return
-    
+
     try {
       setCheckingMpesa(true)
       const supabase = createClient()
@@ -70,7 +77,7 @@ export default function OngeaPesaApp() {
     return null
   }
 
-  const navigate = (screen: Screen) => setCurrentScreen(screen);
+  const navigate = (screen: Screen) => setCurrentScreen(screen)
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -97,76 +104,38 @@ export default function OngeaPesaApp() {
     }
   }
 
-  const mobileNavItems = [
-    { href: "/", icon: Home, label: "Home", isInternal: true, screen: "dashboard" as Screen },
-    { href: "/dashboard", icon: Mic, label: "Voice", isInternal: true, screen: "voice" as Screen },
-    { href: "/chama", icon: Users, label: "Chama", isInternal: false },
-    { href: "/escrow", icon: ShieldCheck, label: "Escrow", isInternal: false },
-    { href: "/transactions", icon: Wallet, label: "Wallet", isInternal: false },
-  ]
-
   return (
     <UserProvider>
       <ElevenLabsProvider>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <div className="min-h-screen pb-20 lg:pb-0 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-[#0A1A2A] dark:via-[#0F2027] dark:to-[#203A43] transition-all duration-500">
-            {renderScreen()}
-            {/* Hide global widget when on voice interface page to prevent overlap */}
-            {currentScreen !== "voice" && <GlobalVoiceWidget />}
-            <Toaster />
-            
-            {/* Global M-Pesa Settings Dialog - Shows when mpesa_number is not set */}
-            <MpesaSettingsDialog
-              isOpen={isMpesaDialogOpen}
-              onClose={() => setIsMpesaDialogOpen(false)}
-              onSave={() => {
-                setIsMpesaDialogOpen(false)
-                checkMpesaNumber()
-              }}
-              required={true}
-            />
+        <div className="min-h-[100dvh] pb-20 lg:pb-0 bg-background">
+          {renderScreen()}
+          {/* Hide global widget when on voice interface to prevent overlap */}
+          {currentScreen !== "voice" && <GlobalVoiceWidget />}
+          <Toaster />
 
-            {/* Mobile Bottom Navigation */}
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-lg border-t border-zinc-200 dark:border-zinc-800">
-              <div className="flex items-center justify-around h-16 px-2 max-w-md mx-auto">
-                {mobileNavItems.map((item) => {
-                  const isActive = item.isInternal 
-                    ? currentScreen === item.screen 
-                    : false
-                  
-                  if (item.isInternal) {
-                    return (
-                      <button
-                        key={item.label}
-                        onClick={() => navigate(item.screen!)}
-                        className={cn(
-                          "flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-all",
-                          isActive 
-                            ? "text-emerald-600 dark:text-emerald-400" 
-                            : "text-zinc-500 dark:text-zinc-400 active:scale-95"
-                        )}
-                      >
-                        <item.icon className={cn("w-5 h-5", isActive && "scale-110")} />
-                        <span className={cn("text-[10px] font-medium", isActive && "font-semibold")}>{item.label}</span>
-                      </button>
-                    )
-                  }
-                  
-                  return (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className="flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-all text-zinc-500 dark:text-zinc-400 active:scale-95"
-                    >
-                      <item.icon className="w-5 h-5" />
-                      <span className="text-[10px] font-medium">{item.label}</span>
-                    </Link>
-                  )
-                })}
-              </div>
-            </nav>
-          </div>
-        </ThemeProvider>
+          {/* Global M-Pesa Settings Dialog — auto-shown when mpesa_number is not set */}
+          <MpesaSettingsDialog
+            isOpen={isMpesaDialogOpen}
+            onClose={() => setIsMpesaDialogOpen(false)}
+            onSave={() => {
+              setIsMpesaDialogOpen(false)
+              checkMpesaNumber()
+            }}
+            required={true}
+          />
+
+          {/* Canonical bottom nav — replaces the former inline nav */}
+          <FluidNav
+            items={mobileNavItems}
+            activeKey={currentScreen}
+            onNavigate={(key) => {
+              // Only internal screens get state-switched; route screens fall through to Link
+              if (key === "dashboard" || key === "voice") {
+                navigate(key as Screen)
+              }
+            }}
+          />
+        </div>
       </ElevenLabsProvider>
     </UserProvider>
   )

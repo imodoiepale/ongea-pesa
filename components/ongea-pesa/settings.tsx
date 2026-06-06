@@ -1,43 +1,56 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { ScreenShell } from "@/components/foundation"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 
 export default function Settings() {
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Security</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="biometric-auth">Enable Biometric Authentication</Label>
-            <Switch id="biometric-auth" />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="two-factor-auth">Enable Two-Factor Authentication</Label>
-            <Switch id="two-factor-auth" defaultChecked />
-          </div>
-        </CardContent>
-      </Card>
+    <div className="min-h-[100dvh] bg-background surface-money pb-24">
+      <ScreenShell>
+        <div className="pt-6 mb-6">
+          <h1 className="text-xl font-semibold text-foreground tracking-tight">Settings</h1>
+          <p className="text-sm text-muted-foreground">Preferences & security</p>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Notifications</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="push-notifications">Enable Push Notifications</Label>
-            <Switch id="push-notifications" defaultChecked />
+        {/* Security */}
+        <div className="mb-5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Security</p>
+          <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
+            <div className="flex items-center justify-between px-4 py-3.5">
+              <Label htmlFor="biometric-auth" className="text-sm font-medium text-foreground cursor-pointer">
+                Biometric Authentication
+              </Label>
+              <Switch id="biometric-auth" />
+            </div>
+            <div className="flex items-center justify-between px-4 py-3.5">
+              <Label htmlFor="two-factor-auth" className="text-sm font-medium text-foreground cursor-pointer">
+                Two-Factor Authentication
+              </Label>
+              <Switch id="two-factor-auth" defaultChecked />
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="email-notifications">Enable Email Notifications</Label>
-            <Switch id="email-notifications" />
+        </div>
+
+        {/* Notifications */}
+        <div className="mb-5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Notifications</p>
+          <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
+            <div className="flex items-center justify-between px-4 py-3.5">
+              <Label htmlFor="push-notifications" className="text-sm font-medium text-foreground cursor-pointer">
+                Push Notifications
+              </Label>
+              <Switch id="push-notifications" defaultChecked />
+            </div>
+            <div className="flex items-center justify-between px-4 py-3.5">
+              <Label htmlFor="email-notifications" className="text-sm font-medium text-foreground cursor-pointer">
+                Email Notifications
+              </Label>
+              <Switch id="email-notifications" />
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </ScreenShell>
     </div>
-  );
+  )
 }

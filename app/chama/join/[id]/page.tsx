@@ -196,7 +196,7 @@ export default function JoinChamaPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-background surface-money flex items-center justify-center">
         <RefreshCw className="w-10 h-10 text-blue-500 animate-spin" />
       </div>
     )
@@ -204,13 +204,13 @@ export default function JoinChamaPage() {
 
   if (error && !chama) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      <div className="min-h-[100dvh] bg-background surface-money flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
           <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="w-10 h-10 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold text-zinc-900 mb-2">Invalid Invite Link</h1>
-          <p className="text-zinc-500 mb-6">{error}</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Invalid Invite Link</h1>
+          <p className="text-muted-foreground mb-6">{error}</p>
           <Link href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold">
             Go to Home
           </Link>
@@ -224,17 +224,17 @@ export default function JoinChamaPage() {
   const TypeIcon = getChamaTypeIcon(chama.chama_type || "savings")
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-blue-950">
+    <div className="min-h-[100dvh] bg-background surface-money dark:from-zinc-950 dark:via-zinc-900 dark:to-blue-950">
       {/* Header */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-card/80 border-b border-border/60">
         <div className="max-w-xl mx-auto px-4 py-4">
           <div className="flex items-center justify-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center shadow-sm">
               <Users className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Join Chama</h1>
-              <p className="text-[10px] text-zinc-500 -mt-0.5">Ongea Pesa</p>
+              <h1 className="text-lg font-bold text-brand">Join Chama</h1>
+              <p className="text-[10px] text-muted-foreground -mt-0.5">Ongea Pesa</p>
             </div>
           </div>
         </div>
@@ -244,8 +244,8 @@ export default function JoinChamaPage() {
         {/* Chama Info Card */}
         <div className={cn(
           "p-6 rounded-3xl mb-6",
-          "bg-white dark:bg-zinc-800/50",
-          "border border-zinc-100 dark:border-zinc-700/50",
+          "bg-card",
+          "border border-border/40",
           "shadow-xl"
         )}>
           <div className="flex items-center gap-4 mb-6">
@@ -258,33 +258,33 @@ export default function JoinChamaPage() {
               <TypeIcon className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{chama.name}</h2>
-              <p className="text-sm text-zinc-500 capitalize">{chama.chama_type || "savings"} group</p>
+              <h2 className="text-2xl font-bold text-foreground">{chama.name}</h2>
+              <p className="text-sm text-muted-foreground capitalize">{chama.chama_type || "savings"} group</p>
             </div>
           </div>
 
           {chama.description && (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6 p-4 bg-zinc-50 dark:bg-zinc-700/30 rounded-xl">
+            <p className="text-sm text-muted-foreground mb-6 p-4 bg-muted/30 rounded-xl">
               {chama.description}
             </p>
           )}
 
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="p-4 bg-zinc-50 dark:bg-zinc-700/30 rounded-xl text-center">
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
+            <div className="p-4 bg-muted/30 rounded-xl text-center">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                 {chama.chama_type === "fundraising" ? "Pledge your amount" : "Contribution"}
               </p>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+              <p className="text-xl font-bold text-foreground">
                 {chama.chama_type === "fundraising" ? "Flexible" : formatCurrency(chama.contribution_amount)}
               </p>
             </div>
-            <div className="p-4 bg-zinc-50 dark:bg-zinc-700/30 rounded-xl text-center">
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Frequency</p>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100 capitalize">{chama.collection_frequency}</p>
+            <div className="p-4 bg-muted/30 rounded-xl text-center">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Frequency</p>
+              <p className="text-xl font-bold text-foreground capitalize">{chama.collection_frequency}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-zinc-500">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="w-4 h-4" />
             <span>{chama.members?.length || 0} members</span>
             <span className="mx-2">•</span>
@@ -296,19 +296,19 @@ export default function JoinChamaPage() {
         {alreadyMember && (
           <div className={cn(
             "p-6 rounded-2xl mb-6",
-            "bg-emerald-50 dark:bg-emerald-900/20",
+            "bg-brand/5",
             "border border-emerald-200 dark:border-emerald-800"
           )}>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-brand flex items-center justify-center">
                 <Check className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-emerald-800 dark:text-emerald-200">You're already a member!</h3>
-                <p className="text-sm text-emerald-600 dark:text-emerald-400">You can access this chama from your dashboard</p>
+                <h3 className="font-semibold text-foreground">You're already a member!</h3>
+                <p className="text-sm text-muted-foreground">You can access this chama from your dashboard</p>
               </div>
             </div>
-            <Link href="/chama" className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-xl font-semibold">
+            <Link href="/chama" className="w-full flex items-center justify-center gap-2 py-3 bg-brand text-white rounded-xl font-semibold">
               Go to My Chamas <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
@@ -318,17 +318,17 @@ export default function JoinChamaPage() {
         {!alreadyMember && step === "info" && (
           <div className={cn(
             "p-6 rounded-2xl",
-            "bg-white dark:bg-zinc-800/50",
-            "border border-zinc-100 dark:border-zinc-700/50",
+            "bg-card",
+            "border border-border/40",
             "shadow-lg"
           )}>
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-6">Join this Chama</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-6">Join this Chama</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block">Your Name</label>
+                <label className="text-sm font-medium text-foreground mb-2 block">Your Name</label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     value={form.name}
                     onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
@@ -339,9 +339,9 @@ export default function JoinChamaPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block">M-Pesa Phone Number</label>
+                <label className="text-sm font-medium text-foreground mb-2 block">M-Pesa Phone Number</label>
                 <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     value={form.phone}
                     onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))}
@@ -352,9 +352,9 @@ export default function JoinChamaPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block">Email (optional)</label>
+                <label className="text-sm font-medium text-foreground mb-2 block">Email (optional)</label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     type="email"
                     value={form.email}
@@ -367,9 +367,9 @@ export default function JoinChamaPage() {
 
               {chama.chama_type === "fundraising" && (
                 <div>
-                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block">Your Pledge Amount (KES)</label>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Your Pledge Amount (KES)</label>
                   <div className="relative">
-                    <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                    <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       type="number"
                       value={form.pledge_amount}
@@ -378,7 +378,7 @@ export default function JoinChamaPage() {
                       className="pl-12 h-12"
                     />
                   </div>
-                  <p className="text-xs text-zinc-500 mt-2">This is the amount you commit to contribute</p>
+                  <p className="text-xs text-muted-foreground mt-2">This is the amount you commit to contribute</p>
                 </div>
               )}
 
@@ -394,10 +394,10 @@ export default function JoinChamaPage() {
                 disabled={joining || !form.name || !form.phone}
                 className={cn(
                   "w-full py-4 rounded-xl font-semibold text-lg",
-                  "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700",
-                  "text-white shadow-lg shadow-blue-500/30",
+                  "bg-brand hover:bg-brand/90 active:scale-[0.97]",
+                  "text-white shadow-lg shadow-brand/20",
                   "disabled:opacity-50 disabled:cursor-not-allowed",
-                  "flex items-center justify-center gap-2"
+                  "flex items-center justify-center gap-2 transition-all"
                 )}
               >
                 {joining ? (
@@ -414,16 +414,16 @@ export default function JoinChamaPage() {
         {step === "fund" && (
           <div className={cn(
             "p-6 rounded-2xl",
-            "bg-white dark:bg-zinc-800/50",
-            "border border-zinc-100 dark:border-zinc-700/50",
+            "bg-card",
+            "border border-border/40",
             "shadow-lg"
           )}>
             <div className="text-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-                <Check className="w-8 h-8 text-emerald-600" />
+              <div className="w-16 h-16 rounded-full bg-brand/10 flex items-center justify-center mx-auto mb-4">
+                <Check className="w-8 h-8 text-brand" />
               </div>
-              <h3 className="text-xl font-semibold text-zinc-900 mb-2">You're In! 🎉</h3>
-              <p className="text-zinc-500">Would you like to fund your pledge now?</p>
+              <h3 className="text-xl font-semibold text-foreground mb-2">You're In! 🎉</h3>
+              <p className="text-muted-foreground">Would you like to fund your pledge now?</p>
             </div>
 
             <div className="p-4 bg-purple-50 rounded-xl mb-6">
@@ -446,10 +446,10 @@ export default function JoinChamaPage() {
                 disabled={funding}
                 className={cn(
                   "w-full py-4 rounded-xl font-semibold",
-                  "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700",
-                  "text-white shadow-lg shadow-emerald-500/30",
+                  "bg-brand hover:bg-brand/90 active:scale-[0.97]",
+                  "text-white shadow-lg shadow-brand/20",
                   "disabled:opacity-50",
-                  "flex items-center justify-center gap-2"
+                  "flex items-center justify-center gap-2 transition-all"
                 )}
               >
                 {funding ? (
@@ -461,7 +461,7 @@ export default function JoinChamaPage() {
 
               <button
                 onClick={() => setStep("success")}
-                className="w-full py-3 text-zinc-600 hover:bg-zinc-100 rounded-xl font-medium"
+                className="w-full py-3 text-muted-foreground hover:bg-muted rounded-xl font-medium"
               >
                 Fund Later
               </button>
@@ -473,27 +473,27 @@ export default function JoinChamaPage() {
         {step === "success" && (
           <div className={cn(
             "p-8 rounded-2xl text-center",
-            "bg-white dark:bg-zinc-800/50",
-            "border border-zinc-100 dark:border-zinc-700/50",
+            "bg-card",
+            "border border-border/40",
             "shadow-lg"
           )}>
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/30">
+            <div className="w-20 h-20 rounded-full bg-brand flex items-center justify-center mx-auto mb-6 shadow-lg shadow-brand/25">
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
-            <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Welcome to {chama.name}!</h3>
-            <p className="text-zinc-500 mb-8">You've successfully joined the chama. You'll receive notifications for upcoming collections.</p>
+            <h3 className="text-2xl font-bold text-foreground mb-2">Welcome to {chama.name}!</h3>
+            <p className="text-muted-foreground mb-8">You've successfully joined the chama. You'll receive notifications for upcoming collections.</p>
 
             <div className="space-y-3">
               {user ? (
-                <Link href="/chama" className="block w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold">
+                <Link href="/chama" className="block w-full py-4 bg-brand hover:bg-brand/90 active:scale-[0.97] text-white rounded-xl font-semibold text-center transition-all">
                   Go to My Chamas
                 </Link>
               ) : (
                 <>
-                  <Link href="/login" className="block w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold">
+                  <Link href="/login" className="block w-full py-4 bg-brand hover:bg-brand/90 active:scale-[0.97] text-white rounded-xl font-semibold text-center transition-all">
                     Create Account to Manage
                   </Link>
-                  <p className="text-xs text-zinc-500">Create an account to view and manage your chama membership</p>
+                  <p className="text-xs text-muted-foreground">Create an account to view and manage your chama membership</p>
                 </>
               )}
             </div>
@@ -501,7 +501,7 @@ export default function JoinChamaPage() {
         )}
 
         {/* Security Note */}
-        <div className="mt-6 flex items-center justify-center gap-2 text-xs text-zinc-500">
+        <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <Shield className="w-4 h-4" />
           <span>Secured by Ongea Pesa</span>
         </div>
