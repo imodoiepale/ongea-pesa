@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
-import { ArrowLeft, Plus, Trash2, Send, Loader2, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { ArrowLeft, Plus, Trash2, Send, Loader2, CheckCircle2, XCircle, AlertTriangle, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -16,6 +16,8 @@ import { useElevenLabs } from '@/contexts/ElevenLabsContext'
 import { ScreenShell } from '@/components/foundation'
 import { cn } from '@/lib/utils'
 import type { BatchItem, BatchResponse, BatchResult } from '@/lib/batch-payments'
+import type { SearchableContact } from '@/hooks/use-contact-search'
+import { buildFuseIndex, searchContacts } from '@/lib/contact-search'
 
 type Screen = 'dashboard' | 'voice' | 'send' | 'camera' | 'recurring' | 'analytics' | 'test' | 'permissions' | 'scanner' | 'batch'
 
@@ -57,6 +59,39 @@ const BILL_TYPES = ['KPLC', 'NHIF', 'NSSF', 'KRA', 'NWSC', 'Nairobi Water', 'GOt
 export default function BatchSend({ onNavigate, initialPayments, initialResults }: BatchSendProps) {
   const { registerToolHandlers, unregisterToolHandlers } = useElevenLabs()
   const { toast } = useToast()
+
+  // Fetch personal + app contacts for name search
+  const [allContacts, setAllContacts] = useState<SearchableContact[]>([])
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/contacts/personal').then(r => r.ok ? r.json() : { contacts: [] }),
+      fetch('/api/contacts').then(r => r.ok ? r.json() : { contacts: [] }),
+    ]).then(([personal, app]) => {
+      // Merge personal + app contacts into a flat SearchableContact[]
+      const merged: SearchableContact[] = [
+        ...(personal.contacts ?? []).map((c: any) => ({
+          id: c.id,
+          display_name: c.display_name,
+          phone: c.phone,
+          normalized_phone: c.normalized_phone,
+          source: 'personal' as const,
+          has_account: false,
+          avatar: (c.display_name || 'U').substring(0, 2).toUpperCase(),
+        })),
+        ...(app.contacts ?? []).map((c: any) => ({
+          id: c.id ?? null,
+          display_name: c.name ?? '',
+          phone: c.phone ?? '',
+          normalized_phone: '',
+          source: 'app' as const,
+          has_account: c.has_account ?? false,
+          gate_name: c.gate_name,
+          avatar: c.avatar ?? (c.name || 'U').substring(0, 2).toUpperCase(),
+        })),
+      ]
+      setAllContacts(merged)
+    }).catch(() => {})
+  }, [])
 
   const [items, setItems] = useState<LineItem[]>(() => {
     if (initialPayments && initialPayments.length > 0) {
@@ -300,6 +335,7 @@ export default function BatchSend({ onNavigate, initialPayments, initialResults 
               onRemove={removeItem}
               canRemove={items.length > 1}
               disabled={isSending}
+              allContacts={allContacts}
             />
           ))}
         </div>
@@ -398,10 +434,26 @@ interface LineItemRowProps {
   onRemove: (id: number) => void
   canRemove: boolean
   disabled: boolean
+  allContacts: SearchableContact[]
 }
 
-function LineItemRow({ item, index, onUpdate, onRemove, canRemove, disabled }: LineItemRowProps) {
+function LineItemRow({ item, index, onUpdate, onRemove, canRemove, disabled, allContacts }: LineItemRowProps) {
   const up = (patch: Partial<LineItem>) => onUpdate(item.id, patch)
+
+  // Local name-search state (only used for phone rows)
+  const [nameQuery, setNameQuery] = useState('')
+  const fuseRef = useRef<ReturnType<typeof buildFuseIndex> | null>(null)
+  const phoneContacts = useMemo(() =>
+    allContacts.filter(c => c.phone),
+    [allContacts]
+  )
+  useEffect(() => {
+    fuseRef.current = buildFuseIndex(phoneContacts)
+  }, [phoneContacts])
+  const nameResults = useMemo(() => {
+    if (!nameQuery.trim()) return []
+    return searchContacts(nameQuery, phoneContacts, fuseRef.current ?? undefined).slice(0, 5)
+  }, [nameQuery, phoneContacts])
 
   const statusIcon =
     item.status === 'success' ? <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> :
@@ -445,13 +497,56 @@ function LineItemRow({ item, index, onUpdate, onRemove, canRemove, disabled }: L
       {/* Destination fields */}
       <div className="grid grid-cols-2 gap-2">
         {item.kind === 'phone' && (
-          <Input
-            placeholder="07XXXXXXXX"
-            value={item.phone}
-            onChange={e => up({ phone: e.target.value })}
-            disabled={disabled}
-            className="h-8 text-sm col-span-2"
-          />
+          <>
+            {/* Name search — shows dropdown with fuzzy matches */}
+            <div className="col-span-2 relative">
+              <div className="flex items-center gap-1.5 h-8 px-2 rounded-md border border-border/60 bg-background text-sm">
+                <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <input
+                  placeholder="Search name to fill number…"
+                  value={nameQuery}
+                  onChange={e => setNameQuery(e.target.value)}
+                  disabled={disabled}
+                  className="flex-1 bg-transparent border-none outline-none text-xs placeholder:text-muted-foreground/60"
+                />
+                {nameQuery && (
+                  <button onClick={() => setNameQuery('')} className="text-muted-foreground hover:text-foreground">
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+              {/* Dropdown */}
+              {nameResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border border-border/60 bg-popover shadow-md divide-y divide-border/30 overflow-hidden">
+                  {nameResults.map((c, i) => (
+                    <button
+                      key={c.id ?? i}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-muted/60 transition-colors"
+                      onMouseDown={e => e.preventDefault()} // keep input focus
+                      onClick={() => {
+                        up({ phone: c.phone, recipientName: c.display_name })
+                        setNameQuery('')
+                      }}
+                    >
+                      <span className="w-6 h-6 rounded-md bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">{c.avatar}</span>
+                      <span className="flex-1 min-w-0">
+                        <span className="text-xs font-medium text-foreground truncate block">{c.display_name}</span>
+                        <span className="text-[10px] text-muted-foreground">{c.phone}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Input
+              placeholder="07XXXXXXXX"
+              value={item.phone}
+              onChange={e => up({ phone: e.target.value })}
+              disabled={disabled}
+              className="h-8 text-sm col-span-2"
+            />
+          </>
         )}
         {item.kind === 'till' && (
           <Input

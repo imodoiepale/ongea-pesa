@@ -59,6 +59,7 @@
     "date-fns": "^3.6.0",
     "elevenlabs": "^0.6.0",
     "embla-carousel-react": "8.5.1",
+    "fuse.js": "^7.4.2",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
     "mime": "^4.0.4",
