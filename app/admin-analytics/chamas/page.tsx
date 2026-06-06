@@ -110,10 +110,10 @@ export default function AdminChamasPage() {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      active: "bg-emerald-100 text-emerald-700",
+      active: "bg-brand/10 text-brand",
       paused: "bg-amber-100 text-amber-700",
       completed: "bg-blue-100 text-blue-700",
-      cancelled: "bg-zinc-100 text-zinc-600",
+      cancelled: "bg-muted text-muted-foreground",
     }
     return styles[status] || styles.active
   }
@@ -150,11 +150,11 @@ export default function AdminChamasPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Chama Monitor</h1>
-            <p className="text-xs text-zinc-500">Monitor all chama groups in the system</p>
+            <h1 className="text-lg font-semibold text-foreground">Chama Monitor</h1>
+            <p className="text-xs text-muted-foreground">Monitor all chama groups in the system</p>
           </div>
-          <button onClick={fetchAllChamas} disabled={loading} className={cn("p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700")}>
-            <RefreshCw className={cn("w-4 h-4 text-zinc-600", loading && "animate-spin")} />
+          <button onClick={fetchAllChamas} disabled={loading} className={cn("p-2 rounded-lg bg-muted hover:bg-muted/50")}>
+            <RefreshCw className={cn("w-4 h-4 text-muted-foreground", loading && "animate-spin")} />
           </button>
         </div>
 
@@ -162,21 +162,21 @@ export default function AdminChamasPage() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
             { label: "Total", value: chamas.length, icon: Users, gradient: "from-slate-500 to-slate-600" },
-            { label: "Active", value: activeCount, icon: Zap, gradient: "from-emerald-500 to-emerald-600" },
+            { label: "Active", value: activeCount, icon: Zap, gradient: "from-brand to-brand" },
             { label: "Paused", value: pausedCount, icon: Clock, gradient: "from-amber-500 to-amber-600" },
             { label: "Completed", value: completedCount, icon: CheckCircle, gradient: "from-blue-500 to-blue-600" },
             { label: "Members", value: totalMembers, icon: User, gradient: "from-purple-500 to-purple-600" },
             { label: "Collected", value: formatCurrency(totalCollected), icon: Wallet, gradient: "from-teal-500 to-teal-600" },
           ].map((stat, i) => (
-            <div key={i} className="relative overflow-hidden p-3 rounded-xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
+            <div key={i} className="relative overflow-hidden p-3 rounded-xl bg-card border border-border/40 shadow-sm">
               <div className={cn("absolute top-0 right-0 w-12 h-12 -mr-4 -mt-4 rounded-full opacity-20 bg-gradient-to-br", stat.gradient)} />
               <div className="flex items-center gap-2 relative">
                 <div className={cn("p-1.5 rounded-lg bg-gradient-to-br shadow", stat.gradient)}>
                   <stat.icon className="w-3.5 h-3.5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{stat.value}</p>
-                  <p className="text-[10px] text-zinc-500">{stat.label}</p>
+                  <p className="text-sm font-bold text-foreground">{stat.value}</p>
+                  <p className="text-[10px] text-muted-foreground">{stat.label}</p>
                 </div>
               </div>
             </div>
@@ -189,9 +189,9 @@ export default function AdminChamasPage() {
             <p className="text-[10px] text-blue-600 uppercase font-medium">Collected</p>
             <p className="text-lg font-bold text-blue-700">{formatCurrency(totalCollected)}</p>
           </div>
-          <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
-            <p className="text-[10px] text-emerald-600 uppercase font-medium">Distributed</p>
-            <p className="text-lg font-bold text-emerald-700">{formatCurrency(totalDistributed)}</p>
+          <div className="p-3 rounded-xl bg-brand/5 border border-brand/20">
+            <p className="text-[10px] text-brand uppercase font-medium">Distributed</p>
+            <p className="text-lg font-bold text-brand">{formatCurrency(totalDistributed)}</p>
           </div>
           <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
             <p className="text-[10px] text-purple-600 uppercase font-medium">Pending</p>
@@ -202,16 +202,16 @@ export default function AdminChamasPage() {
         {/* Search & Filters */}
         <div className="flex flex-wrap gap-2">
           <div className="relative flex-1 min-w-[180px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-            <Input placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 h-9 text-sm bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 rounded-lg" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 h-9 text-sm bg-card border-border/60 rounded-lg" />
           </div>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 rounded-lg text-xs font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 rounded-lg text-xs font-medium bg-card border border-border/60">
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="paused">Paused</option>
             <option value="completed">Completed</option>
           </select>
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-3 py-2 rounded-lg text-xs font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-3 py-2 rounded-lg text-xs font-medium bg-card border border-border/60">
             <option value="all">All Types</option>
             <option value="savings">Savings</option>
             <option value="collection">Collection</option>
@@ -220,78 +220,78 @@ export default function AdminChamasPage() {
         </div>
 
         {/* Chamas Table */}
-        <div className="rounded-xl overflow-hidden bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 shadow-sm">
-          <div className="p-3 border-b border-zinc-100 dark:border-zinc-700/50">
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              All Chamas <span className="text-xs font-normal text-zinc-500 ml-1">({filteredChamas.length})</span>
+        <div className="rounded-xl overflow-hidden bg-card border border-border/40 shadow-sm">
+          <div className="p-3 border-b border-border/40">
+            <h2 className="text-sm font-semibold text-foreground">
+              All Chamas <span className="text-xs font-normal text-muted-foreground ml-1">({filteredChamas.length})</span>
             </h2>
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-16"><RefreshCw className="w-8 h-8 text-zinc-400 animate-spin" /></div>
+            <div className="flex items-center justify-center py-16"><RefreshCw className="w-8 h-8 text-muted-foreground animate-spin" /></div>
           ) : filteredChamas.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center mx-auto mb-4"><Users className="w-8 h-8 text-zinc-400" /></div>
-              <p className="text-zinc-500">No chamas found</p>
+              <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4"><Users className="w-8 h-8 text-muted-foreground" /></div>
+              <p className="text-muted-foreground">No chamas found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-zinc-50 dark:bg-zinc-700/30">
+                <thead className="bg-muted/30">
                   <tr>
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-zinc-500 uppercase">Chama</th>
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-zinc-500 uppercase">Creator</th>
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-zinc-500 uppercase">Type</th>
-                    <th className="px-5 py-4 text-center text-xs font-semibold text-zinc-500 uppercase">Members</th>
-                    <th className="px-5 py-4 text-right text-xs font-semibold text-zinc-500 uppercase">Contribution</th>
-                    <th className="px-5 py-4 text-right text-xs font-semibold text-zinc-500 uppercase">Collected</th>
-                    <th className="px-5 py-4 text-center text-xs font-semibold text-zinc-500 uppercase">Cycle</th>
-                    <th className="px-5 py-4 text-center text-xs font-semibold text-zinc-500 uppercase">Status</th>
-                    <th className="px-5 py-4 text-center text-xs font-semibold text-zinc-500 uppercase">Actions</th>
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">Chama</th>
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">Creator</th>
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">Type</th>
+                    <th className="px-5 py-4 text-center text-xs font-semibold text-muted-foreground uppercase">Members</th>
+                    <th className="px-5 py-4 text-right text-xs font-semibold text-muted-foreground uppercase">Contribution</th>
+                    <th className="px-5 py-4 text-right text-xs font-semibold text-muted-foreground uppercase">Collected</th>
+                    <th className="px-5 py-4 text-center text-xs font-semibold text-muted-foreground uppercase">Cycle</th>
+                    <th className="px-5 py-4 text-center text-xs font-semibold text-muted-foreground uppercase">Status</th>
+                    <th className="px-5 py-4 text-center text-xs font-semibold text-muted-foreground uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-700/50">
+                <tbody className="divide-y divide-border/40">
                   {filteredChamas.map((chama) => {
                     const TypeIcon = getChamaTypeIcon(chama.chama_type || "savings")
                     return (
-                      <tr key={chama.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-700/20">
+                      <tr key={chama.id} className="hover:bg-muted/50/50">
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", chama.chama_type === "fundraising" ? "bg-purple-100" : chama.chama_type === "collection" ? "bg-blue-100" : "bg-emerald-100")}>
-                              <TypeIcon className={cn("w-5 h-5", chama.chama_type === "fundraising" ? "text-purple-600" : chama.chama_type === "collection" ? "text-blue-600" : "text-emerald-600")} />
+                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", chama.chama_type === "fundraising" ? "bg-purple-100" : chama.chama_type === "collection" ? "bg-blue-100" : "bg-brand/10")}>
+                              <TypeIcon className={cn("w-5 h-5", chama.chama_type === "fundraising" ? "text-purple-600" : chama.chama_type === "collection" ? "text-blue-600" : "text-brand")} />
                             </div>
                             <div>
-                              <p className="font-semibold text-zinc-900 dark:text-zinc-100">{chama.name}</p>
-                              <p className="text-xs text-zinc-500 truncate max-w-[120px]">{chama.id.slice(0, 8)}...</p>
+                              <p className="font-semibold text-foreground">{chama.name}</p>
+                              <p className="text-xs text-muted-foreground truncate max-w-[120px]">{chama.id.slice(0, 8)}...</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-5 py-4">
                           <div>
-                            <p className="text-xs font-medium text-zinc-700 truncate max-w-[120px]">{chama.creator?.email || "Unknown"}</p>
-                            <p className="text-[10px] text-zinc-400">{chama.creator?.phone_number || ""}</p>
+                            <p className="text-xs font-medium text-foreground truncate max-w-[120px]">{chama.creator?.email || "Unknown"}</p>
+                            <p className="text-[10px] text-muted-foreground">{chama.creator?.phone_number || ""}</p>
                           </div>
                         </td>
                         <td className="px-5 py-4">
-                          <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-zinc-100 text-zinc-600 capitalize">{chama.chama_type || "savings"}</span>
+                          <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-muted text-muted-foreground capitalize">{chama.chama_type || "savings"}</span>
                         </td>
                         <td className="px-5 py-4 text-center">
-                          <span className="font-semibold text-zinc-900">{chama.members?.length || 0}</span>
+                          <span className="font-semibold text-foreground">{chama.members?.length || 0}</span>
                         </td>
                         <td className="px-5 py-4 text-right">
-                          <span className="font-mono font-semibold text-zinc-900">{formatCurrency(chama.contribution_amount)}</span>
+                          <span className="font-mono font-semibold text-foreground">{formatCurrency(chama.contribution_amount)}</span>
                         </td>
                         <td className="px-5 py-4 text-right">
-                          <span className={cn("font-mono font-semibold", chama.total_collected > 0 ? "text-emerald-600" : "text-zinc-400")}>{formatCurrency(chama.total_collected)}</span>
+                          <span className={cn("font-mono font-semibold", chama.total_collected > 0 ? "text-brand" : "text-muted-foreground")}>{formatCurrency(chama.total_collected)}</span>
                         </td>
                         <td className="px-5 py-4 text-center">
-                          <span className="text-sm font-medium text-zinc-600">{chama.current_cycle}</span>
+                          <span className="text-sm font-medium text-muted-foreground">{chama.current_cycle}</span>
                         </td>
                         <td className="px-5 py-4 text-center">
                           <span className={cn("px-2.5 py-1 text-xs font-semibold rounded-full", getStatusBadge(chama.status))}>{chama.status}</span>
                         </td>
                         <td className="px-5 py-4 text-center">
-                          <button onClick={() => { setSelectedChama(chama); setShowDetailModal(true) }} className="p-2 hover:bg-zinc-100 rounded-lg"><Eye className="w-5 h-5 text-zinc-500" /></button>
+                          <button onClick={() => { setSelectedChama(chama); setShowDetailModal(true) }} className="p-2 hover:bg-muted/50 rounded-lg"><Eye className="w-5 h-5 text-muted-foreground" /></button>
                         </td>
                       </tr>
                     )
@@ -305,8 +305,8 @@ export default function AdminChamasPage() {
         {/* Detail Modal */}
       {showDetailModal && selectedChama && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 shadow-2xl">
-            <div className={cn("flex items-center justify-between p-6 border-b", selectedChama.chama_type === "fundraising" ? "bg-gradient-to-r from-purple-600 to-purple-700" : selectedChama.chama_type === "collection" ? "bg-gradient-to-r from-blue-600 to-blue-700" : "bg-gradient-to-r from-emerald-600 to-emerald-700")}>
+          <div className="w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl bg-card shadow-2xl">
+            <div className={cn("flex items-center justify-between p-6 border-b", selectedChama.chama_type === "fundraising" ? "bg-gradient-to-r from-purple-600 to-purple-700" : selectedChama.chama_type === "collection" ? "bg-gradient-to-r from-blue-600 to-blue-700" : "bg-gradient-to-r from-brand to-brand")}>
               <div>
                 <h2 className="text-xl font-bold text-white">{selectedChama.name}</h2>
                 <div className="flex items-center gap-2 mt-1">
@@ -320,80 +320,80 @@ export default function AdminChamasPage() {
             <div className="p-6 overflow-y-auto max-h-[70vh] space-y-5">
               <div className="grid grid-cols-4 gap-4">
                 {[
-                  { label: "Contribution", value: formatCurrency(selectedChama.contribution_amount), bg: "bg-zinc-50" },
+                  { label: "Contribution", value: formatCurrency(selectedChama.contribution_amount), bg: "bg-muted/30" },
                   { label: "Members", value: selectedChama.members?.length || 0, bg: "bg-blue-50" },
-                  { label: "Collected", value: formatCurrency(selectedChama.total_collected), bg: "bg-emerald-50" },
+                  { label: "Collected", value: formatCurrency(selectedChama.total_collected), bg: "bg-brand/5" },
                   { label: "Distributed", value: formatCurrency(selectedChama.total_distributed), bg: "bg-purple-50" },
                 ].map((s, i) => (
                   <div key={i} className={cn("p-4 rounded-xl text-center", s.bg)}>
-                    <p className="text-xs text-zinc-600 mb-1">{s.label}</p>
-                    <p className="text-xl font-bold text-zinc-900">{s.value}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{s.label}</p>
+                    <p className="text-xl font-bold text-foreground">{s.value}</p>
                   </div>
                 ))}
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="p-4 bg-zinc-50 rounded-xl">
-                  <p className="text-zinc-500 mb-1">Chama ID</p>
-                  <p className="font-mono text-zinc-900 text-xs">{selectedChama.id}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <p className="text-muted-foreground mb-1">Chama ID</p>
+                  <p className="font-mono text-foreground text-xs">{selectedChama.id}</p>
                 </div>
-                <div className="p-4 bg-zinc-50 rounded-xl">
-                  <p className="text-zinc-500 mb-1">Creator</p>
-                  <p className="font-medium text-zinc-900">{selectedChama.creator?.email || "Unknown"}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <p className="text-muted-foreground mb-1">Creator</p>
+                  <p className="font-medium text-foreground">{selectedChama.creator?.email || "Unknown"}</p>
                 </div>
-                <div className="p-4 bg-zinc-50 rounded-xl">
-                  <p className="text-zinc-500 mb-1">Frequency</p>
-                  <p className="font-medium text-zinc-900 capitalize">{selectedChama.collection_frequency}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <p className="text-muted-foreground mb-1">Frequency</p>
+                  <p className="font-medium text-foreground capitalize">{selectedChama.collection_frequency}</p>
                 </div>
-                <div className="p-4 bg-zinc-50 rounded-xl">
-                  <p className="text-zinc-500 mb-1">Rotation</p>
-                  <p className="font-medium text-zinc-900 capitalize">{selectedChama.rotation_type}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <p className="text-muted-foreground mb-1">Rotation</p>
+                  <p className="font-medium text-foreground capitalize">{selectedChama.rotation_type}</p>
                 </div>
-                <div className="p-4 bg-zinc-50 rounded-xl">
-                  <p className="text-zinc-500 mb-1">Current Cycle</p>
-                  <p className="font-medium text-zinc-900">{selectedChama.current_cycle}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <p className="text-muted-foreground mb-1">Current Cycle</p>
+                  <p className="font-medium text-foreground">{selectedChama.current_cycle}</p>
                 </div>
-                <div className="p-4 bg-zinc-50 rounded-xl">
-                  <p className="text-zinc-500 mb-1">Next Collection</p>
-                  <p className="font-medium text-zinc-900">{selectedChama.next_collection_date ? new Date(selectedChama.next_collection_date).toLocaleDateString() : "Not set"}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <p className="text-muted-foreground mb-1">Next Collection</p>
+                  <p className="font-medium text-foreground">{selectedChama.next_collection_date ? new Date(selectedChama.next_collection_date).toLocaleDateString() : "Not set"}</p>
                 </div>
               </div>
 
               {selectedChama.description && (
                 <div>
-                  <h4 className="text-sm font-semibold text-zinc-500 mb-2">Description</h4>
-                  <p className="text-sm text-zinc-700 bg-zinc-50 p-4 rounded-xl">{selectedChama.description}</p>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2">Description</h4>
+                  <p className="text-sm text-foreground bg-muted/30 p-4 rounded-xl">{selectedChama.description}</p>
                 </div>
               )}
 
               {selectedChama.members && selectedChama.members.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-zinc-500 mb-2">Members ({selectedChama.members.length})</h4>
-                  <div className="rounded-xl overflow-hidden border border-zinc-200">
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2">Members ({selectedChama.members.length})</h4>
+                  <div className="rounded-xl overflow-hidden border border-border/60">
                     <table className="w-full">
-                      <thead className="bg-zinc-50">
+                      <thead className="bg-muted/30">
                         <tr>
-                          <th className="px-4 py-2 text-left text-xs font-semibold text-zinc-500">#</th>
-                          <th className="px-4 py-2 text-left text-xs font-semibold text-zinc-500">Name</th>
-                          <th className="px-4 py-2 text-left text-xs font-semibold text-zinc-500">Phone</th>
-                          <th className="px-4 py-2 text-right text-xs font-semibold text-zinc-500">Contributed</th>
-                          <th className="px-4 py-2 text-center text-xs font-semibold text-zinc-500">Status</th>
+                          <th className="px-4 py-2 text-left text-xs font-semibold text-muted-foreground">#</th>
+                          <th className="px-4 py-2 text-left text-xs font-semibold text-muted-foreground">Name</th>
+                          <th className="px-4 py-2 text-left text-xs font-semibold text-muted-foreground">Phone</th>
+                          <th className="px-4 py-2 text-right text-xs font-semibold text-muted-foreground">Contributed</th>
+                          <th className="px-4 py-2 text-center text-xs font-semibold text-muted-foreground">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-100">
+                      <tbody className="divide-y divide-border/40">
                         {selectedChama.members.map((m: any) => (
                           <tr key={m.id}>
-                            <td className="px-4 py-2 text-sm text-zinc-500">{m.rotation_position}</td>
+                            <td className="px-4 py-2 text-sm text-muted-foreground">{m.rotation_position}</td>
                             <td className="px-4 py-2">
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-zinc-900">{m.name}</span>
+                                <span className="text-sm font-medium text-foreground">{m.name}</span>
                                 {m.role === "admin" && <span className="px-1.5 py-0.5 text-[9px] bg-purple-100 text-purple-600 rounded">Admin</span>}
                               </div>
                             </td>
-                            <td className="px-4 py-2 text-sm text-zinc-500">{m.phone_number}</td>
-                            <td className="px-4 py-2 text-right text-sm font-mono text-zinc-600">{formatCurrency(m.total_contributed || 0)}</td>
+                            <td className="px-4 py-2 text-sm text-muted-foreground">{m.phone_number}</td>
+                            <td className="px-4 py-2 text-right text-sm font-mono text-muted-foreground">{formatCurrency(m.total_contributed || 0)}</td>
                             <td className="px-4 py-2 text-center">
-                              <span className={cn("px-2 py-0.5 text-[10px] rounded-full font-medium", m.status === "active" ? "bg-emerald-100 text-emerald-700" : m.status === "exit_requested" ? "bg-amber-100 text-amber-700" : "bg-zinc-100 text-zinc-600")}>{m.status}</span>
+                              <span className={cn("px-2 py-0.5 text-[10px] rounded-full font-medium", m.status === "active" ? "bg-brand/10 text-brand" : m.status === "exit_requested" ? "bg-amber-100 text-amber-700" : "bg-muted text-muted-foreground")}>{m.status}</span>
                             </td>
                           </tr>
                         ))}
@@ -405,20 +405,20 @@ export default function AdminChamasPage() {
 
               {selectedChama.cycles && selectedChama.cycles.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-zinc-500 mb-2">Recent Cycles ({selectedChama.cycles.length})</h4>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-2">Recent Cycles ({selectedChama.cycles.length})</h4>
                   <div className="space-y-2">
                     {selectedChama.cycles.slice(0, 5).map((c: any) => (
-                      <div key={c.id} className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl">
+                      <div key={c.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl">
                         <div className="flex items-center gap-3">
-                          <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", c.status === "completed" ? "bg-emerald-500 text-white" : "bg-zinc-200 text-zinc-600")}>{c.cycle_number}</div>
+                          <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", c.status === "completed" ? "bg-brand/50 text-white" : "bg-muted text-muted-foreground")}>{c.cycle_number}</div>
                           <div>
-                            <p className="text-sm font-medium text-zinc-900">Cycle {c.cycle_number}</p>
-                            <p className="text-xs text-zinc-500">{new Date(c.created_at).toLocaleDateString()}</p>
+                            <p className="text-sm font-medium text-foreground">Cycle {c.cycle_number}</p>
+                            <p className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-mono text-zinc-600">{formatCurrency(c.collected_amount || 0)}</p>
-                          <span className={cn("px-2 py-0.5 text-[10px] rounded-full", c.status === "completed" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700")}>{c.status}</span>
+                          <p className="text-sm font-mono text-muted-foreground">{formatCurrency(c.collected_amount || 0)}</p>
+                          <span className={cn("px-2 py-0.5 text-[10px] rounded-full", c.status === "completed" ? "bg-brand/10 text-brand" : "bg-amber-100 text-amber-700")}>{c.status}</span>
                         </div>
                       </div>
                     ))}
@@ -427,8 +427,8 @@ export default function AdminChamasPage() {
               )}
             </div>
 
-            <div className="p-6 border-t bg-zinc-50">
-              <p className="text-xs text-zinc-500 text-center">Admin view only - No actions available</p>
+            <div className="p-6 border-t bg-muted/30">
+              <p className="text-xs text-muted-foreground text-center">Admin view only - No actions available</p>
             </div>
           </div>
         </div>

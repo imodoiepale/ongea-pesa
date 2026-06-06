@@ -62,7 +62,7 @@ export default function Profile01({
 
   return (
     <div className="w-full max-w-sm mx-auto">
-      <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
+      <div className="relative overflow-hidden rounded-2xl border border-border/60">
         <div className="relative px-6 pt-12 pb-6">
           <div className="flex items-center gap-4 mb-8">
             <div className="relative shrink-0">
@@ -71,36 +71,36 @@ export default function Profile01({
                 alt={displayName}
                 width={72}
                 height={72}
-                className="rounded-full ring-4 ring-white dark:ring-zinc-900 object-cover"
+                className="rounded-full ring-4 ring-card object-cover"
               />
-              <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
+              <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-brand ring-2 ring-card" />
             </div>
 
             {/* Profile Info */}
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{displayName}</h2>
-              <p className="text-zinc-600 dark:text-zinc-400">{displayRole}</p>
+              <h2 className="text-xl font-semibold text-foreground">{displayName}</h2>
+              <p className="text-muted-foreground">{displayRole}</p>
               {user?.email && (
-                <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-0.5">{user.email}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
               )}
             </div>
           </div>
-          <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-6" />
+          <div className="h-px bg-border/60 my-6" />
           <div className="space-y-2">
             {menuItems.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className="flex items-center justify-between p-2 
-                                    hover:bg-zinc-50 dark:hover:bg-zinc-800/50 
+                className="flex items-center justify-between p-2
+                                    hover:bg-muted/50
                                     rounded-lg transition-colors duration-200"
               >
                 <div className="flex items-center gap-2">
                   {item.icon}
-                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{item.label}</span>
+                  <span className="text-sm font-medium text-foreground">{item.label}</span>
                 </div>
                 <div className="flex items-center">
-                  {item.value && <span className="text-sm text-zinc-500 dark:text-zinc-400 mr-2">{item.value}</span>}
+                  {item.value && <span className="text-sm text-muted-foreground mr-2">{item.value}</span>}
                   {item.external && <MoveUpRight className="w-4 h-4" />}
                 </div>
               </Link>

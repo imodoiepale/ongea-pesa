@@ -31,9 +31,9 @@ interface List03Props {
 }
 
 const iconStyles = {
-  savings: "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100",
-  investment: "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100",
-  debt: "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100",
+  savings: "bg-muted text-foreground",
+  investment: "bg-muted text-foreground",
+  debt: "bg-muted text-foreground",
 }
 
 const statusConfig = {
@@ -49,8 +49,8 @@ const statusConfig = {
   },
   completed: {
     icon: CheckCircle2,
-    class: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-100 dark:bg-emerald-900/30",
+    class: "text-brand",
+    bg: "bg-brand/10",
   },
 }
 
@@ -100,10 +100,10 @@ export default function List03({ items = ITEMS, className }: List03Props) {
             className={cn(
               "flex flex-col",
               "w-[280px] shrink-0",
-              "bg-white dark:bg-zinc-900/70",
+              "bg-card",
               "rounded-xl",
-              "border border-zinc-100 dark:border-zinc-800",
-              "hover:border-zinc-200 dark:hover:border-zinc-700",
+              "border border-border/40",
+              "hover:border-border/60",
               "transition-all duration-200",
               "shadow-sm backdrop-blur-xl",
             )}
@@ -126,17 +126,17 @@ export default function List03({ items = ITEMS, className }: List03Props) {
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">{item.title}</h3>
-                <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2">{item.subtitle}</p>
+                <h3 className="text-sm font-medium text-foreground mb-1">{item.title}</h3>
+                <p className="text-xs text-muted-foreground line-clamp-2">{item.subtitle}</p>
               </div>
 
               {typeof item.progress === "number" && (
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-600 dark:text-zinc-400">Progress</span>
-                    <span className="text-zinc-900 dark:text-zinc-100">{item.progress}%</span>
+                    <span className="text-muted-foreground">Progress</span>
+                    <span className="text-foreground">{item.progress}%</span>
                   </div>
-                  <div className="h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-zinc-900 dark:bg-zinc-100 rounded-full"
                       style={{ width: `${item.progress}%` }}
@@ -147,26 +147,26 @@ export default function List03({ items = ITEMS, className }: List03Props) {
 
               {item.amount && (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{item.amount}</span>
-                  <span className="text-xs text-zinc-600 dark:text-zinc-400">target</span>
+                  <span className="text-sm font-medium text-foreground">{item.amount}</span>
+                  <span className="text-xs text-muted-foreground">target</span>
                 </div>
               )}
 
-              <div className="flex items-center text-xs text-zinc-600 dark:text-zinc-400">
+              <div className="flex items-center text-xs text-muted-foreground">
                 <Calendar className="w-3.5 h-3.5 mr-1.5" />
                 <span>{item.date}</span>
               </div>
             </div>
 
-            <div className="mt-auto border-t border-zinc-100 dark:border-zinc-800">
+            <div className="mt-auto border-t border-border/40">
               <button
                 className={cn(
                   "w-full flex items-center justify-center gap-2",
                   "py-2.5 px-3",
                   "text-xs font-medium",
-                  "text-zinc-600 dark:text-zinc-400",
-                  "hover:text-zinc-900 dark:hover:text-zinc-100",
-                  "hover:bg-zinc-100 dark:hover:bg-zinc-800/50",
+                  "text-muted-foreground",
+                  "hover:text-foreground",
+                  "hover:bg-muted",
                   "transition-colors duration-200",
                 )}
               >

@@ -1,13 +1,11 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, MessageCircle, X, Send, Minimize2, Maximize2, PhoneOff } from 'lucide-react';
+import { Mic, MessageCircle, X, Send, Minimize2, Maximize2, PhoneOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useElevenLabs } from '@/contexts/ElevenLabsContext';
+import { cn } from '@/lib/utils';
 
 export default function GlobalVoiceWidget() {
   const { isConnected, isLoading, messages, sendMessage, clearMessages, isSpeaking, conversation, startSession, endSession } = useElevenLabs();
@@ -16,19 +14,17 @@ export default function GlobalVoiceWidget() {
   const [textInput, setTextInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Start session when widget opens
   useEffect(() => {
     if (isOpen && !isConnected && !isLoading) {
       console.log('🎙️ Starting ElevenLabs session from global widget');
       startSession();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]); // Only depend on isOpen to prevent infinite loops
+  }, [isOpen]);
 
   const handleSendText = () => {
     if (textInput.trim()) {
@@ -53,21 +49,25 @@ export default function GlobalVoiceWidget() {
     }
   };
 
-  // Floating button (when closed)
+  // Floating FAB (closed state)
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button
+      <div className="fixed bottom-6 right-4 z-50">
+        <button
           onClick={() => setIsOpen(true)}
-          size="lg"
-          className={`rounded-full h-16 w-16 shadow-lg ${
-            isConnected ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500 hover:bg-gray-600'
-          } ${isSpeaking ? 'animate-pulse' : ''}`}
+          className={cn(
+            "w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 active:scale-[0.97]",
+            isConnected
+              ? "bg-[rgba(0,255,136,0.15)] border border-[rgba(0,255,136,0.35)] text-[hsl(var(--voice-accent))] shadow-[0_0_20px_rgba(0,255,136,0.2)]"
+              : "bg-brand border border-brand/20 text-white",
+            isSpeaking && "animate-pulse"
+          )}
+          aria-label="Open voice assistant"
         >
-          <Mic className="h-6 w-6" />
-        </Button>
+          <Mic className="h-5 w-5" />
+        </button>
         {isConnected && (
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-pulse border-2 border-white"></div>
+          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-[hsl(var(--voice-accent))] rounded-full border-2 border-background" />
         )}
       </div>
     );
@@ -76,102 +76,93 @@ export default function GlobalVoiceWidget() {
   // Minimized view
   if (isMinimized) {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
-        <Card className="w-80 shadow-2xl">
-          <CardHeader className="p-3 flex flex-row items-center justify-between bg-gradient-to-r from-purple-500 to-pink-500">
+      <div className="fixed bottom-6 right-4 z-50">
+        <div className="w-72 rounded-2xl border border-white/10 bg-zinc-950/95 backdrop-blur-xl shadow-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-3 py-2.5">
             <div className="flex items-center gap-2">
-              <Mic className="h-4 w-4 text-white" />
+              <Mic className="h-4 w-4 text-[hsl(var(--voice-accent))]" />
               <span className="text-sm font-semibold text-white">ElevenLabs AI</span>
               {isConnected && (
-                <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
-                  Connected
-                </Badge>
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[rgba(0,255,136,0.15)] text-[hsl(var(--voice-accent))] border border-[rgba(0,255,136,0.25)]">Live</span>
               )}
             </div>
             <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={() => setIsMinimized(false)}
-                className="h-6 w-6 p-0 text-white hover:bg-white/20"
+                className="w-6 h-6 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
               >
                 <Maximize2 className="h-3 w-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
+              </button>
+              <button
                 onClick={() => setIsOpen(false)}
-                className="h-6 w-6 p-0 text-white hover:bg-white/20"
+                className="w-6 h-6 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
               >
                 <X className="h-3 w-3" />
-              </Button>
+              </button>
             </div>
-          </CardHeader>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
 
-  // Full widget view
+  // Full widget
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <Card className="w-96 h-[600px] shadow-2xl flex flex-col">
+    <div className="fixed bottom-6 right-4 z-50">
+      <div className="w-88 h-[560px] rounded-2xl border border-white/10 bg-zinc-950/95 backdrop-blur-xl shadow-2xl flex flex-col overflow-hidden" style={{width:'22rem'}}>
         {/* Header */}
-        <CardHeader className="p-4 flex flex-row items-center justify-between bg-gradient-to-r from-purple-500 to-pink-500 rounded-t-lg">
-          <div className="flex items-center gap-2">
-            <Mic className={`h-5 w-5 text-white ${isSpeaking ? 'animate-pulse' : ''}`} />
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+          <div className="flex items-center gap-2.5">
+            <div className={cn(
+              "w-8 h-8 rounded-xl flex items-center justify-center",
+              "bg-[rgba(0,255,136,0.12)] border border-[rgba(0,255,136,0.25)]"
+            )}>
+              <Mic className={cn("h-4 w-4 text-[hsl(var(--voice-accent))]", isSpeaking && "animate-pulse")} />
+            </div>
             <div>
-              <h3 className="text-sm font-bold text-white">ElevenLabs AI</h3>
-              <p className="text-xs text-white/80">
-                {isLoading ? 'Connecting...' : isConnected ? 'Live & Ready' : 'Disconnected'}
+              <p className="text-sm font-semibold text-white">ElevenLabs AI</p>
+              <p className="text-[10px] text-white/50">
+                {isLoading ? 'Connecting…' : isConnected ? 'Live & Ready' : 'Disconnected'}
               </p>
             </div>
           </div>
           <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
               onClick={() => setIsMinimized(true)}
-              className="h-8 w-8 p-0 text-white hover:bg-white/20"
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
             >
-              <Minimize2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
+              <Minimize2 className="h-3.5 w-3.5" />
+            </button>
+            <button
               onClick={() => setIsOpen(false)}
-              className="h-8 w-8 p-0 text-white hover:bg-white/20"
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
             >
-              <X className="h-4 w-4" />
-            </Button>
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
-        </CardHeader>
+        </div>
 
         {/* Messages */}
-        <CardContent className="flex-1 p-4 overflow-hidden">
-          <ScrollArea className="h-full pr-4">
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full px-4 py-3">
             {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <MessageCircle className="h-12 w-12 text-gray-300 mb-3" />
-                <p className="text-sm text-gray-500 mb-2">Start a conversation</p>
-                <p className="text-xs text-gray-400">Speak or type a message</p>
+              <div className="flex flex-col items-center justify-center h-40 text-center">
+                <MessageCircle className="h-10 w-10 text-white/20 mb-3" />
+                <p className="text-sm text-white/50 mb-1">Start a conversation</p>
+                <p className="text-xs text-white/30">Speak or type a message</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex ${msg.source === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                        msg.source === 'user'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                      }`}
-                    >
+                  <div key={msg.id} className={cn("flex", msg.source === 'user' ? 'justify-end' : 'justify-start')}>
+                    <div className={cn(
+                      "max-w-[78%] rounded-2xl px-3 py-2",
+                      msg.source === 'user'
+                        ? "bg-brand text-white"
+                        : "bg-white/8 border border-white/10 text-white/85"
+                    )}>
                       <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-                      <p className="text-xs opacity-70 mt-1">
+                      <p className="text-[10px] opacity-50 mt-0.5">
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -181,52 +172,43 @@ export default function GlobalVoiceWidget() {
               </div>
             )}
           </ScrollArea>
-        </CardContent>
+        </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="px-3 py-3 border-t border-white/10">
           <div className="flex gap-2">
-            <Input
+            <input
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
-              className="flex-1"
+              onKeyDown={handleKeyPress}
+              placeholder="Type a message…"
               disabled={!isConnected}
+              className="flex-1 px-3 py-2 rounded-xl bg-white/8 border border-white/12 text-white text-sm placeholder:text-white/30 outline-none focus:border-[rgba(0,255,136,0.3)] disabled:opacity-40 transition-colors"
             />
-            <Button
+            <button
               onClick={handleSendText}
               disabled={!isConnected || !textInput.trim()}
-              size="icon"
-              className="bg-blue-500 hover:bg-blue-600"
+              className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center text-white disabled:opacity-40 active:scale-[0.97] transition-all duration-150"
+              aria-label="Send"
             >
               <Send className="h-4 w-4" />
-            </Button>
+            </button>
           </div>
-          <div className="mt-2 flex items-center justify-between text-xs">
-            <span className="text-gray-500">Press Enter to send</span>
-            <div className="flex gap-2">
+          <div className="flex items-center justify-between mt-2 text-[10px] text-white/30">
+            <span>Enter to send</span>
+            <div className="flex gap-3">
               {messages.length > 0 && (
-                <button
-                  onClick={clearMessages}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  Clear chat
-                </button>
+                <button onClick={clearMessages} className="text-red-400/70 hover:text-red-400 transition-colors">Clear chat</button>
               )}
               {isConnected && (
-                <button
-                  onClick={handleEndCall}
-                  className="text-red-600 hover:text-red-800 font-medium flex items-center gap-1"
-                >
-                  <PhoneOff className="h-3 w-3" />
-                  End Call
+                <button onClick={handleEndCall} className="text-red-400/70 hover:text-red-400 transition-colors flex items-center gap-1">
+                  <PhoneOff className="h-3 w-3" />End Call
                 </button>
               )}
             </div>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

@@ -161,23 +161,23 @@ export default function WalletTransfersPage() {
 
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      transfer_in: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
+      transfer_in: "bg-brand/10 text-brand",
       transfer_out: "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400",
       wallet_transfer: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
       transfer: "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",
       gate_transfer: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
     }
-    return colors[type?.toLowerCase()] || "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+    return colors[type?.toLowerCase()] || "bg-muted text-muted-foreground"
   }
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      completed: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
-      success: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
+      completed: "bg-brand/10 text-brand",
+      success: "bg-brand/10 text-brand",
       pending: "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",
       failed: "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400",
     }
-    return colors[status?.toLowerCase()] || "bg-zinc-100 dark:bg-zinc-800 text-zinc-600"
+    return colors[status?.toLowerCase()] || "bg-muted text-muted-foreground"
   }
 
   const filteredTransfers = transfers.filter((tx) => {
@@ -204,8 +204,8 @@ export default function WalletTransfersPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Wallet Transfers</h1>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400">Inter-wallet and gate-to-gate transfers</p>
+            <h1 className="text-lg font-semibold text-foreground">Wallet Transfers</h1>
+            <p className="text-xs text-muted-foreground">Inter-wallet and gate-to-gate transfers</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -213,12 +213,12 @@ export default function WalletTransfersPage() {
               disabled={loading}
               className={cn(
                 "p-2 rounded-lg",
-                "bg-zinc-100 dark:bg-zinc-800",
-                "hover:bg-zinc-200 dark:hover:bg-zinc-700",
+                "bg-muted",
+                "hover:bg-muted",
                 "transition-colors duration-200"
               )}
             >
-              <RefreshCw className={cn("w-4 h-4 text-zinc-600 dark:text-zinc-400", loading && "animate-spin")} />
+              <RefreshCw className={cn("w-4 h-4 text-muted-foreground", loading && "animate-spin")} />
             </button>
             <button
               className={cn(
@@ -239,25 +239,25 @@ export default function WalletTransfersPage() {
           {[
             { label: "Total Transfers", value: filteredTransfers.length, icon: ArrowRightLeft, color: "text-blue-600 dark:text-blue-400" },
             { label: "Total Volume", value: formatCurrency(totalVolume), icon: Wallet, color: "text-purple-600 dark:text-purple-400" },
-            { label: "Incoming", value: incomingCount, icon: Users, color: "text-emerald-600 dark:text-emerald-400" },
+            { label: "Incoming", value: incomingCount, icon: Users, color: "text-brand" },
             { label: "Outgoing", value: outgoingCount, icon: Building2, color: "text-orange-600 dark:text-orange-400" },
           ].map((stat, i) => (
             <div
               key={i}
               className={cn(
                 "p-4 rounded-xl",
-                "bg-white dark:bg-zinc-900/70",
-                "border border-zinc-100 dark:border-zinc-800",
+                "bg-card",
+                "border border-border/40",
                 "shadow-sm backdrop-blur-xl"
               )}
             >
               <div className="flex items-center gap-3">
-                <div className={cn("p-2 rounded-lg", "bg-zinc-100 dark:bg-zinc-800")}>
+                <div className={cn("p-2 rounded-lg", "bg-muted")}>
                   <stat.icon className={cn("w-4 h-4", stat.color)} />
                 </div>
                 <div>
                   <p className={cn("text-lg font-semibold", stat.color)}>{stat.value}</p>
-                  <p className="text-[11px] text-zinc-600 dark:text-zinc-400">{stat.label}</p>
+                  <p className="text-[11px] text-muted-foreground">{stat.label}</p>
                 </div>
               </div>
             </div>
@@ -268,23 +268,23 @@ export default function WalletTransfersPage() {
         <div
           className={cn(
             "p-4 rounded-xl",
-            "bg-white dark:bg-zinc-900/70",
-            "border border-zinc-100 dark:border-zinc-800",
+            "bg-card",
+            "border border-border/40",
             "shadow-sm backdrop-blur-xl"
           )}
         >
           <div className="flex flex-wrap gap-3">
             <div className="flex-1 min-w-[200px] relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by gate, user..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
+                className="pl-10 bg-muted/30 border-border/60"
               />
             </div>
             <Select value={directionFilter} onValueChange={setDirectionFilter}>
-              <SelectTrigger className="w-[160px] bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
+              <SelectTrigger className="w-[160px] bg-muted/30 border-border/60">
                 <SelectValue placeholder="Direction" />
               </SelectTrigger>
               <SelectContent>
@@ -300,15 +300,15 @@ export default function WalletTransfersPage() {
         <div
           className={cn(
             "rounded-xl overflow-hidden",
-            "bg-white dark:bg-zinc-900/70",
-            "border border-zinc-100 dark:border-zinc-800",
+            "bg-card",
+            "border border-border/40",
             "shadow-sm backdrop-blur-xl"
           )}
         >
-          <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+          <div className="p-4 border-b border-border/40">
+            <h2 className="text-sm font-semibold text-foreground">
               Transfer History
-              <span className="text-xs font-normal text-zinc-600 dark:text-zinc-400 ml-1">
+              <span className="text-xs font-normal text-muted-foreground ml-1">
                 ({filteredTransfers.length} records)
               </span>
             </h2>
@@ -316,30 +316,30 @@ export default function WalletTransfersPage() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="sticky top-0 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+              <thead className="sticky top-0 bg-muted/30 border-b border-border/60">
                 <tr>
-                  <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400 w-10">#</th>
-                  <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Date</th>
-                  <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">Type</th>
-                  <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">From</th>
-                  <th className="px-3 py-2 text-left font-semibold text-zinc-600 dark:text-zinc-400">To</th>
-                  <th className="px-3 py-2 text-right font-semibold text-zinc-600 dark:text-zinc-400">Amount</th>
-                  <th className="px-3 py-2 text-right font-semibold text-zinc-600 dark:text-zinc-400">Fee</th>
-                  <th className="px-3 py-2 text-center font-semibold text-zinc-600 dark:text-zinc-400">Status</th>
-                  <th className="px-3 py-2 text-center font-semibold text-zinc-600 dark:text-zinc-400">Source</th>
+                  <th className="px-3 py-2 text-left font-semibold text-muted-foreground w-10">#</th>
+                  <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Date</th>
+                  <th className="px-3 py-2 text-left font-semibold text-muted-foreground">Type</th>
+                  <th className="px-3 py-2 text-left font-semibold text-muted-foreground">From</th>
+                  <th className="px-3 py-2 text-left font-semibold text-muted-foreground">To</th>
+                  <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Amount</th>
+                  <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Fee</th>
+                  <th className="px-3 py-2 text-center font-semibold text-muted-foreground">Status</th>
+                  <th className="px-3 py-2 text-center font-semibold text-muted-foreground">Source</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              <tbody className="divide-y divide-border/40">
                 {loading ? (
                   <tr>
                     <td colSpan={9} className="px-3 py-8 text-center">
-                      <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-zinc-400" />
-                      <p className="text-zinc-600 dark:text-zinc-400">Loading transfers...</p>
+                      <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-muted-foreground">Loading transfers...</p>
                     </td>
                   </tr>
                 ) : filteredTransfers.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-3 py-8 text-center text-zinc-500">
+                    <td colSpan={9} className="px-3 py-8 text-center text-muted-foreground">
                       No wallet transfers found
                     </td>
                   </tr>
@@ -347,10 +347,10 @@ export default function WalletTransfersPage() {
                   filteredTransfers.map((tx, index) => (
                     <tr
                       key={tx.id}
-                      className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                      className="hover:bg-muted/50 transition-colors"
                     >
-                      <td className="px-3 py-2 text-zinc-500 font-mono">{index + 1}</td>
-                      <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300 whitespace-nowrap">
+                      <td className="px-3 py-2 text-muted-foreground font-mono">{index + 1}</td>
+                      <td className="px-3 py-2 text-foreground whitespace-nowrap">
                         {new Date(tx.created_at).toLocaleDateString("en-KE", {
                           month: "short",
                           day: "numeric",
@@ -363,21 +363,21 @@ export default function WalletTransfersPage() {
                           {tx.type}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
+                      <td className="px-3 py-2 text-foreground">
                         {tx.sender_gate || tx.profiles?.email || "—"}
                       </td>
-                      <td className="px-3 py-2 text-zinc-700 dark:text-zinc-300">
+                      <td className="px-3 py-2 text-foreground">
                         {tx.recipient_gate || tx.recipient_id || "—"}
                       </td>
                       <td className="px-3 py-2 text-right font-mono">
                         <span className={cn(
                           "font-medium",
-                          tx.type === "transfer_in" ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-900 dark:text-zinc-100"
+                          tx.type === "transfer_in" ? "text-brand" : "text-foreground"
                         )}>
                           {tx.type === "transfer_in" ? "+" : "-"}{formatCurrency(tx.amount)}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-right font-mono text-emerald-600 dark:text-emerald-400">
+                      <td className="px-3 py-2 text-right font-mono text-brand">
                         {formatCurrency(tx.platform_fee || 0)}
                       </td>
                       <td className="px-3 py-2 text-center">

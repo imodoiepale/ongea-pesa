@@ -107,7 +107,7 @@ export default function ContactPicker({
             <Button
                 onClick={handlePickContact}
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                className="w-full"
             >
                 {isLoading ? (
                     <>
@@ -136,11 +136,11 @@ export default function ContactPicker({
 
             {/* Selected Contact Display */}
             {showSelected && selectedContact && (
-                <Card className="border-green-500/50 bg-green-500/10">
+                <Card className="border-brand/50 bg-brand/10">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold">
+                                <div className="w-10 h-10 rounded-full bg-brand flex items-center justify-center text-white font-semibold">
                                     {getContactDisplayName(selectedContact).charAt(0).toUpperCase()}
                                 </div>
                                 <div>
@@ -156,7 +156,7 @@ export default function ContactPicker({
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Check className="h-5 w-5 text-green-500" />
+                                <Check className="h-5 w-5 text-brand" />
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -204,7 +204,7 @@ export default function ContactPicker({
                                     key={index}
                                     onClick={() => handleSelectFromList(contact)}
                                     className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${selectedContact === contact
-                                            ? "bg-green-500/20 border border-green-500/50"
+                                            ? "bg-brand/20 border border-brand/50"
                                             : "hover:bg-muted/50"
                                         }`}
                                 >
@@ -231,7 +231,7 @@ export default function ContactPicker({
                                         </div>
                                     </div>
                                     {selectedContact === contact && (
-                                        <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                        <Check className="h-4 w-4 text-brand flex-shrink-0" />
                                     )}
                                 </div>
                             ))}

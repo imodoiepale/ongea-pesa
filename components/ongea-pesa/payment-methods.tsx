@@ -8,7 +8,7 @@ const paymentMethods = [
   {
     type: 'M-Pesa',
     details: '0712 345 678',
-    icon: <Smartphone className="h-6 w-6 text-green-500" />,
+    icon: <Smartphone className="h-6 w-6 text-brand" />,
   },
   {
     type: 'Visa Card',
@@ -41,7 +41,7 @@ export default function PaymentMethods() {
                   {method.icon}
                   <div>
                     <p className="font-semibold">{method.type}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{method.details}</p>
+                    <p className="text-sm text-muted-foreground">{method.details}</p>
                   </div>
                 </div>
                 <Button variant="outline" size="sm">Manage</Button>

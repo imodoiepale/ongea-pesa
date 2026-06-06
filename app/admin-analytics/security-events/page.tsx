@@ -18,7 +18,7 @@ interface SecurityEvent {
 }
 
 const severityStyle: Record<string, string> = {
-  info: "text-green-600 bg-green-50 dark:bg-green-950",
+  info: "text-brand bg-brand/10 dark:bg-brand/10",
   warning: "text-amber-600 bg-amber-50 dark:bg-amber-950",
   critical: "text-red-600 bg-red-50 dark:bg-red-950",
 }
@@ -64,9 +64,9 @@ export default function SecurityEventsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <ShieldCheck className="h-6 w-6 text-green-500" /> Security Events
+              <ShieldCheck className="h-6 w-6 text-brand" /> Security Events
             </h1>
-            <p className="text-sm text-gray-500">Audit trail of authentication, lockouts, and money movement.</p>
+            <p className="text-sm text-muted-foreground">Audit trail of authentication, lockouts, and money movement.</p>
           </div>
           <button onClick={fetchEvents} className="flex items-center gap-2 text-sm px-3 py-2 border rounded-lg">
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} /> Refresh
@@ -74,7 +74,7 @@ export default function SecurityEventsPage() {
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Search by event, user, or IP" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
@@ -82,7 +82,7 @@ export default function SecurityEventsPage() {
 
         <div className="border rounded-lg overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-900 text-left">
+            <thead className="bg-muted/30 text-left">
               <tr>
                 <th className="p-3">Time</th>
                 <th className="p-3">Event</th>
@@ -94,7 +94,7 @@ export default function SecurityEventsPage() {
             </thead>
             <tbody>
               {filtered.map((e) => (
-                <tr key={e.id} className="border-t dark:border-gray-800">
+                <tr key={e.id} className="border-t dark:border-border">
                   <td className="p-3 whitespace-nowrap">{new Date(e.created_at).toLocaleString()}</td>
                   <td className="p-3 font-medium">{e.event_type}</td>
                   <td className="p-3">
@@ -104,11 +104,11 @@ export default function SecurityEventsPage() {
                   </td>
                   <td className="p-3 font-mono text-xs">{e.user_id?.slice(0, 8) || "—"}</td>
                   <td className="p-3 font-mono text-xs">{e.ip || "—"}</td>
-                  <td className="p-3 text-xs text-gray-500 max-w-xs truncate">{JSON.stringify(e.metadata)}</td>
+                  <td className="p-3 text-xs text-muted-foreground max-w-xs truncate">{JSON.stringify(e.metadata)}</td>
                 </tr>
               ))}
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan={6} className="p-6 text-center text-gray-400">No events</td></tr>
+                <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No events</td></tr>
               )}
             </tbody>
           </table>

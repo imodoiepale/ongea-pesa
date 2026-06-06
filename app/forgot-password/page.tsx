@@ -41,10 +41,10 @@ export default function ForgotPasswordPage() {
         </p>
         
         {success ? (
-          <div className="text-center bg-secondary p-8 rounded-lg">
+          <div className="text-center rounded-2xl border border-border/60 bg-card p-8">
             <div className="mb-4">
               <svg
-                className="w-16 h-16 mx-auto text-green-500"
+                className="w-16 h-16 mx-auto text-brand"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -78,7 +78,7 @@ export default function ForgotPasswordPage() {
                 Email Address
               </label>
               <input
-                className="w-full py-3 px-4 bg-input text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300 placeholder:text-muted-foreground"
+                className="w-full py-3 px-4 bg-input text-foreground rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-ring transition-all placeholder:text-muted-foreground"
                 id="email"
                 type="email"
                 placeholder="you@example.com"
@@ -97,7 +97,7 @@ export default function ForgotPasswordPage() {
             
             <div className="mb-6">
               <button
-                className="w-full bg-primary text-primary-foreground font-bold py-3 px-4 rounded-lg hover:bg-primary/90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-primary text-primary-foreground font-bold py-3 px-4 rounded-xl hover:bg-primary/90 active:scale-[0.97] transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
                 type="submit"
                 disabled={loading}
               >

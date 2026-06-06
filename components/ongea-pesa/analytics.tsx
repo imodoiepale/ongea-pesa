@@ -27,7 +27,7 @@ export default function Analytics({ onNavigate }: AnalyticsProps) {
   const spendingCategories = [
     { name: "Food & Dining", amount: "KSh 8,500", percentage: 35, color: "bg-red-500" },
     { name: "Transportation", amount: "KSh 4,200", percentage: 18, color: "bg-blue-500" },
-    { name: "Utilities", amount: "KSh 3,800", percentage: 16, color: "bg-green-500" },
+    { name: "Utilities", amount: "KSh 3,800", percentage: 16, color: "bg-brand" },
     { name: "Entertainment", amount: "KSh 2,100", percentage: 9, color: "bg-purple-500" },
     { name: "Shopping", amount: "KSh 5,200", percentage: 22, color: "bg-orange-500" },
   ]

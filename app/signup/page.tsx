@@ -77,7 +77,7 @@ export default function SignupPage() {
         
         {success ? (
           <div className="text-center bg-secondary p-8 rounded-lg">
-            <p className="text-green-500 mb-4 font-semibold">{success}</p>
+            <p className="text-brand mb-4 font-semibold">{success}</p>
             <button
               onClick={() => router.push('/login')}
               className="w-full bg-primary text-primary-foreground font-bold py-3 px-4 rounded-lg hover:bg-primary/90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"

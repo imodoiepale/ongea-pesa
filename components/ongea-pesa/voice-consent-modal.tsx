@@ -43,7 +43,7 @@ export function VoiceConsentModal({ isOpen, onAccept, onDecline }: VoiceConsentM
             <DialogContent className="sm:max-w-[500px] bg-gradient-to-br from-gray-900 to-gray-800 border-green-500/30">
                 <DialogHeader>
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 rounded-full bg-green-500/20">
+                        <div className="p-2 rounded-full bg-brand/20">
                             <Mic className="h-6 w-6 text-green-400" />
                         </div>
                         <DialogTitle className="text-xl text-white">
@@ -93,7 +93,7 @@ export function VoiceConsentModal({ isOpen, onAccept, onDecline }: VoiceConsentM
                         </div>
 
                         <div className="p-3 rounded-lg bg-gray-800/50 border border-gray-700">
-                            <p className="text-gray-400 text-xs">
+                            <p className="text-muted-foreground text-xs">
                                 If you do not wish to have your conversations recorded, please refrain
                                 from using this service. You may continue using other Ongea Pesa features.
                             </p>
@@ -107,7 +107,7 @@ export function VoiceConsentModal({ isOpen, onAccept, onDecline }: VoiceConsentM
                             id="terms"
                             checked={hasReadTerms}
                             onCheckedChange={(checked) => setHasReadTerms(checked === true)}
-                            className="mt-0.5 border-gray-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                            className="mt-0.5 border-gray-500 data-[state=checked]:bg-brand data-[state=checked]:border-brand"
                         />
                         <label
                             htmlFor="terms"
@@ -129,7 +129,7 @@ export function VoiceConsentModal({ isOpen, onAccept, onDecline }: VoiceConsentM
                             id="recording"
                             checked={hasAgreedToRecording}
                             onCheckedChange={(checked) => setHasAgreedToRecording(checked === true)}
-                            className="mt-0.5 border-gray-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                            className="mt-0.5 border-gray-500 data-[state=checked]:bg-brand data-[state=checked]:border-brand"
                         />
                         <label
                             htmlFor="recording"
@@ -144,14 +144,14 @@ export function VoiceConsentModal({ isOpen, onAccept, onDecline }: VoiceConsentM
                     <Button
                         variant="ghost"
                         onClick={onDecline}
-                        className="text-gray-400 hover:text-white hover:bg-gray-700"
+                        className="text-muted-foreground hover:text-white hover:bg-gray-700"
                     >
                         Decline
                     </Button>
                     <Button
                         onClick={handleAccept}
                         disabled={!canProceed}
-                        className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-brand hover:bg-brand/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Agree & Continue
                     </Button>

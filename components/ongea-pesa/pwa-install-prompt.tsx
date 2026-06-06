@@ -99,15 +99,15 @@ export default function PWAInstallPrompt() {
                 <Card className="bg-gradient-to-r from-gray-900 to-gray-800 border-green-500/30 shadow-2xl">
                     <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand to-brand flex items-center justify-center flex-shrink-0">
                                 <Smartphone className="h-6 w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h3 className="font-semibold text-white text-sm">Install Ongea Pesa</h3>
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="text-xs text-muted-foreground mt-1">
                                     Add to Home Screen for the best experience:
                                 </p>
-                                <div className="flex items-center gap-2 mt-2 text-xs text-gray-300">
+                                <div className="flex items-center gap-2 mt-2 text-xs text-foreground/70">
                                     <span className="flex items-center gap-1">
                                         1. Tap <Share className="h-3 w-3" />
                                     </span>
@@ -137,12 +137,12 @@ export default function PWAInstallPrompt() {
                 <Card className="bg-gradient-to-r from-gray-900 to-gray-800 border-green-500/30 shadow-2xl">
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand to-brand flex items-center justify-center flex-shrink-0">
                                 <Download className="h-6 w-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h3 className="font-semibold text-white text-sm">Install Ongea Pesa</h3>
-                                <p className="text-xs text-gray-400 mt-0.5">
+                                <p className="text-xs text-muted-foreground mt-0.5">
                                     Get quick access from your home screen
                                 </p>
                             </div>
@@ -158,7 +158,7 @@ export default function PWAInstallPrompt() {
                                 <Button
                                     size="sm"
                                     onClick={handleInstallClick}
-                                    className="bg-green-500 hover:bg-green-600 text-white"
+                                    className="bg-brand hover:bg-brand/90 text-white"
                                 >
                                     Install
                                 </Button>

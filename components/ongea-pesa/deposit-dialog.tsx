@@ -183,10 +183,10 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 relative">
+        <div className="bg-brand p-6 relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
@@ -208,18 +208,18 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
         <form onSubmit={handleDeposit} className="p-6 space-y-5">
           {loadingProfile ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="animate-spin text-green-600" size={32} />
+              <Loader2 className="animate-spin text-brand" size={32} />
             </div>
           ) : (
             <>
               {/* Gate Name Display */}
               {gateName && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
-                  <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                <div className="bg-brand/10 border border-brand/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 text-brand">
                     <Wallet size={18} />
                     <span className="text-sm font-medium">Your Gate</span>
                   </div>
-                  <p className="text-lg font-bold text-green-900 dark:text-green-300 mt-1">
+                  <p className="text-lg font-bold text-foreground mt-1">
                     {gateName}
                   </p>
                 </div>
@@ -227,32 +227,32 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
 
               {/* Phone Number Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   M-Pesa Phone Number
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
                   <input
                     type="tel"
                     value={phone}
                     onChange={handlePhoneChange}
                     placeholder="0712345678"
-                    className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="w-full pl-11 pr-4 py-3 border border-border/60 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent bg-card text-foreground"
                     required
                   />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   This number will be saved as your default
                 </p>
               </div>
 
               {/* Amount Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Amount (KSh)
                 </label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
                   <input
                     type="number"
                     value={amount}
@@ -260,11 +260,11 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
                     placeholder="100"
                     min="10"
                     step="1"
-                    className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="w-full pl-11 pr-4 py-3 border border-border/60 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent bg-card text-foreground"
                     required
                   />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Minimum: KSh 10
                 </p>
               </div>
@@ -276,7 +276,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
                     key={preset}
                     type="button"
                     onClick={() => setAmount(preset.toString())}
-                    className="py-2 px-3 text-sm font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 rounded-lg transition-colors"
+                    className="py-2 px-3 text-sm font-medium text-brand bg-brand/5 hover:bg-brand/10 rounded-lg transition-colors"
                   >
                     {preset}
                   </button>
@@ -292,8 +292,8 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
 
               {/* Success Message */}
               {success && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-3">
-                  <p className="text-sm text-green-700 dark:text-green-400">{success}</p>
+                <div className="bg-brand/10 border border-brand/20 rounded-xl p-3">
+                  <p className="text-sm text-brand">{success}</p>
                 </div>
               )}
 
@@ -318,7 +318,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
               <button
                 type="submit"
                 disabled={loading || !gateName}
-                className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 px-4 bg-brand hover:bg-brand/90 active:scale-[0.97] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

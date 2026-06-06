@@ -18,9 +18,9 @@ export function ProfileCreationScreen() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-8 bg-white dark:bg-black rounded-xl shadow-lg">
-      <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-white">Create Your Profile</h1>
-      <p className="text-md text-center text-gray-500 dark:text-gray-400 mt-2 mb-8">
+    <div className="w-full max-w-md mx-auto p-8 bg-card rounded-xl shadow-lg">
+      <h1 className="text-2xl font-bold text-center text-foreground">Create Your Profile</h1>
+      <p className="text-md text-center text-muted-foreground mt-2 mb-8">
         Finally, let's get to know you.
       </p>
 

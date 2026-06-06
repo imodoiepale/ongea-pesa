@@ -3,16 +3,14 @@
 import { useState, useEffect } from "react"
 import { ArrowLeft, Camera, QrCode, Receipt, CreditCard, Building2, Mic, Check, X, AlertCircle, DollarSign, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { useCamera } from "@/hooks/use-camera"
 import { useVoiceActivation } from "@/hooks/use-voice-activation"
 import { useElevenLabs } from '@/contexts/ElevenLabsContext'
 import { geminiVision, PaymentScanResult } from "@/lib/gemini-vision"
 import { calculateTransactionFees, formatFeesMessage, hasSufficientBalance } from "@/lib/transaction-fees"
+import { ScreenShell } from "@/components/foundation"
+import { cn } from "@/lib/utils"
 
 type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -38,30 +36,30 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
   const [balance, setBalance] = useState<number>(0)
   const [loadingBalance, setLoadingBalance] = useState(true)
   const [voiceActivated, setVoiceActivated] = useState(false)
-  
+
   // Batch payment state
   const [batchMode, setBatchMode] = useState(false)
   const [scannedPayments, setScannedPayments] = useState<PaymentScanResult[]>([])
   const [showBatchSummary, setShowBatchSummary] = useState(false)
-  
+
   // Multiple payment methods state
   const [selectedPaymentIndex, setSelectedPaymentIndex] = useState<number>(0)
   const [showPaymentSelector, setShowPaymentSelector] = useState(false)
   const [alternativesExpanded, setAlternativesExpanded] = useState(false)
-  
+
   // Amount entry state
   const [enteredAmount, setEnteredAmount] = useState<string>('')
   const [showAmountInput, setShowAmountInput] = useState(false)
   const [amountSectionExpanded, setAmountSectionExpanded] = useState(false)
 
-  const { 
-    videoRef, 
-    canvasRef, 
-    isStreaming, 
-    error: cameraError, 
-    startCamera, 
-    stopCamera, 
-    captureImage 
+  const {
+    videoRef,
+    canvasRef,
+    isStreaming,
+    error: cameraError,
+    startCamera,
+    stopCamera,
+    captureImage
   } = useCamera()
 
   // Use global ElevenLabs context (no duplicate connection!)
@@ -90,7 +88,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
   // Handle voice commands
   const handleVoiceCommand = (command: string) => {
     const lower = command.toLowerCase()
-    
+
     if (lower.includes('scan') || lower.includes('piga')) {
       if (lower.includes('paybill')) {
         handleScan('paybill')
@@ -149,7 +147,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
       title: "Till Numbers",
       description: "Shop stickers, restaurant receipts",
       icon: CreditCard,
-      color: "bg-green-500",
+      color: "bg-brand",
       voiceCommand: "Piga Till",
     },
     {
@@ -190,7 +188,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
   // Generate contextual audio messages for detected payments
   const generateAudioMessage = (result: PaymentScanResult): string => {
     const { type, data, confidence } = result;
-    
+
     switch (type) {
       case 'paybill':
         return `Paybill detected! Number ${data.paybill}. ${confidence}% confidence.`;
@@ -214,7 +212,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
   const sendScanDataToVoice = async (result: PaymentScanResult) => {
     try {
       console.log('📡 Sending scan data to voice AI in REAL-TIME');
-      
+
       const response = await fetch('/api/voice/send-scan-data', {
         method: 'POST',
         headers: {
@@ -229,11 +227,11 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
       if (response.ok) {
         const data = await response.json();
         console.log('✅ Scan data formatted:', data.message);
-        
+
         // Send directly to ElevenLabs conversation context in REAL-TIME
         if (elevenLabsConnected && conversation) {
           console.log('🔴 LIVE: Sending to ElevenLabs conversation context');
-          
+
           // The scan data is now available in the conversation context
           // ElevenLabs AI can access it through the session
           try {
@@ -264,18 +262,18 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
   // Text-to-speech function - Use ElevenLabs if connected, fallback to browser TTS
   const speakText = (text: string) => {
     if (!isAudioEnabled) return
-    
+
     // Cancel any ongoing browser TTS first
     window.speechSynthesis.cancel()
-    
+
     // If already speaking, don't overlap
     if (currentlySpeaking) {
       console.log('⏭️ Skipping speech - already speaking')
       return
     }
-    
+
     setCurrentlySpeaking(true)
-    
+
     // Use ElevenLabs if connected
     if (elevenLabsConnected && conversation && conversation.status === 'connected') {
       try {
@@ -289,31 +287,31 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
         // Fall through to browser TTS
       }
     }
-    
+
     // Fallback to browser TTS
     console.log('🔊 Speaking via browser TTS:', text)
     window.speechSynthesis.cancel() // Cancel again to be sure
-    
+
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = 'en-US'
     utterance.rate = 1.0  // Normal speed
     utterance.pitch = 1.0
     utterance.volume = 1.0  // Full volume
-    
+
     // Try to use a better voice if available
     const voices = window.speechSynthesis.getVoices()
-    const preferredVoice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) || 
+    const preferredVoice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
                           voices.find(v => v.lang === 'en-US') ||
                           voices[0]
     if (preferredVoice) {
       utterance.voice = preferredVoice
       console.log('🎤 Using voice:', preferredVoice.name)
     }
-    
+
     utterance.onstart = () => setCurrentlySpeaking(true)
     utterance.onend = () => setCurrentlySpeaking(false)
     utterance.onerror = () => setCurrentlySpeaking(false)
-    
+
     window.speechSynthesis.speak(utterance)
   }
 
@@ -344,7 +342,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
         console.log('Image captured, size:', imageData.length, 'chars');
         console.log('Checking Gemini API key...');
-        
+
         // Check if API key exists
         const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
         if (!apiKey) {
@@ -352,25 +350,25 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
           setScanError('Gemini API key not configured. Check environment setup.');
           return;
         }
-        
+
         console.log('✅ API key found, sending to Gemini...');
         setLastScanTime(now)
         setIsProcessing(true)
-        
+
         const result = await geminiVision.autoDetectPaymentType(imageData)
         console.log('Gemini result:', result);
-        
+
         if (result && result.confidence > 70 && result.type !== 'buy_goods_pochi') {
           console.log('✅ Payment detected with confidence:', result.confidence);
           console.log('📋 Scan result:', result);
-          
+
           // Log all detected payment methods
           console.log('💳 MAIN PAYMENT METHOD:', {
             type: result.type,
             confidence: result.confidence,
             data: result.data
           });
-          
+
           // Check if multiple payment methods detected
           if (result.alternatives && result.alternatives.length > 0) {
             console.log('🔢 Multiple payment methods detected:', result.alternatives.length + 1);
@@ -384,14 +382,14 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
             console.log('ℹ️ Only one payment method detected');
             setShowPaymentSelector(false);
           }
-          
+
           // Send scan data to voice AI
           await sendScanDataToVoice(result);
-          
+
           // ALWAYS set the scan result to display it
           setScanResult(result)
           setSelectedPaymentIndex(0); // Reset to first option
-          
+
           // Set amount if detected, otherwise show input
           if (result.data.amount) {
             const amountNum = result.data.amount.replace(/[^0-9.]/g, '')
@@ -403,9 +401,9 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
             setShowAmountInput(true)
             setAmountSectionExpanded(true) // Expand if no amount detected
           }
-          
+
           console.log('✅ Scan result set, should display now');
-          
+
           // Stop scanning to show result
           setIsScanning(false)
           stopCamera()
@@ -416,7 +414,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
         } else {
           console.log('❌ No payment detected or low confidence:', result?.confidence || 0);
         }
-        
+
         setIsProcessing(false)
       } catch (error) {
         console.error('Auto-scan error:', error)
@@ -453,19 +451,19 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
   const handleScan = async (mode: ScanMode | null = null) => {
     console.log('Starting scan with mode:', mode);
-    
+
     // If no mode specified, use auto-detect mode
     if (!mode) {
       setScanMode(null)
     } else {
       setScanMode(mode)
     }
-    
+
     setIsScanning(true)
     setScanError(null)
     setScanResult(null)
     setIsProcessing(false)
-    
+
     try {
       console.log('Attempting to start camera...');
       await startCamera()
@@ -496,7 +494,6 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
       })
       if (!res.ok) throw new Error(`OCR service error: ${res.status}`)
       const result: PaymentScanResult = await res.json()
-
       setScanResult(result)
       setIsScanning(false)
       stopCamera()
@@ -528,13 +525,13 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
         alert('Please enter a valid amount')
         return
       }
-      
+
       // Check balance
       if (parseFloat(enteredAmount) > balance) {
         alert(`Insufficient balance! You have KSh ${balance.toLocaleString()} but need KSh ${parseFloat(enteredAmount).toLocaleString()}`)
         return
       }
-      
+
       // Get the selected payment (if alternatives exist)
       const allPayments = [scanResult, ...(scanResult?.alternatives || [])]
       const selectedPayment = allPayments[selectedPaymentIndex] || scanResult
@@ -628,7 +625,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
         alert('Please enter a valid amount before adding to batch')
         return
       }
-      
+
       // Add entered amount to payment data
       const paymentWithAmount = {
         ...scanResult,
@@ -637,7 +634,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
           amount: `KSh ${parseFloat(enteredAmount).toLocaleString()}`
         }
       }
-      
+
       setScannedPayments(prev => [...prev, paymentWithAmount])
       setScanResult(null)
       setEnteredAmount('')
@@ -657,10 +654,10 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
     try {
       setIsProcessing(true)
-      
+
       // Calculate total amount
       const totalAmount = scannedPayments.reduce((sum, payment) => {
-        const amount = payment.data.amount ? 
+        const amount = payment.data.amount ?
           parseFloat(payment.data.amount.replace(/[^0-9.]/g, '')) : 0
         return sum + amount
       }, 0)
@@ -753,54 +750,55 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     return (
       <div className="mb-4 space-y-4">
         {/* Compact AI Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+        <div className="rounded-2xl border border-border/60 bg-card p-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center">
                 <Check className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">Payment Detected</h3>
-                <p className="text-xs text-gray-500">{confidence}% Confidence</p>
+                <h3 className="text-sm font-semibold text-foreground">Payment Detected</h3>
+                <p className="text-xs text-muted-foreground">{confidence}% Confidence</p>
               </div>
             </div>
-            <Badge className="bg-blue-500 text-white border-0 px-2 py-1 text-xs">
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-brand/10 text-brand">
               {confidence}%
-            </Badge>
+            </span>
           </div>
 
           {/* Always Visible Payment Options */}
           {allPayments.length > 1 && (
-            <div className="mt-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-2">
+            <div className="mt-2 rounded-xl border border-blue-500/20 bg-blue-500/8 p-2">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 rounded-lg bg-blue-500 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-lg bg-brand flex items-center justify-center">
                   <span className="text-white text-xs font-bold">{allPayments.length}</span>
                 </div>
-                <p className="text-xs font-semibold text-gray-900">
+                <p className="text-xs font-semibold text-foreground">
                   {allPayments.length} Payment Options - Choose one:
                 </p>
               </div>
-              
+
               <div className="space-y-1">
                 {allPayments.map((payment, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedPaymentIndex(index)}
-                    className={`w-full p-2 rounded-lg border transition-all text-left ${
+                    className={cn(
+                      "w-full p-2 rounded-lg border transition-all text-left",
                       selectedPaymentIndex === index
-                        ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200'
-                        : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50'
-                    }`}
+                        ? 'border-brand/40 bg-brand/5'
+                        : 'border-border/60 bg-card hover:border-border'
+                    )}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {selectedPaymentIndex === index && (
-                          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                          <div className="w-4 h-4 rounded-full bg-brand flex items-center justify-center">
                             <Check className="w-2 h-2 text-white" />
                           </div>
                         )}
                         <div>
-                          <p className="text-xs font-semibold text-gray-900">
+                          <p className="text-xs font-semibold text-foreground">
                             {payment.type === 'paybill' && `Paybill ${payment.data.paybill}`}
                             {payment.type === 'buy_goods_till' && `Till ${payment.data.till}`}
                             {payment.type === 'buy_goods_pochi' && `Pochi ${payment.data.phone}`}
@@ -808,26 +806,25 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
                             {payment.type === 'qr' && `QR ${payment.data.till}`}
                           </p>
                           {payment.data.account && (
-                            <p className="text-xs text-gray-500">Account: {payment.data.account}</p>
+                            <p className="text-xs text-muted-foreground">Account: {payment.data.account}</p>
                           )}
                           {payment.data.merchant && (
-                            <p className="text-xs text-gray-500">{payment.data.merchant}</p>
+                            <p className="text-xs text-muted-foreground">{payment.data.merchant}</p>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs px-1 py-0 ${
-                            selectedPaymentIndex === index 
-                              ? 'bg-blue-500 text-white border-blue-500' 
-                              : 'bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          {payment.confidence}%
-                        </Badge>
+                        {selectedPaymentIndex === index ? (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-brand/10 text-brand">
+                            {payment.confidence}%
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                            {payment.confidence}%
+                          </span>
+                        )}
                         {selectedPaymentIndex === index && (
-                          <div className="text-xs text-blue-600 font-medium">Selected</div>
+                          <div className="text-xs text-brand font-medium">Selected</div>
                         )}
                       </div>
                     </div>
@@ -839,7 +836,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
         </div>
 
         {/* Compact Payment Details */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+        <div className="rounded-2xl border border-border/60 bg-card p-3">
           {type === "paybill" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-3">
@@ -847,23 +844,23 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
                   <Receipt className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Paybill Payment</p>
-                  <p className="text-xs text-gray-500">Utility or service payment</p>
+                  <p className="text-sm font-semibold text-foreground">Paybill Payment</p>
+                  <p className="text-xs text-muted-foreground">Utility or service payment</p>
                 </div>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Paybill Number</span>
-                  <span className="text-base font-semibold text-gray-900 font-mono">{data.paybill}</span>
+                <div className="flex items-center justify-between py-2 border-b border-border/40">
+                  <span className="text-sm text-muted-foreground">Paybill Number</span>
+                  <span className="text-base font-semibold text-foreground font-mono">{data.paybill}</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Account Number</span>
-                  <span className="text-base font-semibold text-gray-900 font-mono">{data.account}</span>
+                <div className="flex items-center justify-between py-2 border-b border-border/40">
+                  <span className="text-sm text-muted-foreground">Account Number</span>
+                  <span className="text-base font-semibold text-foreground font-mono">{data.account}</span>
                 </div>
                 {data.merchant && (
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-600">Merchant</span>
-                    <span className="text-base font-medium text-gray-900">{data.merchant}</span>
+                  <div className="flex items-center justify-between py-2 border-b border-border/40">
+                    <span className="text-sm text-muted-foreground">Merchant</span>
+                    <span className="text-base font-medium text-foreground">{data.merchant}</span>
                   </div>
                 )}
               </div>
@@ -873,23 +870,23 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
           {type === "buy_goods_till" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-lg bg-brand flex items-center justify-center">
                   <CreditCard className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Buy Goods - Till</p>
-                  <p className="text-xs text-gray-500">Shop or merchant payment</p>
+                  <p className="text-sm font-semibold text-foreground">Buy Goods - Till</p>
+                  <p className="text-xs text-muted-foreground">Shop or merchant payment</p>
                 </div>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Till Number</span>
-                  <span className="text-lg font-bold text-gray-900 font-mono">{data.till}</span>
+                <div className="flex items-center justify-between py-2 border-b border-border/40">
+                  <span className="text-sm text-muted-foreground">Till Number</span>
+                  <span className="text-lg font-bold text-foreground font-mono">{data.till}</span>
                 </div>
                 {data.merchant && (
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-600">Merchant</span>
-                    <span className="text-base font-medium text-gray-900">{data.merchant}</span>
+                  <div className="flex items-center justify-between py-2 border-b border-border/40">
+                    <span className="text-sm text-muted-foreground">Merchant</span>
+                    <span className="text-base font-medium text-foreground">{data.merchant}</span>
                   </div>
                 )}
               </div>
@@ -898,30 +895,30 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
           {/* Collapsible Amount Entry - Compact */}
           {type !== 'receipt' && (
-            <div className="mt-3 bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg border border-gray-200 overflow-hidden">
+            <div className="mt-3 rounded-xl border border-border/60 bg-muted/30 overflow-hidden">
               {/* Amount Header - Always Visible */}
               <button
                 onClick={() => setAmountSectionExpanded(!amountSectionExpanded)}
-                className="w-full p-2 flex items-center justify-between hover:bg-blue-100/50 transition-colors"
+                className="w-full p-2 flex items-center justify-between hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-blue-500 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-lg bg-brand flex items-center justify-center">
                     <DollarSign className="w-3 h-3 text-white" />
                   </div>
                   <div className="text-left">
-                    <p className="text-xs font-semibold text-gray-900">
+                    <p className="text-xs font-semibold text-foreground">
                       {enteredAmount ? `KSh ${parseFloat(enteredAmount).toLocaleString()}` : 'Enter Amount'}
                     </p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-muted-foreground">
                       {amountSectionExpanded ? 'Collapse' : 'Click to enter'}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
                   {amountSectionExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-blue-600" />
+                    <ChevronUp className="w-4 h-4 text-muted-foreground" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-blue-600" />
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
                   )}
                 </div>
               </button>
@@ -929,67 +926,67 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
               {/* Expanded Amount Input */}
               {amountSectionExpanded && (
                 <div className="px-2 pb-2 space-y-2 animate-in slide-in-from-top-2">
-                  <div className="pt-1 border-t border-blue-200">
+                  <div className="pt-1 border-t border-border/40">
                     {data.amount && !showAmountInput ? (
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-200">
-                          <span className="text-xs font-medium text-gray-600">AI Detected</span>
-                          <span className="text-sm font-bold text-gray-900">{data.amount}</span>
+                        <div className="flex items-center justify-between p-2 rounded-lg border border-border/60 bg-card">
+                          <span className="text-xs font-medium text-muted-foreground">AI Detected</span>
+                          <span className="text-sm font-bold text-foreground">{data.amount}</span>
                         </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => setShowAmountInput(true)}
-                          className="w-full text-xs h-7 border-gray-300 hover:bg-gray-50"
+                          className="w-full text-xs h-7"
                         >
                           Edit Amount
                         </Button>
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <div className="relative">
-                          <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">KSh</span>
-                          <Input
+                        <div className="relative flex items-center border border-border/60 rounded-lg bg-card px-2 h-8">
+                          <span className="text-muted-foreground text-xs mr-1">KSh</span>
+                          <input
                             type="number"
                             placeholder="0.00"
                             value={enteredAmount}
                             onChange={(e) => setEnteredAmount(e.target.value)}
-                            className="pl-8 pr-2 text-sm h-8 border border-gray-300 focus:border-blue-500 rounded-lg bg-white"
+                            className="flex-1 text-sm text-foreground bg-transparent border-none outline-none placeholder:text-muted-foreground/40"
                           />
                         </div>
                         <div className="grid grid-cols-3 gap-1">
                           {['100', '500', '1000', '2000', '5000', '10000'].map((preset) => (
-                            <Button 
-                              key={preset} 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              key={preset}
+                              variant="outline"
+                              size="sm"
                               onClick={() => setEnteredAmount(preset)}
-                              className="h-6 text-xs border-gray-300 hover:bg-blue-50"
+                              className="h-6 text-xs"
                             >
                               {preset}
                             </Button>
                           ))}
                         </div>
                         {data.amount && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                               const amountNum = data.amount?.replace(/[^0-9.]/g, '') || ''
                               setEnteredAmount(amountNum)
                               setShowAmountInput(false)
                             }}
-                            className="w-full text-xs h-6 text-blue-600 hover:bg-blue-50"
+                            className="w-full text-xs h-6 text-brand hover:bg-brand/10"
                           >
                             Use AI ({data.amount})
                           </Button>
                         )}
                       </div>
                     )}
-                    
+
                     {enteredAmount && parseFloat(enteredAmount) > balance && (
-                      <div className="mt-2 p-2 bg-red-50 rounded-lg border border-red-200">
-                        <p className="text-xs text-red-600 font-medium">
+                      <div className="mt-2 p-2 rounded-lg border border-destructive/20 bg-destructive/8">
+                        <p className="text-xs text-destructive font-medium">
                           ⚠️ Need KSh {(parseFloat(enteredAmount) - balance).toLocaleString()} more
                         </p>
                       </div>
@@ -1002,29 +999,29 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
           {type === "buy_goods_pochi" && (
             <div className="space-y-3">
-              <div className="p-4 bg-gradient-to-br from-purple-100 to-fuchsia-100 dark:from-purple-900/40 dark:to-fuchsia-900/40 rounded-xl border-2 border-purple-300/50 dark:border-purple-500/50 shadow-lg backdrop-blur-sm">
-                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Pochi la Biashara</p>
+              <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                <p className="text-sm font-medium text-muted-foreground">Pochi la Biashara</p>
                 <div className="mt-2 space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Phone:</span>
-                    <span className="text-lg font-bold font-mono bg-white dark:bg-gray-800 px-2 py-1 rounded border">{data.phone}</span>
+                    <span className="text-sm font-medium text-foreground">Phone:</span>
+                    <span className="text-lg font-bold font-mono text-foreground">{data.phone}</span>
                   </div>
                   {data.merchant && (
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Business:</span>
-                      <span className="text-sm bg-white dark:bg-gray-800 px-2 py-1 rounded border">{data.merchant}</span>
+                      <span className="text-sm font-medium text-foreground">Business:</span>
+                      <span className="text-sm text-foreground">{data.merchant}</span>
                     </div>
                   )}
                   {data.amount && (
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Amount:</span>
-                      <span className="text-lg font-bold text-green-600">{data.amount}</span>
+                      <span className="text-sm font-medium text-foreground">Amount:</span>
+                      <span className="text-lg font-bold text-brand">{data.amount}</span>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <p className="text-sm text-green-700 dark:text-green-300">
+              <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                <p className="text-sm text-muted-foreground">
                   AI: "Nimesoma Pochi la Biashara. Unataka kutuma pesa?"
                 </p>
               </div>
@@ -1033,23 +1030,23 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
           {type === "send_phone" && (
             <div className="space-y-3">
-              <div className="p-4 bg-gradient-to-br from-cyan-100 to-sky-100 dark:from-cyan-900/40 dark:to-sky-900/40 rounded-xl border-2 border-cyan-300/50 dark:border-cyan-500/50 shadow-lg backdrop-blur-sm">
-                <p className="text-sm font-medium text-cyan-700 dark:text-cyan-300">Send Money</p>
+              <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                <p className="text-sm font-medium text-muted-foreground">Send Money</p>
                 <div className="mt-2 space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Phone Number:</span>
-                    <span className="text-lg font-bold font-mono bg-white dark:bg-gray-800 px-2 py-1 rounded border">{data.phone}</span>
+                    <span className="text-sm font-medium text-foreground">Phone Number:</span>
+                    <span className="text-lg font-bold font-mono text-foreground">{data.phone}</span>
                   </div>
                   {data.amount && (
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Amount:</span>
-                      <span className="text-lg font-bold text-green-600">{data.amount}</span>
+                      <span className="text-sm font-medium text-foreground">Amount:</span>
+                      <span className="text-lg font-bold text-brand">{data.amount}</span>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <p className="text-sm text-green-700 dark:text-green-300">
+              <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                <p className="text-sm text-muted-foreground">
                   AI: "Tuma pesa kwa {data.phone}. Confirm?"
                 </p>
               </div>
@@ -1058,14 +1055,14 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
           {type === "qr" && (
             <div className="space-y-3">
-              <div className="p-4 bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/40 dark:to-amber-900/40 rounded-xl border-2 border-orange-300/50 dark:border-orange-500/50 shadow-lg backdrop-blur-sm">
-                <p className="text-sm font-medium text-orange-700 dark:text-orange-300">QR Code Scanned</p>
-                <p className="text-lg font-bold">Till: {data.till}</p>
-                <p className="text-sm">Merchant: {data.merchant}</p>
-                <p className="text-sm">Amount: {data.amount}</p>
+              <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                <p className="text-sm font-medium text-muted-foreground">QR Code Scanned</p>
+                <p className="text-lg font-bold text-foreground">Till: {data.till}</p>
+                <p className="text-sm text-muted-foreground">Merchant: {data.merchant}</p>
+                <p className="text-sm text-muted-foreground">Amount: {data.amount}</p>
               </div>
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <p className="text-sm text-green-700 dark:text-green-300">
+              <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                <p className="text-sm text-muted-foreground">
                   AI: "Scan successful. Lipa {data.amount} to {data.merchant}?"
                 </p>
               </div>
@@ -1074,15 +1071,15 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
           {type === "receipt" && data.receiptData && (
             <div className="space-y-3">
-              <div className="p-4 bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/40 dark:to-rose-900/40 rounded-xl border-2 border-red-300/50 dark:border-red-500/50 shadow-lg backdrop-blur-sm">
-                <p className="text-sm font-medium text-red-700 dark:text-red-300">Receipt Captured</p>
-                <p className="text-lg font-bold">{data.receiptData.vendor}</p>
-                <p className="text-sm">Amount: {data.receiptData.amount}</p>
-                <p className="text-sm">Date: {data.receiptData.date}</p>
-                <p className="text-sm">Category: {data.receiptData.category}</p>
+              <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                <p className="text-sm font-medium text-muted-foreground">Receipt Captured</p>
+                <p className="text-lg font-bold text-foreground">{data.receiptData.vendor}</p>
+                <p className="text-sm text-muted-foreground">Amount: {data.receiptData.amount}</p>
+                <p className="text-sm text-muted-foreground">Date: {data.receiptData.date}</p>
+                <p className="text-sm text-muted-foreground">Category: {data.receiptData.category}</p>
               </div>
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <p className="text-sm text-green-700 dark:text-green-300">
+              <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                <p className="text-sm text-muted-foreground">
                   AI: "Risiti ya {data.receiptData.category} {data.receiptData.amount}. Tag under{" "}
                   {data.receiptData.category}?"
                 </p>
@@ -1092,13 +1089,13 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
           {(type === "bank_to_mpesa" || type === "bank_to_bank") && (
             <div className="space-y-3">
-              <div className="p-4 bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/40 dark:to-violet-900/40 rounded-xl border-2 border-indigo-300/50 dark:border-indigo-500/50 shadow-lg backdrop-blur-sm">
-                <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Bank Account Detected</p>
-                <p className="text-lg font-bold">Bank Code: {data.bankCode}</p>
-                <p className="text-sm">Account: {data.account}</p>
+              <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                <p className="text-sm font-medium text-muted-foreground">Bank Account Detected</p>
+                <p className="text-lg font-bold text-foreground">Bank Code: {data.bankCode}</p>
+                <p className="text-sm text-muted-foreground">Account: {data.account}</p>
               </div>
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <p className="text-sm text-green-700 dark:text-green-300">
+              <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+                <p className="text-sm text-muted-foreground">
                   AI: "Nimesoma bank details. Code {data.bankCode} account {data.account}."
                 </p>
               </div>
@@ -1108,17 +1105,17 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
           <div className="space-y-3 mt-4">
             {/* Batch mode indicator */}
             {batchMode && (
-              <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-                <p className="text-xs text-blue-700 dark:text-blue-300 text-center">
+              <div className="p-2 rounded-lg border border-brand/20 bg-brand/5">
+                <p className="text-xs text-brand text-center">
                   📦 Batch Mode: {scannedPayments.length} payment(s) queued
                 </p>
               </div>
             )}
-            
+
             <div className="flex space-x-3">
               {type === "receipt" ? (
                 <>
-                  <Button onClick={handleSaveReceipt} className="flex-1 bg-green-500 hover:bg-green-600">
+                  <Button onClick={handleSaveReceipt} className="flex-1">
                     <Check className="h-4 w-4 mr-2" />
                     Save Receipt
                   </Button>
@@ -1131,17 +1128,17 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
                 <>
                   {batchMode ? (
                     <>
-                      <Button onClick={handleAddToBatch} className="flex-1 bg-blue-500 hover:bg-blue-600">
+                      <Button variant="outline" onClick={handleAddToBatch} className="flex-1">
                         <Check className="h-4 w-4 mr-2" />
                         Add to Batch
                       </Button>
-                      <Button onClick={handleConfirmPayment} className="flex-1 bg-green-500 hover:bg-green-600">
+                      <Button onClick={handleConfirmPayment} className="flex-1">
                         Pay All ({scannedPayments.length})
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button onClick={handleConfirmPayment} className="flex-1 bg-green-500 hover:bg-green-600">
+                      <Button onClick={handleConfirmPayment} className="flex-1">
                         <Check className="h-4 w-4 mr-2" />
                         Proceed to Pay
                       </Button>
@@ -1165,7 +1162,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     if (!showBatchSummary || scannedPayments.length === 0) return null
 
     const totalAmount = scannedPayments.reduce((sum, payment) => {
-      const amount = payment.data.amount ? 
+      const amount = payment.data.amount ?
         parseFloat(payment.data.amount.replace(/[^0-9.]/g, '')) : 0
       return sum + amount
     }, 0)
@@ -1173,38 +1170,36 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     const canAfford = balance >= totalAmount
 
     return (
-      <Card className="mb-6 border-2 border-blue-500/50 bg-gradient-to-br from-blue-50/90 via-cyan-50/90 to-teal-50/90 dark:from-blue-900/30 dark:via-cyan-900/30 dark:to-teal-900/30 shadow-2xl backdrop-blur-xl">
-        <CardHeader className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 dark:from-blue-600/20 dark:to-cyan-600/20">
-          <CardTitle className="text-lg flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              📦 <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent font-bold">Batch Payment Summary</span>
-            </span>
-            <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0">
-              {scannedPayments.length} Payments
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="mb-5 rounded-2xl border border-border/60 bg-card">
+        <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
+          <span className="flex items-center gap-2 text-base font-semibold text-foreground">
+            📦 Batch Payment Summary
+          </span>
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-brand/10 text-brand">
+            {scannedPayments.length} Payments
+          </span>
+        </div>
+        <div className="px-4 py-3 space-y-3">
           {/* Payment list */}
-          <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="space-y-1 max-h-60 overflow-y-auto">
             {scannedPayments.map((payment, index) => (
-              <div key={index} className="p-3 bg-white dark:bg-gray-800 rounded-lg border flex items-center justify-between">
+              <div key={index} className="flex items-center justify-between px-3 py-2">
                 <div className="flex-1">
-                  <p className="font-medium text-sm">
+                  <p className="font-medium text-sm text-foreground">
                     {payment.type === 'paybill' && `Paybill ${payment.data.paybill}`}
                     {payment.type === 'buy_goods_till' && `Till ${payment.data.till}`}
                     {payment.type === 'buy_goods_pochi' && `Pochi ${payment.data.phone}`}
                     {payment.type === 'qr' && `QR ${payment.data.till}`}
                   </p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     {payment.data.amount || 'Amount not specified'}
                   </p>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleRemoveFromBatch(index)}
-                  className="text-red-500 hover:text-red-700"
+                  className="text-destructive hover:text-destructive"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -1213,19 +1208,19 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
           </div>
 
           {/* Total summary */}
-          <div className="p-4 bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-blue-900/40 dark:to-cyan-900/40 rounded-xl border-2 border-blue-300/50">
+          <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
             <div className="flex justify-between items-center mb-2">
-              <span className="font-medium">Total Amount:</span>
-              <span className="text-2xl font-bold text-blue-600">KSh {totalAmount.toLocaleString()}</span>
+              <span className="font-medium text-foreground">Total Amount:</span>
+              <span className="text-2xl font-bold text-brand">KSh {totalAmount.toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-              <span>Your Balance:</span>
-              <span className={canAfford ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+              <span className="text-muted-foreground">Your Balance:</span>
+              <span className={cn("font-medium", canAfford ? "text-brand" : "text-destructive")}>
                 KSh {balance.toLocaleString()}
               </span>
             </div>
             {!canAfford && (
-              <div className="mt-2 p-2 bg-red-100 dark:bg-red-900/20 rounded text-xs text-red-700 dark:text-red-300">
+              <div className="mt-2 p-2 rounded-lg border border-destructive/20 bg-destructive/8 text-xs text-destructive">
                 ⚠️ Insufficient balance. Need KSh {(totalAmount - balance).toLocaleString()} more.
               </div>
             )}
@@ -1233,230 +1228,227 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
 
           {/* Action buttons */}
           <div className="flex space-x-3">
-            <Button 
-              onClick={handlePayAllBatch} 
+            <Button
+              onClick={handlePayAllBatch}
               disabled={!canAfford || isProcessing}
-              className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-400"
+              className="flex-1"
             >
               {isProcessing ? 'Processing...' : `Pay All (KSh ${totalAmount.toLocaleString()})`}
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowBatchSummary(false)}
               className="flex-1"
             >
               Back to Scan
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     )
   }
 
   if (isScanning) {
     return (
-      <div className="min-h-screen p-4 pb-20">
-        {/* Scan Result Display - Show immediately when detected */}
-        {scanResult && !showBatchSummary && renderScanResult()}
-        
-        {/* Batch summary overlay */}
-        {showBatchSummary && renderBatchSummary()}
-        
-        {!showBatchSummary && !scanResult && (
-          <>
-            <div className="flex items-center mb-6 pt-8">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleCancel}
-                className="mr-3"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className="flex-1">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {isProcessing ? "AI Processing..." : "🤖 Auto-Scanning"}
-                </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {isProcessing ? "Analyzing document with AI" : "Point at any payment document"}
+      <div className="min-h-[100dvh] bg-background surface-money pb-24">
+        <ScreenShell className="pt-0">
+          {/* Scan Result Display - Show immediately when detected */}
+          {scanResult && !showBatchSummary && renderScanResult()}
+
+          {/* Batch summary overlay */}
+          {showBatchSummary && renderBatchSummary()}
+
+          {!showBatchSummary && !scanResult && (
+            <>
+              <div className="flex items-center mb-6 pt-8">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCancel}
+                  className="mr-3"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div className="flex-1">
+                  <h1 className="text-xl font-bold text-foreground">
+                    {isProcessing ? "AI Processing..." : "🤖 Auto-Scanning"}
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    {isProcessing ? "Analyzing document with AI" : "Point at any payment document"}
+                  </p>
+                </div>
+                {/* Batch mode toggle */}
+                <Button
+                  onClick={toggleBatchMode}
+                  variant={batchMode ? "default" : "outline"}
+                  size="sm"
+                  className={cn(batchMode && "bg-brand hover:bg-brand/90")}
+                >
+                  📦 {batchMode ? "Batch ON" : "Batch OFF"}
+                </Button>
+              </div>
+
+              <div className="rounded-2xl border border-border/60 bg-card p-4 mb-4">
+                <div className="aspect-video bg-gray-900 rounded-lg relative overflow-hidden">
+                  {/* Hidden canvas for image capture */}
+                  <canvas
+                    ref={canvasRef}
+                    className="hidden"
+                  />
+
+                  {/* Real camera video - ALWAYS visible when streaming */}
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className={`absolute inset-0 w-full h-full object-cover ${isStreaming ? 'block' : 'hidden'}`}
+                  />
+
+                  {/* Scanning overlay - ONLY borders, no background */}
+                  {isStreaming && (
+                    <>
+                      {/* Scanning frame */}
+                      <div className="absolute inset-4 border-2 border-green-400 rounded-lg pointer-events-none animate-pulse">
+                        <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-400" />
+                        <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-400" />
+                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-400" />
+                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-400" />
+                      </div>
+
+                      {/* Auto-scan indicator with audio status */}
+                      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-brand/90 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2 animate-bounce">
+                        🤖 AI Auto-Scanning...
+                        {currentlySpeaking && (
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                            <div className="w-1 h-1 bg-white rounded-full animate-pulse ml-1"></div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Instructions */}
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm text-center">
+                        Point camera at: Paybill • Till • QR • Receipt • Bank slip
+                      </div>
+                    </>
+                  )}
+
+                  {/* Loading indicator when not streaming */}
+                  {!isStreaming && !cameraError && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                      <div className="text-white text-center">
+                        <Camera className="h-12 w-12 mx-auto mb-3 animate-pulse" />
+                        <p className="text-sm opacity-75">
+                          {cameraError ? "Check permissions" : "Starting camera..."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Scanner Status Info */}
+              <div className="rounded-2xl border border-border/60 bg-card px-4 py-3 mb-4 text-center">
+                <p className="text-sm text-muted-foreground mb-2">
+                  🤖 <strong className="text-foreground">AI Auto-Detection Active</strong>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Simply point your camera at any payment document. The AI will automatically recognize:
+                  Paybill numbers • Till numbers • QR codes • Receipts • Bank details • Pochi numbers
+                </p>
+                <p className="text-xs text-brand mt-2">
+                  ✨ Works with handwritten text and simple formats too!
                 </p>
               </div>
-              {/* Batch mode toggle */}
-              <Button
-                onClick={toggleBatchMode}
-                variant={batchMode ? "default" : "outline"}
-                size="sm"
-                className={batchMode ? "bg-blue-500 hover:bg-blue-600" : ""}
-              >
-                📦 {batchMode ? "Batch ON" : "Batch OFF"}
-              </Button>
-            </div>
 
-            <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="aspect-video bg-gray-900 rounded-lg relative overflow-hidden">
-              {/* Hidden canvas for image capture */}
-              <canvas 
-                ref={canvasRef}
-                className="hidden"
-              />
-              
-              {/* Real camera video - ALWAYS visible when streaming */}
-              <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline 
-                muted
-                className={`absolute inset-0 w-full h-full object-cover ${isStreaming ? 'block' : 'hidden'}`}
-              />
-              
-              {/* Scanning overlay - ONLY borders, no background */}
+              {/* Controls */}
               {isStreaming && (
-                <>
-                  {/* Scanning frame */}
-                  <div className="absolute inset-4 border-2 border-green-400 rounded-lg pointer-events-none animate-pulse">
-                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-400" />
-                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-400" />
-                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-400" />
-                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-400" />
-                  </div>
-                  
-                  {/* Auto-scan indicator with audio status */}
-                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-green-500/90 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2 animate-bounce">
-                    🤖 AI Auto-Scanning...
-                    {currentlySpeaking && (
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                        <div className="w-1 h-1 bg-white rounded-full animate-pulse ml-1"></div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Instructions */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm text-center">
-                    Point camera at: Paybill • Till • QR • Receipt • Bank slip
-                  </div>
-                </>
-              )}
-              
-              {/* Loading indicator when not streaming */}
-              {!isStreaming && !cameraError && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-                  <div className="text-white text-center">
-                    <Camera className="h-12 w-12 mx-auto mb-3 animate-pulse" />
-                    <p className="text-sm opacity-75">
-                      {cameraError ? "Check permissions" : "Starting camera..."}
-                    </p>
-                  </div>
+                <div className="flex gap-2 mt-4 justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+                    className={cn(isAudioEnabled && "bg-brand/10 border-brand/20")}
+                    size="sm"
+                  >
+                    {isAudioEnabled ? "🔊 Audio ON" : "🔇 Audio OFF"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setAutoScanEnabled(!autoScanEnabled)}
+                    className={cn(autoScanEnabled && "bg-brand/10 border-brand/20")}
+                    size="sm"
+                  >
+                    {autoScanEnabled ? "🤖 Auto-Scan ON" : "📷 Manual Mode"}
+                  </Button>
+                  {!autoScanEnabled && (
+                    <Button onClick={handleCapture} disabled={!scanMode} size="sm">
+                      📸 Capture
+                    </Button>
+                  )}
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Scanner Status Info */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                🤖 <strong>AI Auto-Detection Active</strong>
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-500">
-                Simply point your camera at any payment document. The AI will automatically recognize:
-                Paybill numbers • Till numbers • QR codes • Receipts • Bank details • Pochi numbers
-              </p>
-              <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-                ✨ Works with handwritten text and simple formats too!
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              {/* Camera Error */}
+              {cameraError && (
+                <div className="rounded-2xl border border-destructive/20 bg-destructive/8 px-4 py-3 flex items-center gap-2 mb-4">
+                  <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                  <p className="text-sm text-destructive">
+                    Camera Error: {cameraError}. Please check permissions and try again.
+                  </p>
+                </div>
+              )}
 
-        {/* Controls */}
-        {isStreaming && (
-          <div className="flex gap-2 mt-4 justify-center">
-            <Button
-              variant="outline"
-              onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-              className={isAudioEnabled ? "bg-blue-100 border-blue-300" : ""}
-              size="sm"
-            >
-              {isAudioEnabled ? "🔊 Audio ON" : "🔇 Audio OFF"}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setAutoScanEnabled(!autoScanEnabled)}
-              className={autoScanEnabled ? "bg-green-100 border-green-300" : ""}
-              size="sm"
-            >
-              {autoScanEnabled ? "🤖 Auto-Scan ON" : "📷 Manual Mode"}
-            </Button>
-            {!autoScanEnabled && (
-              <Button onClick={handleCapture} disabled={!scanMode} size="sm">
-                📸 Capture
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Camera Error Alert */}
-        {cameraError && (
-          <Alert className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Camera Error: {cameraError}. Please check permissions and try again.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Scan Error Alert */}
-        {scanError && (
-          <Alert className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {scanError}
-            </AlertDescription>
-          </Alert>
-        )}
-          </>
-        )}
+              {/* Scan Error */}
+              {scanError && (
+                <div className="rounded-2xl border border-destructive/20 bg-destructive/8 px-4 py-3 flex items-center gap-2 mb-4">
+                  <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                  <p className="text-sm text-destructive">{scanError}</p>
+                </div>
+              )}
+            </>
+          )}
+        </ScreenShell>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen p-2 pb-16">
-      {/* Compact Header */}
-      <div className="flex items-center mb-3 pt-2">
-        <Button variant="ghost" size="sm" onClick={() => onNavigate("dashboard")} className="mr-2 p-1">
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-lg font-bold text-gray-900 dark:text-white">Payment Scanner</h1>
-          <p className="text-xs text-gray-600 dark:text-gray-400">Scan bills, receipts & payment codes</p>
+    <div className="min-h-[100dvh] bg-background surface-money">
+      <ScreenShell className="pt-0">
+        {/* Compact Header */}
+        <div className="flex items-center mb-3 pt-2">
+          <Button variant="ghost" size="sm" onClick={() => onNavigate("dashboard")} className="mr-2 p-1">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-lg font-bold text-foreground">Payment Scanner</h1>
+            <p className="text-xs text-muted-foreground">Scan bills, receipts & payment codes</p>
+          </div>
         </div>
-      </div>
 
-      {/* Compact Voice Activation */}
-      <Card className={`mb-3 ${voiceActivated ? 'border border-green-500 bg-green-50 dark:bg-green-900/20' : ''}`}>
-        <CardContent className="p-2">
+        {/* Compact Voice Activation */}
+        <div className={cn(
+          "rounded-2xl border bg-card px-4 py-3 mb-4",
+          voiceActivated ? "border-brand/30 bg-brand/5" : "border-border/60"
+        )}>
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-1">
-                <h3 className="font-semibold text-xs">🎙️ Voice Control</h3>
+                <h3 className="font-semibold text-xs text-foreground">🎙️ Voice Control</h3>
                 {voice.isListening && (
-                  <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300 px-1 py-0">
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-brand/10 text-brand border border-brand/20">
                     Listening
-                  </Badge>
+                  </span>
                 )}
                 {voiceActivated && (
-                  <Badge variant="outline" className="text-xs bg-green-500 text-white animate-pulse px-1 py-0">
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-brand text-white animate-pulse border border-brand">
                     Active
-                  </Badge>
+                  </span>
                 )}
               </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Say: <strong>"Hey Ongea"</strong> then <strong>"Scan till"</strong> or <strong>"Check balance"</strong>
+              <p className="text-xs text-muted-foreground">
+                Say: <strong className="text-foreground">"Hey Ongea"</strong> then <strong className="text-foreground">"Scan till"</strong> or <strong className="text-foreground">"Check balance"</strong>
               </p>
             </div>
             <Button
@@ -1468,138 +1460,134 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
                 }
               }}
               size="sm"
-              className={`rounded-full p-2 ${voice.isListening ? "bg-red-500 animate-pulse" : "bg-green-500"}`}
+              className={cn(
+                "rounded-full p-2",
+                voice.isListening ? "bg-red-500 animate-pulse" : "bg-brand"
+              )}
             >
               <Mic className="h-3 w-3" />
             </Button>
           </div>
           {voiceActivated && voice.interimTranscript && (
-            <div className="mt-2 p-1 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200">
-              <p className="text-xs text-blue-700 dark:text-blue-300">Hearing: "{voice.interimTranscript}"</p>
+            <div className="mt-2 p-1 rounded border border-blue-500/20 bg-blue-500/8">
+              <p className="text-xs text-blue-500">Hearing: "{voice.interimTranscript}"</p>
             </div>
           )}
           {voiceActivated && voice.transcript && (
-            <div className="mt-2 p-1 bg-green-50 dark:bg-green-900/20 rounded border border-green-200">
-              <p className="text-xs text-green-700 dark:text-green-300">✓ Command: "{voice.transcript}"</p>
+            <div className="mt-2 p-1 rounded border border-brand/20 bg-brand/5">
+              <p className="text-xs text-brand">✓ Command: "{voice.transcript}"</p>
             </div>
           )}
           {elevenLabsConnected && (
-            <div className="mt-2 p-1 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 flex items-center gap-1">
-              <div className="w-1 h-1 bg-purple-500 rounded-full animate-pulse"></div>
-              <p className="text-xs text-purple-700 dark:text-purple-300">ElevenLabs AI Active</p>
+            <div className="mt-2 p-1 rounded-lg border border-blue-500/20 bg-blue-500/8 flex items-center gap-1">
+              <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
+              <p className="text-xs text-blue-500">ElevenLabs AI Active</p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Scan Result */}
-      {renderScanResult()}
+        {/* Scan Result */}
+        {renderScanResult()}
 
-      {/* Compact Quick Start Auto-Scan */}
-      {!scanResult && (
-        <div className="mb-3">
-          <Card className="mb-2 border border-green-500 bg-green-50 dark:bg-green-900/20">
-            <CardContent className="p-3 text-center">
-              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
+        {/* Compact Quick Start Auto-Scan */}
+        {!scanResult && (
+          <div className="mb-3">
+            <div className="rounded-2xl border border-brand/20 bg-brand/5 px-4 py-4 text-center mb-4">
+              <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center mx-auto mb-2">
                 <Camera className="h-5 w-5 text-white" />
               </div>
-              <h3 className="text-sm font-bold text-green-700 dark:text-green-300 mb-1">
+              <h3 className="text-sm font-bold text-foreground mb-1">
                 🤖 Smart Auto-Scanner
               </h3>
-              <p className="text-xs text-green-600 dark:text-green-400 mb-3">
+              <p className="text-xs text-muted-foreground mb-3">
                 Point camera - AI detects payment details automatically!
               </p>
-              <Button 
-                onClick={() => handleScan()} 
+              <Button
+                onClick={() => handleScan()}
                 size="sm"
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-xs"
+                className="rounded-full px-4 py-2 text-xs"
               >
                 <Camera className="h-5 w-5 mr-2" />
                 Start Auto-Scanning
               </Button>
-            </CardContent>
-          </Card>
-          
-          <div className="text-center mb-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Or choose specific scan mode:</p>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {scanModes.map((mode) => (
-              <Card
-                key={mode.id}
-                className={(mode as any).disabled
-                  ? "opacity-50 cursor-not-allowed"
-                  : "cursor-pointer hover:shadow-md transition-shadow"}
-                onClick={() => {
-                  if ((mode as any).disabled) return
-                  handleScan(mode.id)
-                }}
-              >
-                <CardContent className="p-3 text-center">
+            </div>
+
+            <div className="text-center mb-4">
+              <p className="text-sm text-muted-foreground">Or choose specific scan mode:</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {scanModes.map((mode) => (
+                <button
+                  key={mode.id}
+                  onClick={() => {
+                    if ((mode as any).disabled) return
+                    handleScan(mode.id)
+                  }}
+                  className={cn(
+                    "rounded-2xl border border-border/60 bg-card hover:border-border hover:shadow-sm transition-all active:scale-[0.98] p-3 text-center w-full",
+                    (mode as any).disabled && "opacity-50 cursor-not-allowed"
+                  )}
+                >
                   <div className={`w-10 h-10 ${mode.color} rounded-lg flex items-center justify-center mx-auto mb-2`}>
                     <mode.icon className="h-5 w-5 text-white" />
                   </div>
-                  <h3 className="font-semibold text-xs mb-1">{mode.title}</h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{mode.description}</p>
+                  <h3 className="font-semibold text-xs text-foreground mb-1">{mode.title}</h3>
+                  <p className="text-xs text-muted-foreground mb-1">{mode.description}</p>
                   {(mode as any).disabled
-                    ? <Badge variant="secondary" className="text-xs">Coming soon</Badge>
-                    : <Badge variant="outline" className="text-xs">"{mode.voiceCommand}"</Badge>
+                    ? <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">Coming soon</span>
+                    : <span className="text-[10px] font-medium text-muted-foreground">"{mode.voiceCommand}"</span>
                   }
-                </CardContent>
-              </Card>
-            ))}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Recent Scans */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Recent Scans</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <Receipt className="h-5 w-5 text-blue-600 mr-3" />
+        {/* Recent Scans */}
+        <div className="mb-4 rounded-2xl border border-border/60 bg-card">
+          <div className="px-4 py-3 border-b border-border/40">
+            <h2 className="text-base font-semibold text-foreground">Recent Scans</h2>
+          </div>
+          <div>
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-border/40 last:border-b-0">
+              <Receipt className="h-5 w-5 text-brand shrink-0" />
               <div className="flex-1">
-                <p className="font-medium text-sm">KPLC Bill - Paybill 888880</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Account: 123456789 • KSh 2,450</p>
+                <p className="font-medium text-sm text-foreground">KPLC Bill - Paybill 888880</p>
+                <p className="text-xs text-muted-foreground">Account: 123456789 • KSh 2,450</p>
               </div>
               <Button size="sm" variant="outline">
                 Pay
               </Button>
             </div>
 
-            <div className="flex items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <CreditCard className="h-5 w-5 text-green-600 mr-3" />
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-border/40 last:border-b-0">
+              <CreditCard className="h-5 w-5 text-brand shrink-0" />
               <div className="flex-1">
-                <p className="font-medium text-sm">Naivas Receipt - Till 832909</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Groceries • KSh 1,850</p>
+                <p className="font-medium text-sm text-foreground">Naivas Receipt - Till 832909</p>
+                <p className="text-xs text-muted-foreground">Groceries • KSh 1,850</p>
               </div>
               <Button size="sm" variant="outline">
                 View
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Tips */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Scanning Tips</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+        {/* Tips */}
+        <div className="mb-4 rounded-2xl border border-border/60 bg-card">
+          <div className="px-4 py-3 border-b border-border/40">
+            <h2 className="text-base font-semibold text-foreground">Scanning Tips</h2>
+          </div>
+          <div className="px-4 py-4 space-y-2 text-sm text-muted-foreground">
             <p>• Hold phone steady and ensure good lighting</p>
             <p>• For Paybill: Focus on the number and account section</p>
             <p>• For receipts: Capture the entire receipt clearly</p>
             <p>• Voice commands work even with camera open</p>
             <p>• Double-check all details before confirming payment</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </ScreenShell>
     </div>
   )
 }

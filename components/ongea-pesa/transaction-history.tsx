@@ -30,7 +30,7 @@ const getTransactionIcon = (type: string) => {
   switch (type) {
     case 'deposit':
     case 'receive':
-      return <ArrowDownLeft className="h-6 w-6 text-green-500" />;
+      return <ArrowDownLeft className="h-6 w-6 text-brand" />;
     case 'send_phone':
     case 'send':
       return <ArrowUpRight className="h-6 w-6 text-red-500" />;

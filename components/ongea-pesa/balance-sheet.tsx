@@ -489,7 +489,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Check className="h-4 w-4 text-green-600" />
+        return <Check className="h-4 w-4 text-brand" />
       case 'failed':
         return <XCircle className="h-4 w-4 text-red-600" />
       case 'pending':
@@ -501,7 +501,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
 
   const getTransactionIcon = (type: string) => {
     if (type === 'deposit' || type.includes('receive') || type === 'transfer_in') {
-      return <TrendingUp className="h-5 w-5 text-green-600" />
+      return <TrendingUp className="h-5 w-5 text-brand" />
     }
     return <TrendingDown className="h-5 w-5 text-red-600" />
   }

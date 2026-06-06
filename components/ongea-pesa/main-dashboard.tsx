@@ -231,7 +231,7 @@ export default function MainDashboard({
               className="rounded-full"
               title="Admin Analytics"
             >
-              <Shield className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <Shield className="h-5 w-5 text-brand" />
             </Button>
           )}
 
