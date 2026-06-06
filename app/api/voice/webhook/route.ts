@@ -672,15 +672,33 @@ export async function POST(request: NextRequest) {
     }
 
     // Return success response to ElevenLabs.
-    // n8n WALLET SYSTEM now returns real NCBA result:
-    //   { success, transaction_id, bankRef, status, type, amount, message }
-    // Surface the human-readable message so ElevenLabs can speak it.
+    // n8n WALLET SYSTEM returns various shapes depending on instance/node:
+    //   { success: true, transaction_id, bankRef, status, type, amount, message }  (canonical)
+    //   { isSuccess: true, txId, bankRef, status }                                  (Respond-node expr)
+    //   { status: "Success" }                                                        (observed live)
+    //   { status: "completed" }                                                      (DB-flipped)
+    // Tolerant detection: let an explicit failure signal win; otherwise infer from
+    // status string or the presence of a real bank reference.
     console.log('\n=== SENDING RESPONSE TO ELEVENLABS ===')
-    const ncbaSuccess: boolean = n8nResult.success === true
+    const statusStr = String(n8nResult.status ?? '').toLowerCase()
+    const explicitFailure =
+      n8nResult.success === false ||
+      n8nResult.isSuccess === false ||
+      ['failed', 'error', 'declined', 'cancelled', 'canceled', 'rejected'].includes(statusStr)
+    const explicitSuccess =
+      n8nResult.success === true ||
+      n8nResult.isSuccess === true ||
+      ['success', 'completed', 'ok', 'sent'].includes(statusStr) ||
+      Boolean(n8nResult.bankRef || n8nResult.txId)
+    const ncbaSuccess: boolean = explicitSuccess && !explicitFailure
+
+    const bankRef = n8nResult.bankRef || null
     const ncbaMessage: string =
       n8nResult.message ||
       (ncbaSuccess
-        ? `Transaction processed successfully`
+        ? (bankRef
+            ? `Done! Money sent successfully. Reference ${bankRef}.`
+            : `Done! Money sent successfully.`)
         : `Payment failed. Please try again.`)
 
     const response = {
@@ -688,7 +706,7 @@ export async function POST(request: NextRequest) {
       message: ncbaMessage,
       agent_message: ncbaMessage,
       transaction_id: n8nResult.transaction_id || n8nResult.txId || null,
-      bank_ref: n8nResult.bankRef || null,
+      bank_ref: bankRef,
       status: n8nResult.status || (ncbaSuccess ? 'completed' : 'failed'),
       data: n8nResult,
     }
