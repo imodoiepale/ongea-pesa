@@ -15,6 +15,7 @@
     "@elevenlabs/react": "^0.11.0",
     "@google/genai": "^1.15.0",
     "@hookform/resolvers": "^3.9.1",
+    "@picovoice/eagle-node": "^3.0.1",
     "@picovoice/porcupine-react": "^3.0.3",
     "@picovoice/porcupine-web": "^3.0.3",
     "@picovoice/web-voice-processor": "^4.0.9",
