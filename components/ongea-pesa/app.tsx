@@ -34,8 +34,11 @@ function AppShell() {
   const [checkingMpesa, setCheckingMpesa] = useState(true)
   // Batch: pre-populated payments + results from voice-triggered send_batch
   const [pendingBatch, setPendingBatch] = useState<{ payments?: BatchItem[]; results?: BatchResponse } | null>(null)
-  // Voice-triggered scan overlay — null = hidden, {} = open (auto-detect mode), { mode } = specific mode
-  const [scanOverlay, setScanOverlay] = useState<{ mode?: string | null } | null>(null)
+  // Voice-triggered scan overlay — null = hidden
+  // { autoStart?: boolean, mode?: string | null }
+  //   autoStart: true (default) → camera starts immediately (voice path)
+  //   autoStart: false → show mode selection first (button path)
+  const [scanOverlay, setScanOverlay] = useState<{ mode?: string | null; autoStart?: boolean } | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -110,7 +113,13 @@ function AppShell() {
   const renderScreen = () => {
     switch (currentScreen) {
       case "dashboard":
-        return <MainDashboard onNavigate={navigate} onVoiceActivate={() => setIsListening(true)} />
+        return (
+          <MainDashboard
+            onNavigate={navigate}
+            onVoiceActivate={() => setIsListening(true)}
+            onOpenScanner={() => setScanOverlay({ autoStart: false })}
+          />
+        )
       case "voice":
         return <VoiceInterface onNavigate={navigate} />
       case "send":
@@ -134,7 +143,13 @@ function AppShell() {
           />
         )
       default:
-        return <MainDashboard onNavigate={navigate} onVoiceActivate={() => setIsListening(true)} />
+        return (
+          <MainDashboard
+            onNavigate={navigate}
+            onVoiceActivate={() => setIsListening(true)}
+            onOpenScanner={() => setScanOverlay({ autoStart: false })}
+          />
+        )
     }
   }
 
@@ -142,12 +157,14 @@ function AppShell() {
     <div className="min-h-[100dvh] pb-20 lg:pb-0 bg-background">
       {renderScreen()}
 
-      {/* Voice-triggered scan overlay — animates camera open on the current screen */}
+      {/* Scan overlay — opens on top of the current screen; closing returns here.
+          autoStart=true (voice path): camera begins immediately.
+          autoStart=false (button path): shows mode-selection first. */}
       {scanOverlay !== null && (
         <div className="fixed inset-0 z-[75] animate-in fade-in zoom-in-95 duration-300">
           <PaymentScanner
             variant="overlay"
-            autoStart
+            autoStart={scanOverlay.autoStart !== false}
             initialMode={scanOverlay.mode as ScanMode | null}
             onClose={() => setScanOverlay(null)}
             onNavigate={navigate}

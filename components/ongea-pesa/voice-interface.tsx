@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Mic, MicOff, Volume2, ArrowLeft, AlertCircle, BarChart3, LogOut, Wallet, DollarSign, User, CreditCard, Check } from "lucide-react"
+import { Mic, MicOff, Volume2, ArrowLeft, AlertCircle, BarChart3, LogOut, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -14,6 +14,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useElevenLabs } from '@/contexts/ElevenLabsContext';
 import type { PaymentSlots } from '@/contexts/ElevenLabsContext';
 import { GlassCard, ScreenShell } from "@/components/foundation"
+import PaymentIdentificationPanel from "./payment-identification-panel"
 
 type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -21,48 +22,13 @@ interface VoiceInterfaceProps {
   onNavigate: (screen: Screen) => void;
 }
 
-function SlotRow({ label, value, icon }: { label: string; value: string | null; icon: React.ReactNode }) {
-  const filled = value !== null
-  return (
-    <div className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-500
-      ${filled
-        ? 'bg-green-500/10 border border-green-500/30'
-        : 'bg-white/5 border border-white/10'
-      }`}
-    >
-      {/* Check mark / pending indicator */}
-      <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-500
-        ${filled ? 'bg-green-500 animate-in zoom-in duration-300' : 'bg-white/10'}`}
-      >
-        {filled
-          ? <Check className="w-3.5 h-3.5 text-white" />
-          : <div className="w-2 h-2 rounded-full bg-white/30 animate-pulse" />
-        }
-      </div>
-
-      {/* Icon + label */}
-      <div className="flex-shrink-0 text-white/40">{icon}</div>
-
-      {/* Value */}
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-white/40 leading-none mb-0.5">{label}</p>
-        {filled
-          ? <p className="text-sm font-semibold text-white truncate animate-in fade-in slide-in-from-left-2 duration-300">
-              {value}
-            </p>
-          : <div className="h-3.5 w-24 rounded bg-white/10 animate-pulse" />
-        }
-      </div>
-    </div>
-  )
-}
 
 export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   const { user, signOut } = useAuth();
   const { userId, user: userContext, isLoading: userContextLoading } = useUser();
   const { isConnected, isLoading, messages, conversation, isSpeaking, startSession, endSession, registerToolHandlers, unregisterToolHandlers } = useElevenLabs();
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'speaking'>('idle')
-  const [paymentSlots, setPaymentSlots] = useState<PaymentSlots>({})
+  const [stagedPayments, setStagedPayments] = useState<PaymentSlots[]>([])
   const [balance, setBalance] = useState<number>(0)
   const [loadingBalance, setLoadingBalance] = useState(true);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -74,46 +40,30 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const supabase = createClient();
 
-  // Register stagePayment tool handler
+  // Register stagePayment tool handler — merges by index (default 0)
   useEffect(() => {
     registerToolHandlers({
-      stagePayment: (slots: PaymentSlots) => {
-        setPaymentSlots(prev => ({
-          ...prev,
-          ...(slots.amount !== undefined && { amount: slots.amount }),
-          ...(slots.phone !== undefined && { phone: slots.phone }),
-          ...(slots.till !== undefined && { till: slots.till }),
-          ...(slots.paybill !== undefined && { paybill: slots.paybill }),
-          ...(slots.account !== undefined && { account: slots.account }),
-          ...(slots.type !== undefined && { type: slots.type }),
-          ...(slots.recipientName !== undefined && { recipientName: slots.recipientName }),
-        }))
+      stagePayment: (params: PaymentSlots & { index?: number }) => {
+        const { index = 0, ...slots } = params
+        setStagedPayments(prev => {
+          const next = [...prev]
+          const existing = next[index] ?? {}
+          next[index] = {
+            ...existing,
+            ...(slots.amount !== undefined && { amount: slots.amount }),
+            ...(slots.phone !== undefined && { phone: slots.phone }),
+            ...(slots.till !== undefined && { till: slots.till }),
+            ...(slots.paybill !== undefined && { paybill: slots.paybill }),
+            ...(slots.account !== undefined && { account: slots.account }),
+            ...(slots.type !== undefined && { type: slots.type }),
+            ...(slots.recipientName !== undefined && { recipientName: slots.recipientName }),
+          }
+          return next
+        })
       }
     })
     return () => unregisterToolHandlers(['stagePayment'])
   }, []) // stable refs — no deps needed
-
-  // Derive display values from slots
-  const whoDisplay = paymentSlots.recipientName
-    || paymentSlots.phone
-    || (paymentSlots.paybill ? `Paybill ${paymentSlots.paybill}${paymentSlots.account ? ' / ' + paymentSlots.account : ''}` : null)
-    || (paymentSlots.till ? `Till ${paymentSlots.till}` : null)
-    || null
-
-  const typeDisplay = paymentSlots.type
-    ? {
-        send_phone: 'Send to Phone',
-        buy_goods_till: 'Buy Goods (Till)',
-        paybill: 'Pay Bill',
-        internal: 'Ongea Transfer',
-        receipt: 'Pay Receipt',
-        withdraw: 'Withdraw',
-      }[paymentSlots.type] ?? paymentSlots.type
-    : null
-
-  const amountDisplay = paymentSlots.amount != null
-    ? `KSh ${paymentSlots.amount.toLocaleString('en-KE', { minimumFractionDigits: 2 })}`
-    : null
 
   // Fetch balance from API
   const fetchBalance = useCallback(async () => {
@@ -173,7 +123,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   const stopConversation = useCallback(async () => {
     try {
       await endSession();
-      setPaymentSlots({});
+      setStagedPayments([]);
       setRecordingTime(0);
       setIsProcessing(false);
       setIsPushToTalk(false);
@@ -440,27 +390,8 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
           </div>
         </GlassCard>
 
-        {/* Payment identification slot panel */}
-        <div className="w-full max-w-sm space-y-2">
-          {/* Slot row: Amount */}
-          <SlotRow
-            label="Amount"
-            value={amountDisplay}
-            icon={<DollarSign className="w-4 h-4" />}
-          />
-          {/* Slot row: Who / To */}
-          <SlotRow
-            label="To"
-            value={whoDisplay}
-            icon={<User className="w-4 h-4" />}
-          />
-          {/* Slot row: Payment type */}
-          <SlotRow
-            label="Payment Type"
-            value={typeDisplay}
-            icon={<CreditCard className="w-4 h-4" />}
-          />
-        </div>
+        {/* Payment identification panel — blank until fields are identified */}
+        <PaymentIdentificationPanel payments={stagedPayments} />
 
         {/* Primary mic action button (Double-Bezel) + End call */}
         <div className="flex flex-col items-center gap-4 pb-4">
@@ -506,7 +437,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
               onClick={async () => {
                 await endSession()
                 setIsPushToTalk(false)
-                setPaymentSlots({})
+                setStagedPayments([])
                 onNavigate('dashboard')
               }}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-400 transition-colors duration-200"

@@ -30,7 +30,6 @@ import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useVoice } from "@/components/voice-provider"
-import VoiceInterface from "@/components/ongea-pesa/voice-interface"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from "@/lib/supabase/client"
 import BalanceSheet from "./balance-sheet"
@@ -52,6 +51,8 @@ type Screen =
 interface MainDashboardProps {
   onNavigate?: (screen: Screen) => void
   onVoiceActivate?: () => void
+  /** Called when the user taps "Pay Scanner" — opens the camera overlay in the parent */
+  onOpenScanner?: () => void
 }
 
 // Admin emails list
@@ -123,6 +124,7 @@ const voiceExamples = [
 export default function MainDashboard({
   onNavigate,
   onVoiceActivate,
+  onOpenScanner,
 }: MainDashboardProps) {
   const { user, signOut } = useAuth()
   const { theme, setTheme } = useTheme()
@@ -131,7 +133,6 @@ export default function MainDashboard({
   const [balance, setBalance] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [isBalanceSheetOpen, setIsBalanceSheetOpen] = useState(false)
-  const [showVoiceInterface, setShowVoiceInterface] = useState(false)
   const [hideBalance, setHideBalance] = useState(() => {
     if (typeof window === "undefined") return false
     return localStorage.getItem("hide-balance") === "true"
@@ -224,7 +225,7 @@ export default function MainDashboard({
   }, [user?.id, supabase])
 
   const handleVoiceActivation = () => {
-    setShowVoiceInterface(true)
+    handleNavigate("voice")
   }
 
   if (!mounted) {
@@ -373,7 +374,11 @@ export default function MainDashboard({
           {quickActions.map((action) => (
             <button
               key={action.label}
-              onClick={() => handleNavigate(action.screen)}
+              onClick={() =>
+                action.screen === "scanner" && onOpenScanner
+                  ? onOpenScanner()
+                  : handleNavigate(action.screen)
+              }
               className="flex flex-col items-center gap-2.5 p-4 rounded-2xl bg-card border border-border/60 hover:border-border hover:shadow-sm transition-all duration-200 active:scale-[0.97] text-left"
             >
               <div
@@ -456,27 +461,6 @@ export default function MainDashboard({
           console.log("✅ Balance updated to:", newBalance)
         }}
       />
-
-      {/* Voice Interface Modal — outside ScreenShell (fixed) */}
-      {showVoiceInterface && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm">
-          <div className="relative h-full">
-            <Button
-              onClick={() => setShowVoiceInterface(false)}
-              variant="ghost"
-              className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
-            >
-              ✕
-            </Button>
-            <VoiceInterface
-              onNavigate={(screen) => {
-                setShowVoiceInterface(false)
-                handleNavigate(screen)
-              }}
-            />
-          </div>
-        </div>
-      )}
 
       {/* PWA Install Prompt — outside ScreenShell */}
       <PWAInstallPrompt />

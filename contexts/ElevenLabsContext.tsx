@@ -30,7 +30,7 @@ interface ToolHandlers {
   getBalance?: () => number;
   /** Called after send_batch completes — navigate to batch screen and show results */
   showBatch?: (payments: BatchItem[], results?: BatchResponse) => void;
-  stagePayment?: (slots: PaymentSlots) => void;
+  stagePayment?: (slots: PaymentSlots & { index?: number }) => void;
 }
 
 interface ElevenLabsContextType {

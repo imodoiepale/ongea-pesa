@@ -339,11 +339,21 @@ You can send to several people or pay several bills in a single conversation usi
 - Do NOT call send_money for each item — always use send_batch for multi-destination sends.
 
 ## Slot Staging (stage_payment tool)
-As you identify any payment detail from the user's speech — amount, recipient, or payment type — immediately call stage_payment with all fields known so far. Do not wait until all three are identified. For example:
+As you identify any payment detail from the user's speech — amount, recipient, or payment type — immediately call stage_payment with all fields known so far. Do not wait until all three are identified.
+
+**Single payment:**
 - User says "send two thousand" → call stage_payment({ amount: 2000 })
 - User then says "to John" → call stage_payment({ amount: 2000, recipientName: "John", type: "send_phone" })
-- After calling send_money (which processes the payment), also call stage_payment with the full details so the display is complete.
-This creates the animated field-filling effect the user sees. Always call stage_payment before confirm_payment or send_money.`;
+- After calling send_money, call stage_payment again with the full details so the display is complete.
+
+**Multi-payment (send_batch):**
+- Stage each payment by its 0-based index as soon as you identify it:
+  - stage_payment({ index: 0, amount: 500, recipientName: "John", type: "send_phone" })
+  - stage_payment({ index: 1, amount: 1000, paybill: "888880", account: "12345", type: "paybill" })
+- Stage all items progressively as you hear them, before calling send_batch.
+- Omit index for a single payment (defaults to 0).
+
+This creates the animated identification panel the user sees — single payment shows cards, multiple shows a live table. Always call stage_payment before confirm_payment or send_money/send_batch.`;
 
 const FIRST_MESSAGE = 'Send Money using Ongea Pesa';
 
@@ -444,6 +454,7 @@ const CLIENT_TOOLS = [
       type: 'object',
       required: [],
       properties: {
+        index:         { type: 'number', description: '0-based payment index for multi-payment / batch flows. Omit (or 0) for a single payment.' },
         amount:        { type: 'number', description: 'Amount in KES identified so far, if known' },
         phone:         { type: 'string', description: 'Recipient phone number, if sending to phone' },
         till:          { type: 'string', description: 'Till number, if buying goods' },
