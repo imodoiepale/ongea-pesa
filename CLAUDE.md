@@ -4,23 +4,14 @@ Voice-first Kenyan fintech PWA. Next.js 15 + Supabase + ElevenLabs Conversationa
 
 ---
 
-## ⚠️ CRITICAL SECURITY — RLS NOT ENABLED
+## ✅ RLS ENABLED — All Core Tables Protected
 
-Three tables are fully exposed to any `anon` key holder (no row-level security):
-- `public.profiles`
-- `public.transactions`
-- `public.subscription_plans`
+Migration `015_enable_rls_core.sql` is **applied** (confirmed 2026-06-07). All 21 public tables have RLS on, including:
+- `public.profiles` ✅ — owner + service-role policies
+- `public.transactions` ✅ — owner + backend-update policy
+- `public.subscription_plans` ✅
 
-**Do not auto-apply without reviewing policies first — enabling RLS without policies blocks all access.**
-
-```sql
--- Run in Supabase SQL editor ONLY after confirming policies are in place
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
-```
-
-**Migration `015_enable_rls_core.sql` now does this WITH owner policies** (server uses the service-role client, which bypasses RLS). Review + apply it in the Supabase SQL editor, then verify cross-user reads are blocked with the anon key.
+Server-side routes use `createServiceClient()` (service-role, bypasses RLS). Client routes use `createClient()` (anon key, RLS-bound).
 
 ---
 
@@ -80,32 +71,35 @@ Use `/graphify query "<question>"` to trace specific flows before touching archi
 **DB:** PostgreSQL 17.6 at `db.efydvozipukolqmynvmv.supabase.co`  
 **Status:** ACTIVE_HEALTHY
 
-**Live tables (21 total):**
-| Table | RLS | Rows | Notes |
-|---|---|---|---|
-| `profiles` | ❌ OFF | 1 | **RLS MISSING — see security warning above** |
-| `transactions` | ❌ OFF | 11 | **RLS MISSING** |
-| `subscription_plans` | ❌ OFF | 0 | **RLS MISSING** |
-| `voice_sessions` | ✅ | 0 | |
-| `balance_history` | ✅ | 0 | |
-| `mpesa_transactions` | ✅ | 0 | |
-| `payment_methods` | ✅ | 0 | |
-| `contacts` | ✅ | 0 | |
-| `subscriptions` | ✅ | 0 | |
-| `escrows` | ✅ | 0 | |
-| `escrow_participants` | ✅ | 0 | |
-| `escrow_milestones` | ✅ | 0 | |
-| `escrow_transactions` | ✅ | 0 | |
-| `escrow_disputes` | ✅ | 0 | |
-| `chamas` | ✅ | 2 | |
-| `chama_members` | ✅ | 4 | |
-| `chama_projects` | ✅ | 0 | |
-| `chama_cycles` | ✅ | 1 | |
-| `chama_stk_requests` | ✅ | 2 | |
-| `chama_payouts` | ✅ | 0 | |
-| `gate_transactions` | ✅ | 0 | IndexPay gate/pocket transactions |
+**Live tables (22 total):**
+| Table | RLS | Notes |
+|---|---|---|
+| `profiles` | ✅ | Owner + service-role policies (migration 015) |
+| `transactions` | ✅ | Owner + backend-update policy |
+| `subscription_plans` | ✅ | |
+| `voice_sessions` | ✅ | |
+| `balance_history` | ✅ | |
+| `mpesa_transactions` | ✅ | |
+| `payment_methods` | ✅ | |
+| `contacts` | ✅ | |
+| `subscriptions` | ✅ | |
+| `escrows` | ✅ | |
+| `escrow_participants` | ✅ | |
+| `escrow_milestones` | ✅ | |
+| `escrow_transactions` | ✅ | |
+| `escrow_disputes` | ✅ | |
+| `chamas` | ✅ | |
+| `chama_members` | ✅ | |
+| `chama_projects` | ✅ | |
+| `chama_cycles` | ✅ | |
+| `chama_stk_requests` | ✅ | |
+| `chama_payouts` | ✅ | |
+| `gate_transactions` | ✅ | IndexPay gate/pocket transactions |
+| `saved_bills` | ✅ | Pay-later bills from scanned receipts (migration 018) |
 
-Migrations: `database/migrations/` (001→011, no 003; two `008_*` files — apply both).
+**Storage:** private `receipts` bucket (5 MB, image/jpeg\|png\|webp); objects RLS scoped to `auth.uid()` folder.
+
+Migrations: `database/migrations/` (001→018, no 003; two `008_*` files — apply both). All applied.
 
 ---
 
