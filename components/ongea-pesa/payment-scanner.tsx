@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ArrowLeft, Camera, QrCode, Receipt, CreditCard, Building2, Mic, Check, X, AlertCircle, DollarSign, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
@@ -18,11 +18,19 @@ type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test
 
 interface PaymentScannerProps {
   onNavigate: (screen: Screen) => void
+  /** 'page' (default) = full-page with landing/mode-picker; 'overlay' = skip landing, autoStart the camera */
+  variant?: 'page' | 'overlay'
+  /** When true, call handleScan(initialMode ?? null) on mount — used with variant='overlay' */
+  autoStart?: boolean
+  /** Initial scan mode when autoStart is true. null = auto-detect */
+  initialMode?: ScanMode | null
+  /** Called instead of onNavigate("dashboard") when the scanner should be closed (e.g. overlay dismissed) */
+  onClose?: () => void
 }
 
 type ScanMode = "paybill" | "till" | "qr" | "receipt" | "bank" | "pochi"
 
-export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
+export default function PaymentScanner({ onNavigate, variant = 'page', autoStart = false, initialMode, onClose }: PaymentScannerProps) {
   const { toast } = useToast()
   const [scanMode, setScanMode] = useState<ScanMode | null>(null)
   const [isScanning, setIsScanning] = useState(false)
@@ -135,6 +143,16 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     }
     fetchBalance()
   }, [])
+
+  // Auto-start the camera on mount when triggered by voice (overlay mode)
+  const autoStartFiredRef = useRef(false)
+  useEffect(() => {
+    if (autoStart && !autoStartFiredRef.current) {
+      autoStartFiredRef.current = true
+      handleScan(initialMode ?? null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // intentionally runs once on mount
 
   // Register scanner-specific client tools so the voice agent can drive the UI
   useEffect(() => {
@@ -585,7 +603,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
               duration: 5000,
             })
             setScanResult(null); setEnteredAmount(''); setSelectedPaymentIndex(0); setAlternativesExpanded(false)
-            setTimeout(() => onNavigate("dashboard"), 1500)
+            setTimeout(() => { if (onClose) { onClose() } else { onNavigate("dashboard") } }, 1500)
           } else {
             toast({ title: "❌ Payment Failed", description: result.message || "Please try again.", variant: "destructive", duration: 4000 })
           }
@@ -615,7 +633,7 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
               duration: 5000,
             })
             setScanResult(null); setEnteredAmount(''); setSelectedPaymentIndex(0); setAlternativesExpanded(false)
-            setTimeout(() => onNavigate("dashboard"), 1500)
+            setTimeout(() => { if (onClose) { onClose() } else { onNavigate("dashboard") } }, 1500)
           } else {
             toast({ title: "❌ Failed to Record", description: "Please try again.", variant: "destructive", duration: 4000 })
           }
@@ -756,6 +774,11 @@ export default function PaymentScanner({ onNavigate }: PaymentScannerProps) {
     setScanError(null)
     setIsScanning(false)
     stopCamera()
+    if (onClose) {
+      onClose()
+    } else {
+      onNavigate("dashboard")
+    }
   }
 
   const renderScanResult = () => {
