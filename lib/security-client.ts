@@ -64,7 +64,18 @@ export async function verifyPasskeyForStepUp(): Promise<string> {
  * one and the platform supports it), otherwise falls back to PIN via the
  * provided prompt callback.
  */
-export async function getStepUpToken(opts?: { preferPasskey?: boolean; pin?: string }): Promise<string> {
+export async function getStepUpToken(opts?: {
+  preferPasskey?: boolean;
+  preferVoice?: boolean;
+  pin?: string;
+}): Promise<string> {
+  if (opts?.preferVoice) {
+    try {
+      return await verifyVoiceForStepUp([]); // caller is responsible for passing frames; this is a placeholder path
+    } catch {
+      // fall through to other methods
+    }
+  }
   if (opts?.preferPasskey) {
     try {
       return await verifyPasskeyForStepUp();
@@ -103,4 +114,63 @@ export async function revokeBiometric(id: string): Promise<void> {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || 'Failed to revoke biometric');
   }
+}
+
+// ─── Voice biometrics ──────────────────────────────────────────────────────
+
+export async function getVoiceEnrollChallenge(): Promise<{ phrase: string }> {
+  const res = await fetch('/api/security/voice/enroll/options');
+  if (!res.ok) throw new Error('Failed to get voice enrollment challenge');
+  return res.json();
+}
+
+export async function enrollVoiceBiometric(
+  frames: string[], // base64-encoded Int16Array PCM frames at 16kHz
+  consent: boolean
+): Promise<void> {
+  const res = await fetch('/api/security/voice/enroll', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ frames, consent }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Voice enrollment failed');
+  }
+}
+
+export async function getVoiceVerifyChallenge(): Promise<{ phrase: string }> {
+  const res = await fetch('/api/security/voice/verify/options');
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 423) throw Object.assign(new Error(data.error || 'Locked'), { status: 423, lockedUntil: data.lockedUntil });
+    throw new Error(data.error || 'Failed to get voice challenge');
+  }
+  return res.json();
+}
+
+export async function verifyVoiceForStepUp(frames: string[]): Promise<string> {
+  const res = await fetch('/api/security/voice/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ frames }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 423) throw Object.assign(new Error(data.error || 'Locked'), { status: 423, lockedUntil: data.lockedUntil });
+    throw new Error(data.error || 'Voice verification failed');
+  }
+  const data = await res.json();
+  return data.stepupToken;
+}
+
+export async function getVoiceStatus(): Promise<{ enrolled: boolean; profile: object | null }> {
+  const res = await fetch('/api/security/voice');
+  if (!res.ok) throw new Error('Failed to get voice status');
+  return res.json();
+}
+
+export async function deleteVoiceBiometric(): Promise<void> {
+  const res = await fetch('/api/security/voice', { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete voice biometric');
 }
