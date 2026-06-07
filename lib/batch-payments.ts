@@ -75,8 +75,7 @@ export function normalizeScanToBatchItem(
         label: `Paybill ${paybill} / Acc ${account}`,
       };
     }
-    case 'send_phone':
-    case 'buy_goods_pochi': {
+    case 'send_phone': {
       const phone = data.phone ?? '';
       return {
         amount,
@@ -84,6 +83,8 @@ export function normalizeScanToBatchItem(
         label: `Phone ${phone}`,
       };
     }
+    // buy_goods_pochi intentionally falls to default — feature is coming soon;
+    // the default returns a stub that the batch API will reject before sending.
     case 'receipt': {
       // Receipt with an extracted till or paybill is payable; otherwise expense-tracking only
       if (data.till) {

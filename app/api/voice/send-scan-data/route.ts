@@ -137,9 +137,8 @@ function formatScanMessage(scanResult: any, balance: number, fees: any = null): 
       } Your balance is ${balanceFormatted}. Confidence ${confidence}%. Should I proceed with this payment?`;
 
     case 'buy_goods_pochi':
-      return `Pochi la Biashara detected! Phone number ${data.phone}${data.merchant ? ` for ${data.merchant}` : ''}. ${
-        data.amount ? `Amount ${data.amount}.${feeMessage}` : 'No amount specified.'
-      } Your balance is ${balanceFormatted}. Confidence ${confidence}%. Shall we proceed?`;
+      // buy_goods_pochi is not available yet — do not invite the user to proceed
+      return `Pochi la Biashara is coming soon and not available yet. For now you can pay using a Till number, a Paybill, or send directly to an M-Pesa phone number. Which would you prefer?`;
 
     case 'send_phone':
       return `Phone number detected for sending money: ${data.phone}. ${

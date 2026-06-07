@@ -28,6 +28,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Pochi La Biashara is not available yet — reject before inserting anything
+    if (type === 'buy_goods_pochi') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Feature not available',
+          message: 'Pochi la Biashara is not available yet — coming soon.',
+          agent_message: "Pochi la Biashara is coming soon and not available yet. Try a Till number, Paybill, or M-Pesa phone send instead.",
+        },
+        { status: 400 }
+      );
+    }
+
     console.log('💾 Creating transaction:', { type, data, confidence, status });
 
     // Prepare transaction data matching n8n schema

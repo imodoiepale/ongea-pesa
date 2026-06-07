@@ -8,8 +8,9 @@ const N8N_AUTH_TOKEN = process.env.N8N_WEBHOOK_AUTH_TOKEN || '';
 
 // Money-moving voice intents that must be gated by an in-app step-up confirm.
 // Non-payment commands (balance queries, etc.) fall through to n8n directly.
+// NOTE: buy_goods_pochi intentionally omitted — feature is coming soon; rejected early below.
 const MONEY_MOVING_TYPES = new Set([
-  'send_phone', 'buy_goods_pochi', 'buy_goods_till', 'paybill',
+  'send_phone', 'buy_goods_till', 'paybill',
   'withdraw', 'bank_to_mpesa', 'bank_to_bank',
   'c2c', 'c2b', 'b2c', 'b2b',
 ]);
@@ -25,6 +26,22 @@ export async function POST(request: NextRequest) {
     // Parse the incoming data from ElevenLabs
     const body = await request.json()
     console.log('Request Body:', JSON.stringify(body, null, 2))
+
+    // ── Pochi La Biashara: COMING SOON gate ──────────────────────────────────
+    // buy_goods_pochi is not available yet. Reject immediately before any user
+    // lookup, balance check, or n8n forward so no transaction is ever created.
+    if (body.type === 'buy_goods_pochi') {
+      console.log('🚫 buy_goods_pochi rejected — feature coming soon')
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Feature not available',
+          message: 'Pochi la Biashara is not available yet — coming soon.',
+          agent_message: "Pochi la Biashara is coming soon and not available yet. For now you can pay using a Till number, a Paybill, or send directly to an M-Pesa phone number. Which would you prefer?",
+        },
+        { status: 400 }
+      )
+    }
 
     const queryParams = new URL(request.url).searchParams
     const fullRequest = queryParams.get('request')
@@ -400,7 +417,7 @@ export async function POST(request: NextRequest) {
 
     // Check if this is a debit transaction (money going out)
     const debitTypes = [
-      'send_phone', 'buy_goods_pochi', 'buy_goods_till',
+      'send_phone', 'buy_goods_till',
       'paybill', 'withdraw', 'bank_to_mpesa', 'mpesa_to_bank'
     ]
     const isDebitTransaction = debitTypes.includes(body.type)

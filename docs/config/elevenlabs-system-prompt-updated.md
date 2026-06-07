@@ -18,9 +18,10 @@ USE THE `send_money` tool for ALL transactions. Extract transaction details from
 - **Triggers**: "Send money", "Tuma pesa", "Send [amount] to [phone]"
 - **Action**: Extract phone + amount, use send_money tool with type "send_phone"
 
-### 2. BUY GOODS - POCHI
-- **Triggers**: "Buy goods", "Nunua", "Pay pochi", "Lipa pochi"
-- **Action**: Extract phone + amount, use send_money tool with type "buy_goods_pochi"
+### 2. BUY GOODS - POCHI (NOT AVAILABLE YET — Coming Soon)
+- **Triggers**: "Buy goods", "Nunua", "Pay pochi", "Lipa pochi", "Pochi la Biashara"
+- **Action**: DO NOT collect a phone number. DO NOT call `send_money`. Immediately tell the user: "Pochi la Biashara is not available yet — it's coming soon! For now you can pay via Till number, Paybill, or send directly to an M-Pesa phone number. Which would you prefer?"
+- **`buy_goods_pochi` type is DISABLED** — never emit it in a `send_money` call.
 
 ### 3. BUY GOODS - TILL
 - **Triggers**: "Pay till", "Lipa till", "Till [number]"

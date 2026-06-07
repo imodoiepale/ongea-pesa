@@ -88,7 +88,7 @@ You are Ongea Pesa — Kenya's fast voice wallet assistant for {{user_name}}. Yo
 | b2c | "send to customer from business" | amount, recipient |
 | b2b | "business to business" | amount, recipient |
 | send_phone | "send to 07...", "tuma M-Pesa kwa nambari" | amount, phone |
-| buy_goods_pochi | "pochi", "buy goods pochi" | amount, phone |
+| buy_goods_pochi | ~~DISABLED — COMING SOON~~ | ~~NEVER EMIT~~ |
 | buy_goods_till | "till [number]", "lipa till" | amount, till |
 | paybill | "paybill", "lipa bill [number]" | amount, paybill, account |
 | withdraw | "withdraw", "toa pesa", "cash out" | amount, agent, store |
@@ -237,7 +237,7 @@ Use this glossary to understand what users say, even when they mix Kiswahili/She
 | nambari | number |
 | till | till number (M-Pesa buy goods) |
 | paybill | paybill number |
-| pochi | Pochi la Biashara (buy goods via phone) |
+| pochi | Pochi la Biashara — COMING SOON, not available yet. When user says "pochi", tell them it's coming soon and offer Till, Paybill, or M-Pesa phone send. Do NOT call send_money. |
 | lipa na mpesa | pay with M-Pesa |
 | stk | STK push prompt |
 | wallet / mkoba | wallet / purse |
@@ -423,7 +423,7 @@ const CLIENT_TOOLS = [
                 description: 'Destination type. Inferred from other fields if omitted.',
                 enum: ['phone', 'till', 'paybill', 'bill', 'internal'],
               },
-              phone: { type: 'string', description: 'Kenyan phone number 07XXXXXXXX or 254XXXXXXXXX for phone/pochi payments' },
+              phone: { type: 'string', description: 'Kenyan phone number 07XXXXXXXX or 254XXXXXXXXX for phone payments (send_phone only; pochi is disabled)' },
               till: { type: 'string', description: '6-7 digit till number for buy-goods payments' },
               paybill: { type: 'string', description: '6-7 digit paybill number' },
               account: { type: 'string', description: 'Account number for paybill or bill payments' },
@@ -561,12 +561,29 @@ async function main() {
   });
   console.log('    ✅ Agent updated');
 
-  // Step 6: Optionally fix send_money → immediate + response schema
+  // Step 6: Optionally fix send_money → immediate + response schema + restrict type enum
   if (fixSendMoney) {
-    console.log('\n[6] Upgrading send_money (async → immediate + response schema)...');
+    console.log('\n[6] Upgrading send_money (async → immediate + response schema + type enum)...');
     try {
       const smResp = await el('GET', `/v1/convai/tools/${SEND_MONEY_ID}`);
       const existingCfg = smResp.tool_config ?? {};
+
+      // Patch type field in request_body_schema: remove buy_goods_pochi from enum
+      // (pochi is coming soon; server rejects it anyway but tool enum is a second line of defense)
+      const existingApiSchema = smResp.api_schema ?? {};
+      const existingBodySchema = existingApiSchema.request_body_schema ?? {};
+      const existingProps = existingBodySchema.properties ?? [];
+      const patchedProps = existingProps.map((p) => {
+        if (p.id === 'type') {
+          return {
+            ...p,
+            description: 'Transaction type: send_phone, buy_goods_till, paybill, withdraw, bank_to_mpesa, bank_to_bank, c2c, c2b, b2c, b2b',
+            enum: ['send_phone', 'buy_goods_till', 'paybill', 'withdraw', 'bank_to_mpesa', 'bank_to_bank', 'c2c', 'c2b', 'b2c', 'b2b'],
+          };
+        }
+        return p;
+      });
+
       await el('PATCH', `/v1/convai/tools/${SEND_MONEY_ID}`, {
         tool_config: {
           ...existingCfg,
@@ -574,8 +591,15 @@ async function main() {
           response_body_schema: SEND_MONEY_RESPONSE_SCHEMA,
           description: "Executes a financial transaction from the user's Ongea Pesa wallet. Handles internal wallet-to-wallet transfers (c2c/c2b/b2c/b2b) and external M-Pesa payments (till/paybill/phone/withdraw/bank). Returns success/error with agent_message for voice feedback.",
         },
+        api_schema: {
+          ...existingApiSchema,
+          request_body_schema: {
+            ...existingBodySchema,
+            properties: patchedProps,
+          },
+        },
       });
-      console.log('    ✅ execution_mode → immediate, response_body_schema added');
+      console.log('    ✅ execution_mode → immediate, response_body_schema added, buy_goods_pochi removed from type enum');
       console.log('    ⚠️  CONFIRM with backend: prompt uses 0.5% fee / 20 free sends');
     } catch (err) {
       console.warn(`    ⚠️  send_money PATCH failed (non-fatal): ${err.message}`);

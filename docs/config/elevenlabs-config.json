@@ -47,10 +47,10 @@
               "id": "type",
               "type": "string",
               "value_type": "llm_prompt",
-              "description": "Transaction type: send_phone (send money to phone), buy_goods_pochi (buy goods with phone), buy_goods_till (pay till number), paybill (pay bill), withdraw (cash out from agent), bank_to_mpesa (transfer from bank to M-Pesa), bank_to_bank (bank to bank transfer)",
+              "description": "Transaction type: send_phone (send money to phone), buy_goods_till (pay till number), paybill (pay bill), withdraw (cash out from agent), bank_to_mpesa (transfer from bank to M-Pesa), bank_to_bank (bank to bank transfer). NOTE: buy_goods_pochi is coming soon and must never be used.",
               "dynamic_variable": "",
               "constant_value": "",
-              "enum": ["send_phone", "buy_goods_pochi", "buy_goods_till", "paybill", "withdraw", "bank_to_mpesa", "bank_to_bank"],
+              "enum": ["send_phone", "buy_goods_till", "paybill", "withdraw", "bank_to_mpesa", "bank_to_bank"],
               "required": true
             },
             {
@@ -67,7 +67,7 @@
               "id": "phone",
               "type": "string",
               "value_type": "llm_prompt",
-              "description": "Phone number for send_phone or buy_goods_pochi. Format: 254XXXXXXXXX or 07XXXXXXXX",
+              "description": "Phone number for send_phone. Format: 254XXXXXXXXX or 07XXXXXXXX",
               "dynamic_variable": "",
               "constant_value": "",
               "enum": null,
