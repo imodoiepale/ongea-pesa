@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowLeft, Calendar, Plus, Mic, Bell, Trash2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ArrowLeft, Receipt } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScreenShell } from "@/components/foundation"
-import { cn } from "@/lib/utils"
+import { useToast } from "@/components/ui/use-toast"
 
 type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -12,47 +12,88 @@ interface RecurringPaymentsProps {
   onNavigate: (screen: Screen) => void;
 }
 
-interface RecurringPayment {
+interface SavedBill {
   id: string
-  name: string
-  amount: string
-  frequency: string
-  nextDate: string
-  recipient: string
-  status: "active" | "paused"
+  type: string
+  amount: number
+  phone: string
+  till: string
+  paybill: string
+  account: string
+  merchant: string
+  receipt_path: string
+  status: 'pending' | 'paid' | 'cancelled'
+  confidence: number | null
+  created_at: string
+  paid_at: string | null
 }
 
 export default function RecurringPayments({ onNavigate }: RecurringPaymentsProps) {
-  const [payments, setPayments] = useState<RecurringPayment[]>([
-    {
-      id: "1",
-      name: "Rent Payment",
-      amount: "KSh 25,000",
-      frequency: "Monthly",
-      nextDate: "2024-02-01",
-      recipient: "Landlord",
-      status: "active",
-    },
-    {
-      id: "2",
-      name: "Electricity Bill",
-      amount: "KSh 3,500",
-      frequency: "Monthly",
-      nextDate: "2024-01-15",
-      recipient: "KPLC",
-      status: "active",
-    },
-  ])
+  const { toast } = useToast()
 
-  const [isVoiceMode, setIsVoiceMode] = useState(false)
-  const [voiceCommand, setVoiceCommand] = useState("")
+  const [bills, setBills] = useState<SavedBill[]>([])
+  const [loading, setLoading] = useState(true)
+  const [payingId, setPayingId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
 
-  const handleVoiceSetup = () => {
-    setIsVoiceMode(true)
-    setTimeout(() => {
-      setVoiceCommand("Seti malipo ya kodi kila tarehe moja")
-      setIsVoiceMode(false)
-    }, 2000)
+  const fetchBills = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/bills')
+      if (!res.ok) throw new Error('Failed to load bills')
+      const data = await res.json()
+      setBills(data.bills || [])
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to load bills')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchBills()
+  }, [])
+
+  useEffect(() => {
+    bills.forEach(async (bill) => {
+      if (bill.receipt_path && !signedUrls[bill.id]) {
+        try {
+          const res = await fetch(`/api/receipts/upload?path=${encodeURIComponent(bill.receipt_path)}`)
+          if (res.ok) {
+            const { url } = await res.json()
+            setSignedUrls(prev => ({ ...prev, [bill.id]: url }))
+          }
+        } catch {
+          // silently ignore thumbnail errors
+        }
+      }
+    })
+  }, [bills])
+
+  const handlePay = async (bill: SavedBill) => {
+    setPayingId(bill.id)
+    try {
+      const res = await fetch(`/api/bills/${bill.id}/pay`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Payment failed')
+      setBills(prev => prev.filter(b => b.id !== bill.id))
+      toast({
+        title: 'Payment sent',
+        description: `KSh ${Number(bill.amount).toLocaleString('en-KE', { minimumFractionDigits: 2 })} paid to ${bill.merchant || bill.type}`,
+      })
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Payment failed'
+      console.error('Pay bill error:', e)
+      toast({
+        title: 'Payment failed',
+        description: message,
+        variant: 'destructive',
+      })
+    } finally {
+      setPayingId(null)
+    }
   }
 
   return (
@@ -64,115 +105,81 @@ export default function RecurringPayments({ onNavigate }: RecurringPaymentsProps
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Recurring Payments</h1>
-            <p className="text-sm text-muted-foreground">Automated bill payments</p>
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">Saved Bills</h1>
+            <p className="text-sm text-muted-foreground">Pay later bills from scanned receipts</p>
           </div>
         </div>
 
-        {/* Voice setup card */}
-        <div className="rounded-2xl border border-border/60 bg-card px-4 py-3 mb-5 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold text-foreground">Voice Setup</p>
-            <p className="text-xs text-muted-foreground">Say: "Seti malipo ya [bill] kila [frequency]"</p>
-            {voiceCommand && <p className="text-xs text-brand mt-1 font-medium">Heard: "{voiceCommand}"</p>}
+        {/* Loading state */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin w-6 h-6 border-2 border-white/20 border-t-white rounded-full" />
           </div>
-          <button
-            onClick={handleVoiceSetup}
-            disabled={isVoiceMode}
-            aria-label="Voice setup"
-            className={cn(
-              "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 active:scale-[0.97]",
-              isVoiceMode ? "bg-red-500/15 text-red-500 animate-pulse cursor-wait" : "bg-brand/10 text-brand hover:bg-brand/15"
+        )}
+
+        {/* Error state */}
+        {error && (
+          <div className="mx-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+            {error}
+            <button onClick={fetchBills} className="ml-2 underline">Retry</button>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && bills.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 gap-3 text-white/40">
+            <Receipt className="w-10 h-10" />
+            <p className="text-sm">No saved bills</p>
+            <p className="text-xs text-white/20">Scan a receipt and choose &quot;Pay Later&quot; to save bills here.</p>
+          </div>
+        )}
+
+        {/* Bill list */}
+        {!loading && bills.map(bill => (
+          <div key={bill.id} className="mx-4 mb-3 rounded-xl bg-white/5 border border-white/10 overflow-hidden">
+            {/* Receipt thumbnail if available */}
+            {signedUrls[bill.id] && (
+              <img src={signedUrls[bill.id]} alt="Receipt" className="w-full h-28 object-cover" />
             )}
-          >
-            <Mic className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Active payments */}
-        <div className="mb-5">
-          <div className="flex items-center justify-between mb-2 px-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active Payments</p>
-            <Button size="sm" variant="outline" className="h-7 text-xs px-3">
-              <Plus className="h-3 w-3 mr-1" />Add
-            </Button>
-          </div>
-          <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
-            {payments.map((payment) => (
-              <div key={payment.id} className="px-4 py-3">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-semibold text-foreground">{payment.name}</p>
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "text-[10px] font-semibold px-2 py-0.5 rounded-full",
-                      payment.status === "active"
-                        ? "bg-brand/10 text-brand"
-                        : "bg-muted text-muted-foreground"
-                    )}>
-                      {payment.status}
-                    </span>
-                    <button
-                      className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                      aria-label="Delete"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
+            <div className="p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-semibold text-white text-sm">{bill.merchant || bill.type}</p>
+                  <p className="text-xs text-white/50 mt-0.5">
+                    {bill.till
+                      ? `Till ${bill.till}`
+                      : bill.paybill
+                      ? `Paybill ${bill.paybill}${bill.account ? ' / ' + bill.account : ''}`
+                      : bill.phone
+                      ? `Phone ${bill.phone}`
+                      : bill.type}
+                  </p>
+                  <p className="text-xs text-white/30 mt-1">
+                    {new Date(bill.created_at).toLocaleDateString('en-KE')}
+                  </p>
                 </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                  {[
-                    { label: 'Amount', value: payment.amount },
-                    { label: 'Frequency', value: payment.frequency },
-                    { label: 'Next Date', value: payment.nextDate },
-                    { label: 'Recipient', value: payment.recipient },
-                  ].map(({ label, value }) => (
-                    <div key={label}>
-                      <p className="text-[10px] text-muted-foreground">{label}</p>
-                      <p className="text-xs font-medium text-foreground">{value}</p>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-lg font-bold text-white whitespace-nowrap">
+                  KSh {Number(bill.amount).toLocaleString('en-KE', { minimumFractionDigits: 2 })}
+                </p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Upcoming reminders */}
-        <div className="mb-5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Upcoming Reminders</p>
-          <div className="space-y-2">
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/8 px-4 py-3 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Electricity Bill Due</p>
-                <p className="text-xs text-muted-foreground">Tomorrow — KSh 3,500</p>
-              </div>
-              <Button size="sm" variant="outline" className="h-7 text-xs shrink-0">Pay Now</Button>
-            </div>
-            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/8 px-4 py-3 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">Rent Payment Due</p>
-                <p className="text-xs text-muted-foreground">In 3 days — KSh 25,000</p>
-              </div>
-              <Button size="sm" variant="outline" className="h-7 text-xs shrink-0">Remind Me</Button>
+              <button
+                onClick={() => handlePay(bill)}
+                disabled={payingId === bill.id}
+                className="mt-3 w-full py-2 rounded-lg bg-green-500 hover:bg-green-400 disabled:opacity-50 text-sm font-semibold text-white transition-colors flex items-center justify-center gap-2"
+              >
+                {payingId === bill.id
+                  ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Paying...
+                    </>
+                  )
+                  : 'Pay Now'
+                }
+              </button>
             </div>
           </div>
-        </div>
-
-        {/* Voice reminders */}
-        <div className="mb-5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Voice Reminders</p>
-          <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
-            {[
-              { title: 'Daily Reminder', subtitle: '"Ni siku ya malipo ya kiraia leo" — 9:00 AM' },
-              { title: 'Payment Confirmation', subtitle: '"Malipo yamekamilika. Niliset prompt kila tarehe moja"' },
-            ].map((item) => (
-              <div key={item.title} className="px-4 py-3">
-                <p className="text-sm font-medium text-foreground">{item.title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{item.subtitle}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </ScreenShell>
     </div>
   )
