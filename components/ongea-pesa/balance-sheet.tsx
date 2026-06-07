@@ -278,9 +278,11 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
     }
   }
 
-  // Poll for transaction status
-  const pollTransactionStatus = async (transactionId: string, transactionRef: string, gateName: string, depositAmount: number) => {
-    const maxAttempts = 8 // 8 attempts × 2 seconds = 16 seconds
+  // Poll for Daraja STK transaction status
+  // Uses the new /api/daraja/stk-status endpoint (Safaricom callback writes to DB;
+  // we poll until status flips from 'processing' → 'completed' | 'failed').
+  const pollDarajaStatus = async (transactionId: string, depositAmount: number) => {
+    const maxAttempts = 40 // 40 attempts × 3 seconds ≈ 2 minutes (enough for slow PIN entry)
     let attempts = 0
 
     setDepositStatus('verifying')
@@ -290,35 +292,26 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
       setVerificationProgress(Math.round((attempts / maxAttempts) * 100))
 
       try {
-        const response = await fetch('/api/gate/verify-transaction', {
+        const response = await fetch('/api/daraja/stk-status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            transaction_reference: transactionRef,
-            transaction_id: transactionId,
-            gate_name: gateName
-          })
+          body: JSON.stringify({ transaction_id: transactionId })
         })
 
         const data = await response.json()
-        console.log(`🔍 Poll attempt ${attempts}:`, data.status)
+        console.log(`🔍 Daraja poll attempt ${attempts}:`, data.status)
 
         if (data.status === 'completed') {
           setDepositStatus('completed')
-          // Use updated_balance from API response if available
-          if (data.updated_balance && data.updated_balance > 0) {
-            console.log('💰 Using updated balance from API:', data.updated_balance)
-            onBalanceUpdate(data.updated_balance)
-          } else {
-            // Fallback: fetch from database
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('wallet_balance')
-              .eq('id', user?.id)
-              .single()
-            if (profile) {
-              onBalanceUpdate(profile.wallet_balance || 0)
-            }
+          // stk-status returns no updated_balance; re-fetch from DB
+          // (the stk-callback + update_wallet_balance trigger have already credited it)
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('wallet_balance')
+            .eq('id', user?.id)
+            .single()
+          if (profile) {
+            onBalanceUpdate(profile.wallet_balance || 0)
           }
           fetchTransactions()
 
@@ -332,7 +325,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
           return true
         } else if (data.status === 'failed') {
           setDepositStatus('failed')
-          setDepositError('Transaction failed. Money was not deducted from your M-Pesa.')
+          setDepositError(data.error_message || 'Transaction failed. Money was not deducted from your M-Pesa.')
 
           // Auto-hide error after 5 seconds
           setTimeout(() => {
@@ -341,33 +334,22 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
           }, 5000)
 
           return true
-        } else if (data.status === 'cancelled') {
-          setDepositStatus('failed')
-          setDepositError('Transaction was cancelled. You can try again.')
-
-          // Auto-hide after 5 seconds
-          setTimeout(() => {
-            setDepositStatus('idle')
-            setDepositError('')
-          }, 5000)
-
-          return true
         }
 
-        // Still pending, continue polling
+        // Still processing — continue polling
         if (attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 2000)) // Wait 2 seconds
+          await new Promise(resolve => setTimeout(resolve, 3000)) // Wait 3 seconds
           return poll()
         }
 
-        // Max attempts reached
+        // Max attempts reached — transaction may still complete via callback
         setDepositStatus('idle')
         setDepositSuccess(`⏳ Transaction pending. We'll update your balance automatically when confirmed.\n📱 Check your M-Pesa messages.`)
         return false
       } catch (error) {
-        console.error('Poll error:', error)
+        console.error('Daraja poll error:', error)
         if (attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 2000))
+          await new Promise(resolve => setTimeout(resolve, 3000))
           return poll()
         }
         return false
@@ -403,35 +385,25 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
     setLastDepositAmount(amount) // Store amount before clearing input
 
     try {
-      // Call deposit API with M-Pesa integration
-      const response = await fetch('/api/gate/deposit', {
+      // Daraja STK push — calls Safaricom directly via n8n relay
+      const response = await fetch('/api/daraja/stk-deposit', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: amount,
-          phone: mpesaNumber,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, phone: mpesaNumber }),
       })
 
       const data = await response.json()
-      console.log('📦 Deposit response:', data)
+      console.log('📦 Daraja STK response:', data)
 
-      if (response.ok && data.success && data.transaction_sent) {
+      if (response.ok && data.success && data.transaction_id) {
         setDepositStatus('waiting')
         setAddAmount('')
 
-        // Wait 3 seconds for user to enter PIN, then start polling
+        // Wait 3 seconds for M-Pesa prompt to arrive, then start polling
         await new Promise(resolve => setTimeout(resolve, 3000))
 
-        // Start polling for transaction status
-        await pollTransactionStatus(
-          data.transaction_id,
-          data.account_number || data.transaction_reference,
-          data.gate_name,
-          amount
-        )
+        // Poll /api/daraja/stk-status until completed / failed / timeout
+        await pollDarajaStatus(data.transaction_id, amount)
 
         fetchTransactions()
       } else {

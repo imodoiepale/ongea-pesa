@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
-
-const PHONE_REGEX = /^(07|01|\+2547|\+2541)[0-9]{8}$/;
+import { normalizePhone } from '@/lib/phone';
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,21 +37,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const cleanPhone = phone.replace(/\s/g, '');
-    if (!PHONE_REGEX.test(cleanPhone)) {
+    // Normalise phone to 254XXXXXXXXX for Daraja using shared util
+    // (accepts 07xx, 01xx, 2547xx, +2547xx, 7xx — rejects anything unrecognised)
+    const darajaPhone = normalizePhone(phone);
+    if (!darajaPhone) {
       return NextResponse.json(
         { error: 'Invalid phone number. Use format: 0712345678 or +254712345678' },
         { status: 400 }
       );
     }
-
-    // Normalise phone to 254XXXXXXXXX for Daraja
-    let darajaPhone = cleanPhone;
-    if (darajaPhone.startsWith('0')) {
-      darajaPhone = '254' + darajaPhone.slice(1);
-    } else if (darajaPhone.startsWith('+')) {
-      darajaPhone = darajaPhone.slice(1);
-    }
+    const cleanPhone = phone.replace(/\s/g, '');
 
     // --- Insert transaction row (service-role to bypass RLS) ---
     const admin = createServiceClient();
