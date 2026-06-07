@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { ArrowLeft, Camera, QrCode, Receipt, CreditCard, Building2, Mic, Check, X, AlertCircle, DollarSign, ChevronDown, ChevronUp } from "lucide-react"
+import { ArrowLeft, Camera, QrCode, Receipt, CreditCard, Building2, Mic, Check, X, AlertCircle, DollarSign, ChevronDown, ChevronUp, ZoomIn, ZoomOut, Flashlight, FlashlightOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { useCamera } from "@/hooks/use-camera"
@@ -28,7 +28,7 @@ interface PaymentScannerProps {
   onClose?: () => void
 }
 
-type ScanMode = "paybill" | "till" | "qr" | "receipt" | "bank" | "pochi"
+export type ScanMode = "paybill" | "till" | "qr" | "receipt" | "bank" | "pochi"
 
 export default function PaymentScanner({ onNavigate, variant = 'page', autoStart = false, initialMode, onClose }: PaymentScannerProps) {
   const { toast } = useToast()
@@ -63,6 +63,8 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
   const [showAmountInput, setShowAmountInput] = useState(false)
   const [amountSectionExpanded, setAmountSectionExpanded] = useState(false)
 
+  const [capturedImage, setCapturedImage] = useState<string | null>(null)
+
   const {
     videoRef,
     canvasRef,
@@ -70,7 +72,13 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
     error: cameraError,
     startCamera,
     stopCamera,
-    captureImage
+    captureImage,
+    zoomRange,
+    currentZoom,
+    setZoom,
+    torchSupported,
+    torchOn,
+    toggleTorch,
   } = useCamera()
 
   // Use global ElevenLabs context (no duplicate connection!)
@@ -386,6 +394,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
         console.log('OCR result:', result);
 
         if (result && result.confidence > 70 && result.type !== 'buy_goods_pochi') {
+          setCapturedImage(imageData)
           console.log('✅ Payment detected with confidence:', result.confidence);
           console.log('📋 Scan result:', result);
 
@@ -490,6 +499,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
     setScanError(null)
     setScanResult(null)
     setIsProcessing(false)
+    setCapturedImage(null)
 
     try {
       console.log('Attempting to start camera...');
@@ -521,6 +531,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
       })
       if (!res.ok) throw new Error(`OCR service error: ${res.status}`)
       const result: PaymentScanResult = await res.json()
+      setCapturedImage(imageData)
       setScanResult(result)
       setIsScanning(false)
       stopCamera()
@@ -581,18 +592,38 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
         if (useRealRail) {
           // Route through the real NCBA rail: processing → completed/failed
           let destination: any
+          let narration = `Scanner: ${type}`
           if (isPayableTill || isPayableReceipt && data.till) {
             destination = { kind: 'till', till: data.till, recipientName: data.merchant }
           } else if (isPayableBill || isPayableReceipt && data.paybill) {
             destination = { kind: 'paybill', paybill: data.paybill, account: data.account || '', recipientName: data.merchant }
           } else {
+            // Default phone destination — check for internal Ongea user
             destination = { kind: 'phone', phone: data.phone, recipientName: data.merchant }
+            if (isPayablePhone && data.phone) {
+              try {
+                const resolveRes = await fetch('/api/contacts/resolve-ongea', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ phone: data.phone }),
+                })
+                if (resolveRes.ok) {
+                  const resolved = await resolveRes.json()
+                  if (resolved.isOngeaUser) {
+                    destination = { kind: 'internal', recipientId: resolved.recipientId }
+                    narration = `Scanner: ${type} (internal Ongea transfer, free of charge)`
+                  }
+                }
+              } catch {
+                // Resolve failed — keep phone destination and continue
+              }
+            }
           }
 
           const res = await fetch('/api/wallet/pay', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: amountNum, destination, narration: `Scanner: ${type}` }),
+            body: JSON.stringify({ amount: amountNum, destination, narration }),
           })
           const result = await res.json()
 
@@ -602,7 +633,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
               description: `KSh ${amountNum.toLocaleString()} sent.${result.bank_ref ? ` Ref: ${result.bank_ref}` : ''} ${result.message || ''}`,
               duration: 5000,
             })
-            setScanResult(null); setEnteredAmount(''); setSelectedPaymentIndex(0); setAlternativesExpanded(false)
+            setScanResult(null); setEnteredAmount(''); setSelectedPaymentIndex(0); setAlternativesExpanded(false); setCapturedImage(null)
             setTimeout(() => { if (onClose) { onClose() } else { onNavigate("dashboard") } }, 1500)
           } else {
             toast({ title: "❌ Payment Failed", description: result.message || "Please try again.", variant: "destructive", duration: 4000 })
@@ -632,7 +663,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
               description: `KSh ${amountNum.toLocaleString()} expense saved. ID: ${transaction.id.substring(0, 8)}...`,
               duration: 5000,
             })
-            setScanResult(null); setEnteredAmount(''); setSelectedPaymentIndex(0); setAlternativesExpanded(false)
+            setScanResult(null); setEnteredAmount(''); setSelectedPaymentIndex(0); setAlternativesExpanded(false); setCapturedImage(null)
             setTimeout(() => { if (onClose) { onClose() } else { onNavigate("dashboard") } }, 1500)
           } else {
             toast({ title: "❌ Failed to Record", description: "Please try again.", variant: "destructive", duration: 4000 })
@@ -753,11 +784,55 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
     }
   }
 
-  const handleSaveReceipt = () => {
-    // Save receipt for expense tracking
-    alert("Receipt saved to expenses!")
-    setScanResult(null)
-    setScanMode(null)
+  const handleSaveReceipt = async () => {
+    if (!scanResult) return
+    setIsProcessing(true)
+    try {
+      let receipt_path = ''
+      // Upload receipt image if available
+      if (capturedImage && scanResult.type === 'receipt') {
+        const uploadRes = await fetch('/api/receipts/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageData: capturedImage, filename: `${Date.now()}.jpg` }),
+        })
+        if (uploadRes.ok) {
+          const { path } = await uploadRes.json()
+          receipt_path = path
+        }
+      }
+
+      // Save to saved_bills
+      const saveRes = await fetch('/api/bills/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: scanResult.type,
+          amount: parseFloat(enteredAmount) || parseFloat(scanResult.data.amount?.replace(/[^0-9.]/g, '') || '0'),
+          phone: scanResult.data.phone || '',
+          till: scanResult.data.till || '',
+          paybill: scanResult.data.paybill || '',
+          account: scanResult.data.account || '',
+          merchant: scanResult.data.merchant || scanResult.data.receiptData?.vendor || '',
+          receipt_path,
+          scan_payload: scanResult,
+          confidence: scanResult.confidence,
+        }),
+      })
+
+      if (!saveRes.ok) throw new Error('Save failed')
+
+      toast({ title: 'Saved to bills', description: 'Find it in Recurring Payments to pay later.' })
+      setCapturedImage(null)
+      setTimeout(() => {
+        if (onClose) onClose()
+        else onNavigate('dashboard')
+      }, 1500)
+    } catch (err) {
+      toast({ title: 'Save failed', description: 'Could not save the bill. Please try again.' })
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const handleRetry = () => {
@@ -773,6 +848,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
     setScanMode(null)
     setScanError(null)
     setIsScanning(false)
+    setCapturedImage(null)
     stopCamera()
     if (onClose) {
       onClose()
@@ -1157,13 +1233,12 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
             <div className="flex space-x-3">
               {type === "receipt" ? (
                 <>
-                  <Button onClick={handleSaveReceipt} className="flex-1">
+                  <Button onClick={handleConfirmPayment} className="flex-1" disabled={isProcessing}>
                     <Check className="h-4 w-4 mr-2" />
-                    Save Receipt
+                    Pay Now
                   </Button>
-                  <Button variant="outline" onClick={() => setScanResult(null)} className="flex-1">
-                    <X className="h-4 w-4 mr-2" />
-                    Discard
+                  <Button variant="outline" onClick={handleSaveReceipt} className="flex-1" disabled={isProcessing}>
+                    Pay Later / Save
                   </Button>
                 </>
               ) : (
@@ -1351,7 +1426,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
               </div>
 
               <div className="rounded-2xl border border-border/60 bg-card p-4 mb-4">
-                <div className="aspect-video bg-gray-900 rounded-lg relative overflow-hidden">
+                <div className="aspect-video bg-gray-900 rounded-lg relative overflow-hidden animate-in fade-in zoom-in-95 duration-500">
                   {/* Hidden canvas for image capture */}
                   <canvas
                     ref={canvasRef}
@@ -1388,6 +1463,46 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
                           </div>
                         )}
                       </div>
+
+                      {/* Torch toggle button */}
+                      {torchSupported && (
+                        <button
+                          onClick={toggleTorch}
+                          className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${torchOn ? 'bg-yellow-400 text-black' : 'bg-black/50 text-white'}`}
+                          aria-label={torchOn ? 'Turn off torch' : 'Turn on torch'}
+                        >
+                          {torchOn ? <FlashlightOff className="w-5 h-5" /> : <Flashlight className="w-5 h-5" />}
+                        </button>
+                      )}
+
+                      {/* Zoom controls */}
+                      {zoomRange && (
+                        <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/60 px-3 py-1.5 rounded-full">
+                          <button
+                            onClick={() => setZoom(Math.max(currentZoom - zoomRange.step, zoomRange.min))}
+                            className="text-white p-1"
+                            aria-label="Zoom out"
+                          >
+                            <ZoomOut className="w-4 h-4" />
+                          </button>
+                          <input
+                            type="range"
+                            min={zoomRange.min}
+                            max={zoomRange.max}
+                            step={zoomRange.step}
+                            value={currentZoom}
+                            onChange={e => setZoom(Number(e.target.value))}
+                            className="w-24 accent-white"
+                          />
+                          <button
+                            onClick={() => setZoom(Math.min(currentZoom + zoomRange.step, zoomRange.max))}
+                            className="text-white p-1"
+                            aria-label="Zoom in"
+                          >
+                            <ZoomIn className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
 
                       {/* Instructions */}
                       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm text-center">

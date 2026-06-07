@@ -13,6 +13,7 @@ import Analytics from "./analytics"
 import VoiceTest from "./voice-test"
 import PermissionManager from "./permission-manager"
 import PaymentScanner from "./payment-scanner"
+import type { ScanMode } from "./payment-scanner"
 import BatchSend from "./batch-send"
 import MpesaSettingsDialog from "./mpesa-settings-dialog"
 import { useAuth } from "@/components/providers/auth-provider"
@@ -147,7 +148,7 @@ function AppShell() {
           <PaymentScanner
             variant="overlay"
             autoStart
-            initialMode={scanOverlay.mode as any}
+            initialMode={scanOverlay.mode as ScanMode | null}
             onClose={() => setScanOverlay(null)}
             onNavigate={navigate}
           />
