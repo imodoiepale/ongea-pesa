@@ -46,8 +46,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: err.message || 'Payment failed' }, { status: 500 })
   }
 
-  // Mark paid
-  await service
+  // Mark paid — log but don't fail the response if this update errors;
+  // the payment already succeeded and will reconcile via transaction history.
+  const { error: updateErr } = await service
     .from('saved_bills')
     .update({
       status: 'paid',
@@ -55,6 +56,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       paid_transaction_id: result?.transaction_id ?? null,
     })
     .eq('id', params.id)
+
+  if (updateErr) {
+    console.error('Failed to mark bill as paid:', updateErr)
+  }
 
   return NextResponse.json({ success: true, message: 'Bill paid', transaction: result })
 }
