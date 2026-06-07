@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { WalletService } from '@/lib/services/walletService';
+import { consumeStepupToken, isLocked } from '@/lib/services/securityService';
 
-// Scanner payment route — no step-up for now; step-up deferred per product decision.
-// Routes scanned till / paybill / phone payments through the real NCBA rail via
-// WalletService.resolveRailAndSend(), inserting processing→completed/failed lifecycle.
+// Scanner payment route — routes scanned till / paybill / phone payments through
+// the real NCBA rail via WalletService.resolveRailAndSend(), inserting
+// processing→completed/failed lifecycle. Requires step-up before money moves.
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { amount, destination, narration } = body;
+    const { amount, destination, narration, stepup_token } = body;
     // destination shape: { kind: 'till'|'paybill'|'phone', till?, paybill?, account?, phone?, recipientName? }
 
     if (!amount || amount <= 0) {
@@ -23,6 +24,30 @@ export async function POST(request: NextRequest) {
     }
     if (!destination?.kind) {
       return NextResponse.json({ error: 'destination.kind is required (till|paybill|phone)' }, { status: 400 });
+    }
+
+    // Step-up gate: money only moves with a fresh PIN/passkey proof, and never
+    // while the account is locked (A5/A6).
+    const admin = createServiceClient();
+
+    const { data: lockState } = await admin
+      .from('profiles')
+      .select('locked_until, failed_attempts')
+      .eq('id', user.id)
+      .single();
+    if (isLocked(lockState)) {
+      return NextResponse.json(
+        { error: 'Account temporarily locked. Verify your identity and try again.', lockedUntil: lockState!.locked_until },
+        { status: 423 }
+      );
+    }
+
+    const stepUpOk = await consumeStepupToken(admin, user.id, stepup_token);
+    if (!stepUpOk) {
+      return NextResponse.json(
+        { error: 'Step-up authentication required', code: 'STEPUP_REQUIRED' },
+        { status: 403 }
+      );
     }
 
     const walletService = new WalletService(supabase);

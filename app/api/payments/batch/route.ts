@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { WalletService } from '@/lib/services/walletService';
+import { consumeStepupToken, isLocked } from '@/lib/services/securityService';
 import type { BatchItem } from '@/lib/batch-payments';
 import { normalizePhone, displayPhone } from '@/lib/phone';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -59,7 +60,7 @@ async function resolvePhoneByName(
   }
 }
 
-// Multi-payment batch route — no step-up (matches /api/wallet/pay posture).
+// Multi-payment batch route — requires step-up before money moves.
 // Each item is dispatched as an INDIVIDUAL request via WalletService.resolveRailAndSend.
 // Execution: sequential (avoids overspend races on the same balance).
 // Failure: continue + report (external M-Pesa/NCBA sends are irreversible).
@@ -74,7 +75,31 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     // Client-supplied totalAmount / balance are intentionally IGNORED — server derives the total.
-    const { payments, narration } = body as { payments?: BatchItem[]; narration?: string };
+    const { payments, narration, stepup_token } = body as { payments?: BatchItem[]; narration?: string; stepup_token?: string };
+
+    // Step-up gate: money only moves with a fresh PIN/passkey proof, and never
+    // while the account is locked (A5/A6).
+    const admin = createServiceClient();
+
+    const { data: lockState } = await admin
+      .from('profiles')
+      .select('locked_until, failed_attempts')
+      .eq('id', user.id)
+      .single();
+    if (isLocked(lockState)) {
+      return NextResponse.json(
+        { error: 'Account temporarily locked. Verify your identity and try again.', lockedUntil: lockState!.locked_until },
+        { status: 423 }
+      );
+    }
+
+    const stepUpOk = await consumeStepupToken(admin, user.id, stepup_token);
+    if (!stepUpOk) {
+      return NextResponse.json(
+        { error: 'Step-up authentication required', code: 'STEPUP_REQUIRED' },
+        { status: 403 }
+      );
+    }
 
     if (!Array.isArray(payments) || payments.length === 0) {
       return NextResponse.json(

@@ -18,6 +18,8 @@ import { cn } from '@/lib/utils'
 import type { BatchItem, BatchResponse, BatchResult } from '@/lib/batch-payments'
 import type { SearchableContact } from '@/hooks/use-contact-search'
 import { buildFuseIndex, searchContacts } from '@/lib/contact-search'
+import { StepUpModal } from '@/components/ongea-pesa/step-up-modal'
+import { useStepUp } from '@/hooks/useStepUp'
 
 type Screen = 'dashboard' | 'voice' | 'send' | 'recurring' | 'analytics' | 'test' | 'permissions' | 'scanner' | 'batch'
 
@@ -59,6 +61,7 @@ const BILL_TYPES = ['KPLC', 'NHIF', 'NSSF', 'KRA', 'NWSC', 'Nairobi Water', 'GOt
 export default function BatchSend({ onNavigate, initialPayments, initialResults }: BatchSendProps) {
   const { registerToolHandlers, unregisterToolHandlers } = useElevenLabs()
   const { toast } = useToast()
+  const { isOpen: stepUpOpen, openStepUp, closeStepUp, resolvedToken: stepUpToken, onTokenResolved } = useStepUp()
 
   // Fetch personal + app contacts for name search
   const [allContacts, setAllContacts] = useState<SearchableContact[]>([])
@@ -126,6 +129,14 @@ export default function BatchSend({ onNavigate, initialPayments, initialResults 
       .then(d => setBalance(d.balance ?? 0))
       .catch(() => {})
   }, [])
+
+  // Re-trigger batch send once step-up token is resolved
+  useEffect(() => {
+    if (stepUpToken) {
+      handleSendAll(stepUpToken)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepUpToken])
 
   // Apply voice-triggered results if they arrived before this component mounted
   useEffect(() => {
@@ -204,8 +215,14 @@ export default function BatchSend({ onNavigate, initialPayments, initialResults 
 
   const addItem = () => setItems(prev => [...prev, makeEmpty()])
 
-  const handleSendAll = async () => {
+  const handleSendAll = async (token?: string) => {
     if (!allValid || !canAfford || isSending) return
+
+    // Require step-up before money moves
+    if (!token) {
+      openStepUp()
+      return
+    }
 
     const payments: BatchItem[] = items.map(it => {
       const amount = parseFloat(it.amount.replace(/[^0-9.]/g, '')) || 0
@@ -232,7 +249,7 @@ export default function BatchSend({ onNavigate, initialPayments, initialResults 
       const res = await fetch('/api/payments/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payments }),
+        body: JSON.stringify({ payments, stepup_token: token }),
       })
       const json: BatchResponse = await res.json()
 
@@ -285,6 +302,15 @@ export default function BatchSend({ onNavigate, initialPayments, initialResults 
 
   return (
     <ScreenShell>
+      {/* Step-up identity modal */}
+      <StepUpModal
+        isOpen={stepUpOpen}
+        onClose={closeStepUp}
+        onResolved={onTokenResolved}
+        title="Confirm Batch Payment"
+        description="Verify your identity to send all payments"
+      />
+
       <div className="flex items-center gap-3 pt-4 pb-2 px-4">
         <Button variant="ghost" size="icon" onClick={() => onNavigate('dashboard')} className="-ml-2">
           <ArrowLeft className="h-5 w-5" />
@@ -358,7 +384,7 @@ export default function BatchSend({ onNavigate, initialPayments, initialResults 
           <Button
             className="w-full"
             size="lg"
-            onClick={handleSendAll}
+            onClick={() => handleSendAll()}
             disabled={!allValid || !canAfford || isSending}
           >
             {isSending ? (

@@ -13,6 +13,8 @@ import type { BatchResponse } from '@/lib/batch-payments'
 import { calculateTransactionFees, formatFeesMessage, hasSufficientBalance } from "@/lib/transaction-fees"
 import { ScreenShell } from "@/components/foundation"
 import { cn } from "@/lib/utils"
+import { StepUpModal } from "@/components/ongea-pesa/step-up-modal"
+import { useStepUp } from "@/hooks/useStepUp"
 
 type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -32,6 +34,9 @@ export type ScanMode = "paybill" | "till" | "qr" | "receipt" | "bank" | "pochi"
 
 export default function PaymentScanner({ onNavigate, variant = 'page', autoStart = false, initialMode, onClose }: PaymentScannerProps) {
   const { toast } = useToast()
+  const { isOpen: stepUpOpen, openStepUp, closeStepUp, resolvedToken: stepUpToken, onTokenResolved } = useStepUp()
+  // Tracks which action to fire once step-up resolves: 'pay' = single, 'batch' = batch
+  const pendingActionRef = useRef<'pay' | 'batch' | null>(null)
   const [scanMode, setScanMode] = useState<ScanMode | null>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [scanResult, setScanResult] = useState<PaymentScanResult | null>(null)
@@ -151,6 +156,20 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
     }
     fetchBalance()
   }, [])
+
+  // Re-trigger the pending payment action once step-up token is resolved
+  useEffect(() => {
+    if (stepUpToken) {
+      const action = pendingActionRef.current
+      pendingActionRef.current = null
+      if (action === 'pay') {
+        handleConfirmPayment(stepUpToken)
+      } else if (action === 'batch') {
+        handlePayAllBatch(stepUpToken)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepUpToken])
 
   // Auto-start the camera on mount when triggered by voice (overlay mode)
   const autoStartFiredRef = useRef(false)
@@ -553,7 +572,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
     }
   }
 
-  const handleConfirmPayment = async () => {
+  const handleConfirmPayment = async (token?: string) => {
     if (batchMode && scannedPayments.length > 0) {
       // Show batch summary
       setShowBatchSummary(true)
@@ -587,6 +606,13 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
       // Receipt with an extracted till/paybill also routes via NCBA
       const isPayableReceipt = type === 'receipt' && (data.till || data.paybill)
       const useRealRail = isPayableTill || isPayableBill || isPayablePhone || isPayableReceipt
+
+      // Real rail payments require step-up; expense-tracking (non-rail) does not
+      if (useRealRail && !token) {
+        pendingActionRef.current = 'pay'
+        openStepUp()
+        return
+      }
 
       try {
         if (useRealRail) {
@@ -623,7 +649,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
           const res = await fetch('/api/wallet/pay', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: amountNum, destination, narration }),
+            body: JSON.stringify({ amount: amountNum, destination, narration, stepup_token: token }),
           })
           const result = await res.json()
 
@@ -707,8 +733,15 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
     speakText(`Payment removed. ${scannedPayments.length - 1} payments remaining`)
   }
 
-  const handlePayAllBatch = async () => {
+  const handlePayAllBatch = async (token?: string) => {
     if (scannedPayments.length === 0) return
+
+    // Require step-up before batch money moves
+    if (!token) {
+      pendingActionRef.current = 'batch'
+      openStepUp()
+      return
+    }
 
     try {
       setIsProcessing(true)
@@ -720,7 +753,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
       const response = await fetch('/api/payments/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payments, narration: 'Scanner batch' }),
+        body: JSON.stringify({ payments, narration: 'Scanner batch', stepup_token: token }),
       })
 
       const json: BatchResponse = await response.json()
@@ -1233,7 +1266,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
             <div className="flex space-x-3">
               {type === "receipt" ? (
                 <>
-                  <Button onClick={handleConfirmPayment} className="flex-1" disabled={isProcessing}>
+                  <Button onClick={() => handleConfirmPayment()} className="flex-1" disabled={isProcessing}>
                     <Check className="h-4 w-4 mr-2" />
                     Pay Now
                   </Button>
@@ -1249,13 +1282,13 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
                         <Check className="h-4 w-4 mr-2" />
                         Add to Batch
                       </Button>
-                      <Button onClick={handleConfirmPayment} className="flex-1">
+                      <Button onClick={() => handleConfirmPayment()} className="flex-1">
                         Pay All ({scannedPayments.length})
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button onClick={handleConfirmPayment} className="flex-1">
+                      <Button onClick={() => handleConfirmPayment()} className="flex-1">
                         <Check className="h-4 w-4 mr-2" />
                         Proceed to Pay
                       </Button>
@@ -1346,7 +1379,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
           {/* Action buttons */}
           <div className="flex space-x-3">
             <Button
-              onClick={handlePayAllBatch}
+              onClick={() => handlePayAllBatch()}
               disabled={!canAfford || isProcessing}
               className="flex-1"
             >
@@ -1389,6 +1422,15 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
     return (
       <div className="min-h-[100dvh] bg-background surface-money pb-24">
         <ScreenShell className="pt-0">
+          {/* Step-up identity modal */}
+          <StepUpModal
+            isOpen={stepUpOpen}
+            onClose={closeStepUp}
+            onResolved={onTokenResolved}
+            title="Confirm Payment"
+            description="Verify your identity to send payment"
+          />
+
           {/* Scan Result Display - Show immediately when detected */}
           {scanResult && !showBatchSummary && renderScanResult()}
 
@@ -1605,6 +1647,15 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
   return (
     <div className="min-h-[100dvh] bg-background surface-money">
       <ScreenShell className="pt-0">
+        {/* Step-up identity modal */}
+        <StepUpModal
+          isOpen={stepUpOpen}
+          onClose={closeStepUp}
+          onResolved={onTokenResolved}
+          title="Confirm Payment"
+          description="Verify your identity to send payment"
+        />
+
         {/* Compact Header */}
         <div className="flex items-center mb-3 pt-2">
           <Button variant="ghost" size="sm" onClick={() => onClose ? onClose() : onNavigate("dashboard")} className="mr-2 p-1">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { ArrowLeft, Mic, Send, User, Smartphone, Loader2, Search, CheckCircle, AlertCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScreenShell } from "@/components/foundation"
@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils"
 import { useContactSearch } from "@/hooks/use-contact-search"
 import type { SearchableContact } from "@/hooks/use-contact-search"
 import ContactImport from "@/components/ongea-pesa/contact-import"
+import { StepUpModal } from "@/components/ongea-pesa/step-up-modal"
+import { useStepUp } from "@/hooks/useStepUp"
 
 type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -27,6 +29,8 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
   const [sendResult, setSendResult] = useState<{ success: boolean; message: string } | null>(null)
 
   const [showImport, setShowImport] = useState(false)
+
+  const { isOpen: stepUpOpen, openStepUp, closeStepUp, resolvedToken: stepUpToken, onTokenResolved, onError: onStepUpError } = useStepUp()
 
   const {
     results,
@@ -76,7 +80,7 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
   }
 
   // ── Send ──────────────────────────────────────────────────────────────────
-  const handleSendMoney = async () => {
+  const handleSendMoney = async (token?: string) => {
     const parsedAmount = parseFloat(amount)
     if (!parsedAmount || parsedAmount <= 0) {
       setSendResult({ success: false, message: "Please enter a valid amount" })
@@ -88,6 +92,12 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
 
     if (!useInternalTransfer && !phoneNumber && !selectedContact) {
       setSendResult({ success: false, message: "Please select a recipient or enter a phone number" })
+      return
+    }
+
+    // External sends require step-up; internal transfers (gate-to-gate) do not.
+    if (!useInternalTransfer && !token) {
+      openStepUp()
       return
     }
 
@@ -126,6 +136,7 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
               recipientName: name || undefined,
             },
             narration: `Send to ${name}`,
+            stepup_token: token,
           }),
         })
         const data = await response.json()
@@ -148,6 +159,14 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
       setIsSending(false)
     }
   }
+
+  // Re-trigger payment once step-up token is resolved
+  useEffect(() => {
+    if (stepUpToken) {
+      handleSendMoney(stepUpToken)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepUpToken])
 
   const canSend = !!amount && parseFloat(amount) > 0 && (!!selectedContact || !!phoneNumber)
 
@@ -429,12 +448,21 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
 
       </ScreenShell>
 
+      {/* Step-up identity modal */}
+      <StepUpModal
+        isOpen={stepUpOpen}
+        onClose={closeStepUp}
+        onResolved={onTokenResolved}
+        title="Confirm Payment"
+        description="Verify your identity to send money"
+      />
+
       {/* Fixed bottom CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-6 pt-3 bg-gradient-to-t from-background via-background to-transparent">
         <Button
           className="w-full h-12 rounded-2xl text-sm font-semibold"
           disabled={!canSend || isSending}
-          onClick={handleSendMoney}
+          onClick={() => handleSendMoney()}
           aria-live="polite"
         >
           {isSending ? (
