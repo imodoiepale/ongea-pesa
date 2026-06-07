@@ -49,19 +49,35 @@ function AppShell() {
 
   const navigate = (screen: Screen) => setCurrentScreen(screen)
 
-  // Register navigation handlers so voice agent can open the scanner or the batch screen
+  // Effect A — stable handlers that don't depend on scan overlay state
   useEffect(() => {
     registerToolHandlers({
-      // Voice "scan / open camera" — opens animated overlay immediately on the current screen
-      openScanner: () => setScanOverlay({}),
-      startScan: (mode) => setScanOverlay({ mode: mode ?? null }),
       showBatch: (payments, batchResponse) => {
         setPendingBatch({ payments, results: batchResponse })
         navigate('batch')
       },
     });
-    return () => unregisterToolHandlers(['openScanner', 'startScan', 'showBatch']);
+    return () => unregisterToolHandlers(['showBatch']);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Effect B — re-registers scan handlers whenever overlay closes or screen changes.
+  // When the overlay is open, PaymentScanner registers its own startScan which takes precedence.
+  // When the overlay closes (scanOverlay → null), this effect re-fires and restores AppShell's handlers.
+  useEffect(() => {
+    if (scanOverlay === null) {
+      registerToolHandlers({
+        openScanner: () => {
+          // Don't open overlay when already on the scanner screen — camera is already running
+          if (currentScreen !== 'scanner') setScanOverlay({})
+        },
+        startScan: (mode) => {
+          if (currentScreen !== 'scanner') setScanOverlay({ mode: mode ?? null })
+        },
+      });
+    }
+    return () => unregisterToolHandlers(['openScanner', 'startScan']);
+  }, [scanOverlay, currentScreen]); // re-register when overlay closes or screen changes
+  // Note: registerToolHandlers and setScanOverlay are stable refs/setters, no need to list
 
   const checkMpesaNumber = async () => {
     if (!user?.id) return
@@ -127,7 +143,7 @@ function AppShell() {
 
       {/* Voice-triggered scan overlay — animates camera open on the current screen */}
       {scanOverlay !== null && (
-        <div className="fixed inset-0 z-[60] animate-in fade-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[75] animate-in fade-in zoom-in-95 duration-300">
           <PaymentScanner
             variant="overlay"
             autoStart
