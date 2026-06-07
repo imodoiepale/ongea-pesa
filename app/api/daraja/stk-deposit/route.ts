@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const transactionId = txData.id;
 
     // --- Trigger n8n STK Push ---
-    const n8nBase = process.env.N8N_WEBHOOK_BASE_URL || 'https://primary-production-579c.up.railway.app';
+    const n8nBase = process.env.N8N_WEBHOOK_BASE_URL || 'https://n8n-lc5r.srv1631847.hstgr.cloud';
     let n8nData: any = null;
 
     try {
