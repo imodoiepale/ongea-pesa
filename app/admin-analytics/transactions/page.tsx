@@ -28,8 +28,8 @@ import {
   X,
 } from "lucide-react"
 
-// Platform fee rate: 0.05% (0.0005)
-const PLATFORM_FEE_RATE = 0.0005
+// Platform fee rate: 0.5% (correct rate — used as fallback for legacy rows without persisted platform_fee)
+const PLATFORM_FEE_RATE = 0.005
 
 interface Transaction {
   id: string
@@ -74,10 +74,10 @@ export default function TransactionsPage() {
   const fetchTransactions = async () => {
     setLoading(true)
     try {
-      // Fetch Supabase transactions - simple query without join first
+      // Fetch Supabase transactions — include persisted fee/cost columns from migration 021
       let query = supabase
         .from("transactions")
-        .select("*")
+        .select("*, platform_fee, transaction_cost, net_amount")
         .order("created_at", { ascending: false })
         .limit(200)
 
@@ -109,16 +109,21 @@ export default function TransactionsPage() {
         }
       }
 
-      // Mark Supabase transactions and attach profiles with calculated fee rate
-      // Deposits have 0% fee rate
+      // Mark Supabase transactions and attach profiles.
+      // Use persisted platform_fee from DB (migration 021) with fallback for legacy rows.
       const supabaseTx = (supabaseData || []).map(tx => {
         const amount = tx.amount || 0
-        const isDeposit = tx.type?.toLowerCase() === "deposit"
-        const calculatedFee = isDeposit ? 0 : amount * PLATFORM_FEE_RATE
-        const feeRate = isDeposit ? 0 : PLATFORM_FEE_RATE * 100 // 0.05% or 0% for deposits
+        const isDeposit = tx.type?.toLowerCase() === "deposit" || tx.type?.toLowerCase() === "receive"
+        const persistedFee = parseFloat(String(tx.platform_fee ?? 0))
+        const resolvedFee = isDeposit
+          ? 0
+          : persistedFee > 0
+            ? persistedFee
+            : amount * PLATFORM_FEE_RATE
+        const feeRate = isDeposit ? 0 : PLATFORM_FEE_RATE * 100 // 0.5% or 0% for deposits
         return {
           ...tx,
-          platform_fee: calculatedFee,
+          platform_fee: resolvedFee,
           fee_rate: feeRate,
           source: "supabase",
           profiles: profilesMap[tx.user_id] || null
@@ -465,7 +470,7 @@ export default function TransactionsPage() {
                           {formatCurrency(tx.platform_fee || 0)}
                         </td>
                         <td className="px-3 py-2 text-right font-mono text-muted-foreground text-[10px]">
-                          {tx.fee_rate ? `${tx.fee_rate.toFixed(3)}%` : "0.05%"}
+                          {tx.fee_rate ? `${tx.fee_rate.toFixed(3)}%` : "0.000%"}
                         </td>
                         <td className="px-3 py-2 text-center">
                           <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium", getStatusColor(tx.status || "completed"))}>
@@ -528,7 +533,7 @@ export default function TransactionsPage() {
                                 </p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground dark:text-muted-foreground mb-1">Platform Fee ({tx.fee_rate?.toFixed(3) || "0.05"}%)</p>
+                                <p className="text-muted-foreground dark:text-muted-foreground mb-1">Platform Fee ({tx.fee_rate?.toFixed(3) || "0.000"}%)</p>
                                 <p className="text-brand font-semibold">{formatCurrency(tx.platform_fee || 0)}</p>
                               </div>
                             </div>

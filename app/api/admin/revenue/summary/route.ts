@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 
 // Platform fee percentage
 const PLATFORM_FEE_PERCENTAGE = 0.005; // 0.5%
@@ -16,9 +16,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // TODO: Add admin role check
-    // For now, any authenticated user can access
-    // In production, check if user has 'admin' or 'creator' role
+    // Admin gate: only ADMIN_EMAILS may access revenue data
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map((e) => e.trim().toLowerCase());
+    if (!user.email || !adminEmails.includes(user.email.toLowerCase())) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
@@ -56,10 +58,14 @@ export async function GET(request: NextRequest) {
       endDate: endDate.toISOString(),
     });
 
+    // Use service client to read across all users (admin view, RLS bypassed)
+    const admin = createServiceClient();
+
     // Fetch all completed transactions in the period
-    const { data: transactions, error: txError } = await supabase
+    // Prefer persisted platform_fee from DB; fallback computed in JS for legacy rows
+    const { data: transactions, error: txError } = await admin
       .from('transactions')
-      .select('*')
+      .select('id, user_id, type, amount, status, created_at, platform_fee')
       .eq('status', 'completed')
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString());
@@ -80,11 +86,15 @@ export async function GET(request: NextRequest) {
     transactions?.forEach(tx => {
       const amount = parseFloat(String(tx.amount));
       const txType = tx.type;
-      
-      // Platform fee calculation (0.5% on all transactions except deposits)
-      let platformFee = 0;
-      if (txType !== 'deposit') {
+
+      // Use persisted platform_fee if present (post-migration 021 rows).
+      // For legacy rows where platform_fee is still 0 and type is not deposit,
+      // fall back to computing at the correct 0.5% rate.
+      let platformFee = parseFloat(String(tx.platform_fee ?? 0));
+      if (platformFee === 0 && txType !== 'deposit' && txType !== 'receive') {
         platformFee = amount * PLATFORM_FEE_PERCENTAGE;
+      }
+      if (txType !== 'deposit' && txType !== 'receive') {
         totalRevenue += platformFee;
       }
 
@@ -98,7 +108,9 @@ export async function GET(request: NextRequest) {
         byTransactionType[txType] = { count: 0, revenue: 0, total_value: 0 };
       }
       byTransactionType[txType].count++;
-      byTransactionType[txType].revenue += platformFee;
+      if (txType !== 'deposit' && txType !== 'receive') {
+        byTransactionType[txType].revenue += platformFee;
+      }
       byTransactionType[txType].total_value += amount;
 
       // Daily breakdown

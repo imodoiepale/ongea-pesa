@@ -42,8 +42,8 @@ import {
   Cell,
 } from "recharts"
 
-// Platform fee rate: 0.05%
-const PLATFORM_FEE_RATE = 0.0005
+// Platform fee rate: 0.5% (correct rate — was previously wrong at 0.05%)
+const PLATFORM_FEE_RATE = 0.005
 
 type DateRange = "today" | "yesterday" | "last7days" | "last30days" | "thisMonth" | "lastMonth" | "all"
 
@@ -140,10 +140,10 @@ export default function RevenuePage() {
       // Get date range for filtering
       const { start, end } = getDateRange(dateRange)
 
-      // Fetch all transactions with created_at for daily breakdown (without platform_fee - calculate client-side)
+      // Fetch all transactions — include persisted platform_fee (migration 021)
       const { data: transactions, error: txError } = await supabase
         .from("transactions")
-        .select("type, amount, status, created_at")
+        .select("type, amount, status, created_at, platform_fee")
         .gte("created_at", start.toISOString())
         .lte("created_at", end.toISOString())
         .order("created_at", { ascending: false })
@@ -161,12 +161,19 @@ export default function RevenuePage() {
       // Calculate stats - only completed transactions
       const completedTx = (transactions || []).filter(tx => tx.status === "completed")
       
-      // Calculate fees client-side at 0.05% rate (deposits have 0% fee)
+      // Use persisted platform_fee where available (post-migration 021).
+      // Fall back to computing at 0.5% for legacy rows where platform_fee is still 0.
       const txWithFees = completedTx.map(tx => {
-        const isDeposit = tx.type?.toLowerCase() === "deposit"
+        const isDeposit = tx.type?.toLowerCase() === "deposit" || tx.type?.toLowerCase() === "receive"
+        const persistedFee = parseFloat(String(tx.platform_fee ?? 0))
+        const calculatedFee = isDeposit
+          ? 0
+          : persistedFee > 0
+            ? persistedFee
+            : (tx.amount || 0) * PLATFORM_FEE_RATE
         return {
           ...tx,
-          calculated_fee: isDeposit ? 0 : (tx.amount || 0) * PLATFORM_FEE_RATE
+          calculated_fee: calculatedFee,
         }
       })
       
@@ -242,7 +249,7 @@ export default function RevenuePage() {
     }).format(amount)
   }
 
-  // Simulated partnership data
+  // PROJECTED / DEMO data — not live. Replace with real partnership records when available.
   const partnerships = [
     { name: "Equity Bank", type: "Banking Partner", status: "active", monthlyFee: 25000, since: "2024-01" },
     { name: "KCB Bank", type: "Banking Partner", status: "active", monthlyFee: 20000, since: "2024-03" },
@@ -250,7 +257,7 @@ export default function RevenuePage() {
     { name: "Airtel Money", type: "Mobile Money", status: "pending", monthlyFee: 10000, since: "2024-06" },
   ]
 
-  // Simulated premium tiers
+  // PROJECTED / DEMO data — not live. Replace with real subscription records when available.
   const premiumTiers = [
     { tier: "Basic", users: 45, monthlyFee: 99, features: "5 free transfers/month" },
     { tier: "Pro", users: 23, monthlyFee: 299, features: "Unlimited transfers, lower fees" },
@@ -542,6 +549,7 @@ export default function RevenuePage() {
                   <Landmark className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <h2 className="text-sm font-semibold text-foreground">Bank & Mobile Money Partnerships</h2>
+                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">Projected</span>
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -597,6 +605,7 @@ export default function RevenuePage() {
                 <Crown className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               </div>
               <h2 className="text-sm font-semibold text-foreground">Premium Subscriptions & Licensing</h2>
+                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">Projected</span>
             </div>
           </div>
           <div className="overflow-x-auto">

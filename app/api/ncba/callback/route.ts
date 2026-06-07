@@ -18,6 +18,11 @@ export async function POST(request: NextRequest) {
       String(body?.resultCode || '').includes('200');
     const token = data?.token || data?.meterToken || data?.stdTokenRecieptNo || null;
 
+    // NCBA does not consistently surface per-transaction charges in the callback payload.
+    // Check common field names; default to 0 if not present.
+    const transactionCost =
+      parseFloat(String(data?.charges || data?.fee || data?.transaction_charge || data?.transactionCharge || 0)) || 0;
+
     if (!ref) {
       return NextResponse.json({ statusCode: 200, message: 'Accepted (no ref)' });
     }
@@ -43,6 +48,7 @@ export async function POST(request: NextRequest) {
         status: succeeded ? 'completed' : 'failed',
         completed_at: succeeded ? new Date().toISOString() : null,
         external_ref: token || undefined,
+        transaction_cost: transactionCost,
       })
       .eq('id', tx.id);
 

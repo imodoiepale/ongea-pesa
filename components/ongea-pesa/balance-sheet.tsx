@@ -665,7 +665,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
 
           {/* Recent Transactions */}
           <div className="flex-1 overflow-y-auto">
-            <div className="px-5 py-4">
+            <div className="px-5 py-4 pb-24">
               {/* Section header row */}
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recent Transactions</p>

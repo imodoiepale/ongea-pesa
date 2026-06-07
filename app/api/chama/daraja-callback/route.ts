@@ -40,6 +40,17 @@ export async function POST(request: NextRequest) {
     const success = Number(resultCode) === 0 && !isTimeout;
     const newStatus = success ? 'completed' : isTimeout ? 'timeout' : 'failed';
 
+    // Extract TransactionCost from Safaricom B2C ResultParameters array (if present)
+    let transactionCost = 0;
+    const resultParams: Array<{ Key: string; Value: any }> =
+      result?.ResultParameters?.ResultParameter || [];
+    for (const param of resultParams) {
+      if (param.Key === 'TransactionCost') {
+        transactionCost = parseFloat(String(param.Value)) || 0;
+        break;
+      }
+    }
+
     const update: Record<string, any> = { status: newStatus };
     if (success) {
       update.mpesa_transaction_id = result?.TransactionID || result?.transactionReceipt || null;
@@ -48,10 +59,13 @@ export async function POST(request: NextRequest) {
 
     await admin.from('chama_payouts').update(update).eq('id', payout.id);
 
-    // Mirror onto any linked transaction row
+    // Mirror onto any linked transaction row — include transaction_cost from B2C result
     await admin
       .from('transactions')
-      .update({ status: success ? 'completed' : 'failed' })
+      .update({
+        status: success ? 'completed' : 'failed',
+        transaction_cost: transactionCost,
+      })
       .eq('provider_ref', conversationId);
 
     await logSecurityEvent({

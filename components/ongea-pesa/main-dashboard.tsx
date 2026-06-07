@@ -17,6 +17,7 @@ import {
   Eye,
   EyeOff,
   SendHorizonal,
+  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -33,6 +34,7 @@ import { useVoice } from "@/components/voice-provider"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from "@/lib/supabase/client"
 import BalanceSheet from "./balance-sheet"
+import DependantsSheet from "./dependants-sheet"
 import PWAInstallPrompt from "./pwa-install-prompt"
 import { PageHeader, ScreenShell } from "@/components/foundation"
 import { cn } from "@/lib/utils"
@@ -133,6 +135,8 @@ export default function MainDashboard({
   const [balance, setBalance] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [isBalanceSheetOpen, setIsBalanceSheetOpen] = useState(false)
+  const [isDependantsSheetOpen, setIsDependantsSheetOpen] = useState(false)
+  const [pocketDeposited, setPocketDeposited] = useState<number | null>(null)
   const [hideBalance, setHideBalance] = useState(() => {
     if (typeof window === "undefined") return false
     return localStorage.getItem("hide-balance") === "true"
@@ -197,6 +201,23 @@ export default function MainDashboard({
     }
 
     fetchBalance()
+
+    // Fetch pocket total_deposited (supplementary — non-blocking)
+    const fetchPocket = async () => {
+      try {
+        const { data } = await supabase
+          .from("user_pockets")
+          .select("total_deposited")
+          .eq("user_id", user.id)
+          .single()
+        if (data) {
+          setPocketDeposited(parseFloat(String(data.total_deposited)) || 0)
+        }
+      } catch {
+        // silent — pocket may not exist yet
+      }
+    }
+    fetchPocket()
 
     // Set up real-time subscription for balance changes
     const channel = supabase
@@ -351,6 +372,48 @@ export default function MainDashboard({
           </button>
         </div>
 
+        {/* Pocket balance row + dependants shortcut */}
+        {pocketDeposited !== null && (
+          <div className="flex items-center justify-between px-4 py-3 mb-4 rounded-2xl border border-border/60 bg-card">
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                Total Deposited
+              </p>
+              <p
+                className="text-sm font-bold text-foreground mt-0.5"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              >
+                {hideBalance
+                  ? "KSh ••••••"
+                  : `KSh ${pocketDeposited.toLocaleString("en-KE", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    })}`}
+              </p>
+            </div>
+            <button
+              onClick={() => setIsDependantsSheetOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted text-muted-foreground hover:bg-muted/70 active:scale-[0.97] transition-all text-xs font-semibold"
+            >
+              <Users className="h-3.5 w-3.5" />
+              Family Top-up
+            </button>
+          </div>
+        )}
+
+        {/* Show family top-up even when pocket not yet loaded */}
+        {pocketDeposited === null && (
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => setIsDependantsSheetOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted text-muted-foreground hover:bg-muted/70 active:scale-[0.97] transition-all text-xs font-semibold"
+            >
+              <Users className="h-3.5 w-3.5" />
+              Family Top-up
+            </button>
+          </div>
+        )}
+
         {/* Voice Activation Button */}
         <div className="flex justify-center mb-8">
           {/* Outer shell */}
@@ -460,6 +523,12 @@ export default function MainDashboard({
           setBalance(newBalance)
           console.log("✅ Balance updated to:", newBalance)
         }}
+      />
+
+      {/* Dependants Sheet — outside ScreenShell */}
+      <DependantsSheet
+        isOpen={isDependantsSheetOpen}
+        onClose={() => setIsDependantsSheetOpen(false)}
       />
 
       {/* PWA Install Prompt — outside ScreenShell */}

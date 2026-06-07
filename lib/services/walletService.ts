@@ -151,6 +151,7 @@ export class WalletService {
     
     // Create transaction record with status 'completed'
     // The database trigger will automatically credit the wallet balance
+    // Deposits have platform_fee = 0 (we do not charge to receive)
     const { data: transaction, error: txError } = await this.supabase
       .from('transactions')
       .insert({
@@ -160,6 +161,8 @@ export class WalletService {
         status: 'completed',
         mpesa_transaction_id: mpesaTransactionId,
         phone: phone,
+        platform_fee: 0,
+        net_amount: amount,
         created_at: new Date().toISOString(),
         completed_at: new Date().toISOString(),
       })
@@ -389,6 +392,9 @@ export class WalletService {
       };
     }
 
+    // Compute fee for this outbound transaction (0.5% platform fee)
+    const outboundFees = this.calculateFees(amount, false);
+
     // 1. Insert a 'processing' transaction (no balance change yet)
     const { data: tx, error: txError } = await this.supabase
       .from('transactions')
@@ -402,6 +408,7 @@ export class WalletService {
         till: destination.kind === 'till' ? destination.till : '',
         paybill: destination.kind === 'paybill' ? destination.paybill : '',
         account: destination.kind === 'paybill' ? destination.account : '',
+        platform_fee: outboundFees.platformFee,
       })
       .select()
       .single();
@@ -421,7 +428,12 @@ export class WalletService {
       if (result?.success) {
         await this.supabase
           .from('transactions')
-          .update({ status: 'completed', provider_ref: result.bank_ref || result.bankRef || null, completed_at: new Date().toISOString() })
+          .update({
+            status: 'completed',
+            provider_ref: result.bank_ref || result.bankRef || null,
+            completed_at: new Date().toISOString(),
+            net_amount: amount - outboundFees.platformFee,
+          })
           .eq('id', tx.id);
         return { success: true, rail: provider, transaction_id: tx.id, bank_ref: result.bank_ref || result.bankRef, raw: result };
       }

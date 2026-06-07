@@ -4,8 +4,9 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { ScreenShell } from "@/components/foundation"
+import { ScreenShell, PageHeader } from "@/components/foundation"
 import {
   Shield, Plus, Clock, CheckCircle, AlertTriangle, Users, Lock, Unlock,
   FileText, DollarSign, RefreshCw, Eye, Trash2, UserPlus, Scale,
@@ -111,14 +112,12 @@ export default function EscrowPage() {
   const fetchEscrows = async (userId: string) => {
     setLoading(true)
     try {
-      // Escrows I created
       const { data: created } = await supabase
         .from("escrows")
         .select("*, participants:escrow_participants(*), milestones:escrow_milestones(*)")
         .eq("creator_id", userId)
         .order("created_at", { ascending: false })
 
-      // Escrows I'm participating in (not creator)
       const { data: participating } = await supabase
         .from("escrow_participants")
         .select("escrow:escrows(*, participants:escrow_participants(*), milestones:escrow_milestones(*))")
@@ -247,12 +246,12 @@ export default function EscrowPage() {
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
       draft: "bg-muted text-muted-foreground",
-      pending_funding: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-      funded: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-      in_progress: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-      pending_release: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+      pending_funding: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+      funded: "bg-brand/10 text-brand",
+      in_progress: "bg-brand/10 text-brand",
+      pending_release: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
       completed: "bg-brand/10 text-brand",
-      disputed: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+      disputed: "bg-destructive/10 text-destructive",
       cancelled: "bg-muted text-muted-foreground",
     }
     return styles[status] || styles.draft
@@ -279,15 +278,13 @@ export default function EscrowPage() {
         <div
           onClick={() => setShowUserDropdown(showUserDropdown === role ? null : role)}
           className={cn(
-            "flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all",
-            "border border-border/60",
-            "hover:border-border",
-            "bg-card/50"
+            "flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all",
+            "border border-border/60 bg-card/50 hover:border-border"
           )}
         >
           {selected ? (
             <>
-              <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0">
                 <User className="w-4 h-4 text-brand" />
               </div>
               <div className="flex-1 min-w-0">
@@ -296,13 +293,13 @@ export default function EscrowPage() {
                 </p>
                 <p className="text-xs text-muted-foreground">{selected.phone_number || selected.mpesa_number}</p>
               </div>
-              <button onClick={(e) => { e.stopPropagation(); onSelect(null) }} className="p-1 hover:bg-muted rounded">
-                <X className="w-4 h-4 text-muted-foreground" />
+              <button onClick={(e) => { e.stopPropagation(); onSelect(null) }} className="p-1 hover:bg-muted rounded shrink-0">
+                <X className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
             </>
           ) : (
             <>
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
                 <UserPlus className="w-4 h-4 text-muted-foreground" />
               </div>
               <span className="text-sm text-muted-foreground">Select from Ongea Pesa users...</span>
@@ -313,8 +310,7 @@ export default function EscrowPage() {
         {showUserDropdown === role && (
           <div className={cn(
             "absolute z-50 w-full mt-2 rounded-xl overflow-hidden",
-            "bg-card border border-border/60",
-            "shadow-xl max-h-64 overflow-y-auto"
+            "bg-card border border-border/60 shadow-xl max-h-64 overflow-y-auto"
           )}>
             <div className="p-2 border-b border-border/40">
               <div className="relative">
@@ -324,7 +320,7 @@ export default function EscrowPage() {
                   placeholder="Search users..."
                   value={userSearchTerm}
                   onChange={(e) => setUserSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-muted/30 rounded-lg border-0 focus:ring-2 focus:ring-brand"
+                  className="w-full pl-9 pr-3 py-2 text-sm bg-muted/30 rounded-lg border-0 focus:ring-2 focus:ring-brand outline-none"
                 />
               </div>
             </div>
@@ -335,7 +331,7 @@ export default function EscrowPage() {
                   onClick={() => { onSelect(u); setShowUserDropdown(null); setUserSearchTerm("") }}
                   className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer"
                 >
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium shrink-0">
                     {(u.email?.[0] || "U").toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -357,10 +353,8 @@ export default function EscrowPage() {
           onChange={(e) => onManualChange(e.target.value)}
           disabled={!!selected}
           className={cn(
-            "flex-1 px-3 py-1.5 text-sm rounded-lg",
-            "border border-border/60",
-            "bg-card",
-            "disabled:opacity-50 disabled:cursor-not-allowed"
+            "flex-1 px-3 py-1.5 text-sm rounded-lg border border-border/60 bg-card outline-none",
+            "disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-brand"
           )}
         />
       </div>
@@ -368,86 +362,63 @@ export default function EscrowPage() {
   )
 
   return (
-    <ScreenShell>
     <div className="min-h-[100dvh] bg-background surface-money">
-      {/* Branded Header */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-card/80 border-b border-border/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center shadow-lg shadow-brand/30">
-                  <Shield className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-brand">Escrow Shield</h1>
-                  <p className="text-[10px] text-muted-foreground -mt-0.5">by Ongea Pesa</p>
-                </div>
-              </Link>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="p-2 rounded-lg hover:bg-muted"><Bell className="w-5 h-5 text-muted-foreground" /></button>
-              <button className="p-2 rounded-lg hover:bg-muted"><Settings className="w-5 h-5 text-muted-foreground" /></button>
-              <Link href="/" className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-lg">
-                <Home className="w-4 h-4" /> Home
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ScreenShell className="pt-0 pb-28">
+        {/* Page Header */}
+        <PageHeader title="Escrow Shield" subtitle="Secure transactions with crypto-grade safety">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => fetchEscrows(user?.id)}
+            disabled={loading}
+            aria-label="Refresh"
+          >
+            <RefreshCw className={cn("h-4 w-4 text-muted-foreground", loading && "animate-spin")} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            asChild
+            aria-label="Home"
+          >
+            <Link href="/">
+              <Home className="h-4 w-4 text-muted-foreground" />
+            </Link>
+          </Button>
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            size="sm"
+            className="gap-1.5"
+          >
+            <Plus className="h-4 w-4" />
+            New Escrow
+          </Button>
+        </PageHeader>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
-        {/* Hero Section */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-3xl font-bold text-foreground">Escrow Protection</h2>
-              <p className="text-muted-foreground mt-1">Secure transactions with crypto-grade safety features</p>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => fetchEscrows(user?.id)} disabled={loading} className={cn("p-3 rounded-xl", "bg-card shadow-sm border border-border/60", "hover:bg-muted/50")}>
-                <RefreshCw className={cn("w-5 h-5 text-muted-foreground", loading && "animate-spin")} />
-              </button>
-              <button onClick={() => setShowCreateModal(true)} className={cn("flex items-center gap-2 px-6 py-3 rounded-xl", "bg-brand hover:bg-brand/90", "text-white font-semibold", "shadow-lg shadow-brand/30", "transition-all hover:scale-105")}>
-                <Plus className="w-5 h-5" />
-                New Escrow
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Stat Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {[
-            { label: "Total Escrows", value: filteredEscrows.length, icon: FileText, color: "blue", bg: "bg-blue-500" },
-            { label: "Active", value: activeCount, icon: Zap, color: "emerald", bg: "bg-brand" },
-            { label: "Pending Funding", value: pendingCount, icon: Clock, color: "amber", bg: "bg-amber-500" },
-            { label: "Total Value", value: formatCurrency(totalValue), icon: Wallet, color: "purple", bg: "bg-purple-500" },
+            { label: "Total Escrows", value: filteredEscrows.length, icon: FileText, iconBg: "bg-muted" },
+            { label: "Active", value: activeCount, icon: Zap, iconBg: "bg-brand" },
+            { label: "Pending Funding", value: pendingCount, icon: Clock, iconBg: "bg-amber-500" },
+            { label: "Total Value", value: formatCurrency(totalValue), icon: Wallet, iconBg: "bg-violet-500" },
           ].map((stat, i) => (
-            <div key={i} className={cn(
-              "relative overflow-hidden p-5 rounded-2xl",
-              "bg-card/50",
-              "border border-border/40",
-              "shadow-sm"
-            )}>
-              <div className={cn("absolute top-0 right-0 w-20 h-20 -mr-6 -mt-6 rounded-full opacity-10", stat.bg)} />
-              <div className="relative">
-                <div className={cn(`p-2 rounded-xl w-fit bg-${stat.color}-100 dark:bg-${stat.color}-900/30`)}>
-                  <stat.icon className={cn(`w-5 h-5 text-${stat.color}-600 dark:text-${stat.color}-400`)} />
-                </div>
-                <p className="text-2xl font-bold text-foreground mt-3">{stat.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+            <div key={i} className="p-3 rounded-xl bg-card/50 border border-border/40">
+              <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center mb-2", stat.iconBg)}>
+                <stat.icon className="w-4 h-4 text-white" />
               </div>
+              <p className="text-lg font-bold text-foreground">{stat.value}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{stat.label}</p>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 p-1 bg-muted rounded-xl w-fit">
+        <div className="flex gap-1 p-1 bg-muted rounded-xl w-fit mb-4">
           <button
             onClick={() => setActiveTab("created")}
             className={cn(
-              "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+              "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
               activeTab === "created"
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -458,7 +429,7 @@ export default function EscrowPage() {
           <button
             onClick={() => setActiveTab("participating")}
             className={cn(
-              "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+              "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
               activeTab === "participating"
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -469,296 +440,271 @@ export default function EscrowPage() {
         </div>
 
         {/* Search & Filter */}
-        <div className={cn(
-          "p-4 rounded-2xl",
-          "bg-card/50",
-          "border border-border/40"
-        )}>
-          <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                placeholder="Search escrows..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-11 bg-muted/30 border-border/60 rounded-xl"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className={cn(
-                "px-4 py-2.5 rounded-xl text-sm font-medium",
-                "bg-muted/30",
-                "border border-border/60"
-              )}
-            >
-              <option value="all">All Status</option>
-              <option value="pending_funding">Pending Funding</option>
-              <option value="funded">Funded</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="disputed">Disputed</option>
-            </select>
+        <div className="flex flex-wrap gap-2 mb-4">
+          <div className="relative flex-1 min-w-[160px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              placeholder="Search escrows..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-border/60 bg-card outline-none focus:ring-2 focus:ring-brand"
+            />
           </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 rounded-xl text-sm font-medium bg-card border border-border/60 outline-none focus:ring-2 focus:ring-brand"
+          >
+            <option value="all">All Status</option>
+            <option value="pending_funding">Pending Funding</option>
+            <option value="funded">Funded</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="disputed">Disputed</option>
+          </select>
         </div>
 
-        {/* Escrows Table */}
-        <div className={cn(
-          "rounded-2xl overflow-hidden",
-          "bg-card/50",
-          "border border-border/40",
-          "shadow-sm"
-        )}>
-          <div className="p-5 border-b border-border/40">
-            <h2 className="text-lg font-semibold text-foreground">
-              {activeTab === "created" ? "Escrows You Created" : "Escrows You're Participating In"}
-              <span className="text-sm font-normal text-muted-foreground ml-2">({filteredEscrows.length})</span>
-            </h2>
-          </div>
+        {/* Escrow List */}
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            {activeTab === "created" ? "Escrows You Created" : "Escrows You're Participating In"}
+            <span className="text-xs font-normal normal-case ml-1">({filteredEscrows.length})</span>
+          </h2>
 
           {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <RefreshCw className="w-8 h-8 text-muted-foreground animate-spin" />
+            <div className="flex items-center justify-center py-12">
+              <RefreshCw className="w-6 h-6 text-muted-foreground animate-spin" />
             </div>
           ) : filteredEscrows.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-muted-foreground" />
+            <div className="text-center py-12 rounded-2xl border border-border/60 bg-card">
+              <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <Shield className="w-6 h-6 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground mb-4">No escrows found</p>
+              <p className="text-sm text-muted-foreground mb-3">No escrows found</p>
               {activeTab === "created" && (
-                <button
+                <Button
                   onClick={() => setShowCreateModal(true)}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl font-medium"
+                  size="sm"
+                  className="gap-1.5"
                 >
-                  <Plus className="w-5 h-5" /> Create Escrow
-                </button>
+                  <Plus className="w-4 h-4" /> Create Escrow
+                </Button>
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/30">
-                  <tr>
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Escrow</th>
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</th>
-                    <th className="px-5 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Amount</th>
-                    <th className="px-5 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Funded</th>
-                    <th className="px-5 py-4 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="px-5 py-4 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">Security</th>
-                    <th className="px-5 py-4 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/40">
-                  {filteredEscrows.map((escrow) => (
-                    <tr key={escrow.id} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-5 py-4">
-                        <div>
-                          <p className="font-semibold text-foreground">{escrow.title}</p>
-                          <p className="text-xs text-muted-foreground truncate max-w-[200px]">{escrow.description}</p>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="px-3 py-1.5 text-xs font-medium rounded-lg bg-muted text-muted-foreground capitalize">
-                          {escrow.escrow_type.replace("_", " ")}
+            <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
+              {filteredEscrows.map((escrow) => (
+                <div key={escrow.id} className="flex items-center gap-3 px-4 py-3">
+                  {/* Icon tile */}
+                  <div className="w-9 h-9 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+                    <Shield className="w-4 h-4 text-brand" />
+                  </div>
+
+                  {/* Main content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold text-foreground truncate">{escrow.title}</p>
+                      <span className={cn("px-2 py-0.5 text-[10px] font-semibold rounded-full shrink-0", getStatusBadge(escrow.status))}>
+                        {escrow.status.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{escrow.description}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] text-muted-foreground capitalize">{escrow.escrow_type.replace("_", " ")}</span>
+                      {escrow.requires_multi_sig && (
+                        <span title="Multi-signature" className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                          <Fingerprint className="w-3 h-3" /> multi-sig
                         </span>
-                      </td>
-                      <td className="px-5 py-4 text-right">
-                        <span className="font-mono font-semibold text-foreground">{formatCurrency(escrow.total_amount)}</span>
-                      </td>
-                      <td className="px-5 py-4 text-right">
-                        <span className={cn("font-mono font-semibold", escrow.funded_amount > 0 ? "text-brand" : "text-muted-foreground")}>
-                          {formatCurrency(escrow.funded_amount)}
+                      )}
+                      {escrow.lock_until && new Date(escrow.lock_until) > new Date() && (
+                        <span title="Time-locked" className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                          <Lock className="w-3 h-3" /> locked
                         </span>
-                      </td>
-                      <td className="px-5 py-4 text-center">
-                        <span className={cn("px-3 py-1.5 text-xs font-semibold rounded-full", getStatusBadge(escrow.status))}>
-                          {escrow.status.replace("_", " ")}
+                      )}
+                      {escrow.milestones && escrow.milestones.length > 0 && (
+                        <span title="Milestones" className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                          <Target className="w-3 h-3" /> {escrow.milestones.length} milestones
                         </span>
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center justify-center gap-1">
-                          {escrow.requires_multi_sig && (
-                            <span title="Multi-signature" className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                              <Fingerprint className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                            </span>
-                          )}
-                          {escrow.lock_until && new Date(escrow.lock_until) > new Date() && (
-                            <span title="Time-locked" className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                              <Lock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                            </span>
-                          )}
-                          {escrow.milestones && escrow.milestones.length > 0 && (
-                            <span title="Milestones" className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                              <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => { setSelectedEscrow(escrow); setShowDetailModal(true) }}
-                            className="p-2 hover:bg-muted rounded-lg transition-colors"
-                          >
-                            <Eye className="w-5 h-5 text-muted-foreground" />
-                          </button>
-                          {activeTab === "participating" && (
-                            <button
-                              onClick={() => requestExit(escrow.id)}
-                              className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                              title="Request to exit"
-                            >
-                              <LogOut className="w-5 h-5 text-red-500" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Amount + actions */}
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-bold text-foreground" style={{ fontVariantNumeric: "tabular-nums" }}>
+                      {formatCurrency(escrow.total_amount)}
+                    </p>
+                    {escrow.funded_amount > 0 && (
+                      <p className="text-xs text-brand">{formatCurrency(escrow.funded_amount)} funded</p>
+                    )}
+                    <div className="flex items-center gap-1 mt-1 justify-end">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => { setSelectedEscrow(escrow); setShowDetailModal(true) }}
+                        aria-label="View escrow"
+                      >
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                      </Button>
+                      {activeTab === "participating" && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => requestExit(escrow.id)}
+                          aria-label="Request exit"
+                        >
+                          <LogOut className="w-4 h-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
 
         {/* Security Features */}
-        <div className={cn(
-          "p-6 rounded-2xl",
-          "bg-brand/5",
-          "border border-brand/20"
-        )}>
-          <h3 className="text-lg font-semibold text-foreground mb-4">Security Features</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            Security Features
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               { icon: Lock, label: "Time-Lock", desc: "Funds locked until date" },
               { icon: Fingerprint, label: "Multi-Sig", desc: "Multiple approvals" },
               { icon: Target, label: "Milestones", desc: "Staged releases" },
               { icon: Scale, label: "Arbitration", desc: "Dispute resolution" },
             ].map((f, i) => (
-              <div key={i} className="flex items-center gap-3 p-4 bg-card/60 rounded-xl">
-                <div className="p-2 bg-brand/10 rounded-lg">
-                  <f.icon className="w-5 h-5 text-brand" />
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/60">
+                <div className="p-2 bg-brand/10 rounded-lg shrink-0">
+                  <f.icon className="w-4 h-4 text-brand" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{f.label}</p>
-                  <p className="text-xs text-muted-foreground">{f.desc}</p>
+                  <p className="text-xs font-semibold text-foreground">{f.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{f.desc}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
-      </main>
+      </ScreenShell>
 
-      {/* Create Modal */}
+      {/* Create Modal — bottom sheet */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className={cn(
-            "w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl",
-            "bg-card",
-            "border border-border/60",
-            "shadow-2xl"
-          )}>
-            <div className="flex items-center justify-between p-6 border-b border-border/60">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={() => { setShowCreateModal(false); resetForm() }}>
+          <div
+            className="fixed inset-x-0 bottom-0 bg-background border-t border-border/60 rounded-t-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
               <div>
-                <h2 className="text-xl font-bold text-foreground">Create Escrow</h2>
-                <p className="text-sm text-muted-foreground">Step {createStep} of 3</p>
+                <h2 className="text-lg font-semibold text-foreground">Create Escrow</h2>
+                <p className="text-xs text-muted-foreground">Step {createStep} of 3</p>
               </div>
-              <button onClick={() => { setShowCreateModal(false); resetForm() }} className="p-2 hover:bg-muted rounded-xl">
-                <X className="w-6 h-6 text-muted-foreground" />
-              </button>
+              <Button variant="ghost" size="icon-sm" onClick={() => { setShowCreateModal(false); resetForm() }} aria-label="Close">
+                <X className="h-4 w-4" />
+              </Button>
             </div>
 
-            <div className="px-6 pt-4">
-              <div className="flex gap-2">
+            {/* Progress bar */}
+            <div className="px-5 pt-3">
+              <div className="flex gap-1.5">
                 {[1, 2, 3].map(s => (
                   <div key={s} className={cn(
-                    "flex-1 h-1.5 rounded-full transition-all",
+                    "flex-1 h-1 rounded-full transition-all",
                     s <= createStep ? "bg-brand" : "bg-muted"
                   )} />
                 ))}
               </div>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
               {createStep === 1 && (
-                <div className="space-y-5">
+                <>
                   <div>
-                    <label className="text-sm font-medium text-foreground">Title</label>
-                    <Input
-                      value={form.title}
-                      onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
-                      placeholder="e.g., Website Development Project"
-                      className="mt-2 h-12"
-                    />
+                    <label className="text-xs font-medium text-foreground block mb-1.5">Title</label>
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-2">
+                      <input
+                        value={form.title}
+                        onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
+                        placeholder="e.g., Website Development Project"
+                        className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground/50"
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-foreground">Description</label>
-                    <textarea
-                      value={form.description}
-                      onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
-                      placeholder="Describe the agreement..."
-                      rows={3}
-                      className={cn(
-                        "w-full mt-2 px-4 py-3 rounded-xl text-sm",
-                        "border border-border/60",
-                        "bg-card"
-                      )}
-                    />
+                    <label className="text-xs font-medium text-foreground block mb-1.5">Description</label>
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-2">
+                      <textarea
+                        value={form.description}
+                        onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
+                        placeholder="Describe the agreement..."
+                        rows={3}
+                        className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground/50 resize-none"
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-3 block">Escrow Type</label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <label className="text-xs font-medium text-foreground block mb-1.5">Escrow Type</label>
+                    <div className="grid grid-cols-2 gap-2">
                       {ESCROW_TYPES.map(t => (
-                        <div
+                        <button
                           key={t.id}
+                          type="button"
                           onClick={() => setForm(f => ({ ...f, escrow_type: t.id }))}
                           className={cn(
-                            "p-4 rounded-xl cursor-pointer transition-all",
-                            "border-2",
+                            "p-3 rounded-xl text-left transition-all border-2 active:scale-[0.97]",
                             form.escrow_type === t.id
                               ? "border-brand bg-brand/5"
                               : "border-border/60 hover:border-border"
                           )}
                         >
-                          <t.icon className={cn("w-6 h-6 mb-2", form.escrow_type === t.id ? "text-brand" : "text-muted-foreground")} />
-                          <p className="font-semibold text-foreground">{t.label}</p>
-                          <p className="text-xs text-muted-foreground">{t.desc}</p>
-                        </div>
+                          <t.icon className={cn("w-5 h-5 mb-1.5", form.escrow_type === t.id ? "text-brand" : "text-muted-foreground")} />
+                          <p className="text-xs font-semibold text-foreground">{t.label}</p>
+                          <p className="text-[10px] text-muted-foreground">{t.desc}</p>
+                        </button>
                       ))}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-sm font-medium text-foreground">Amount (KES)</label>
-                      <Input
-                        type="number"
-                        value={form.total_amount}
-                        onChange={(e) => setForm(f => ({ ...f, total_amount: e.target.value }))}
-                        placeholder="50000"
-                        className="mt-2 h-12"
-                      />
+                      <label className="text-xs font-medium text-foreground block mb-1.5">Amount (KES)</label>
+                      <div className="rounded-xl border border-border/60 bg-card px-3 py-2">
+                        <input
+                          type="number"
+                          value={form.total_amount}
+                          onChange={(e) => setForm(f => ({ ...f, total_amount: e.target.value }))}
+                          placeholder="50000"
+                          className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground/50"
+                          inputMode="decimal"
+                        />
+                      </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-foreground">Auto-Release (Days)</label>
-                      <Input
-                        type="number"
-                        value={form.auto_release_days}
-                        onChange={(e) => setForm(f => ({ ...f, auto_release_days: parseInt(e.target.value) || 0 }))}
-                        className="mt-2 h-12"
-                      />
+                      <label className="text-xs font-medium text-foreground block mb-1.5">Auto-Release (Days)</label>
+                      <div className="rounded-xl border border-border/60 bg-card px-3 py-2">
+                        <input
+                          type="number"
+                          value={form.auto_release_days}
+                          onChange={(e) => setForm(f => ({ ...f, auto_release_days: parseInt(e.target.value) || 0 }))}
+                          className="w-full text-sm bg-transparent outline-none"
+                          inputMode="numeric"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                </>
               )}
 
               {createStep === 2 && (
-                <div className="space-y-5">
-                  <p className="text-sm text-muted-foreground">Select existing users or enter phone numbers manually</p>
+                <>
+                  <p className="text-xs text-muted-foreground">Select existing users or enter phone numbers manually</p>
 
                   <UserSelector
                     role="buyer"
@@ -783,80 +729,101 @@ export default function EscrowPage() {
                     manualPhone={form.arbitrator_phone}
                     onManualChange={(p) => setForm(f => ({ ...f, arbitrator_phone: p }))}
                   />
-                </div>
+                </>
               )}
 
               {createStep === 3 && (
-                <div className="space-y-5">
-                  <label className={cn(
-                    "flex items-center gap-4 p-4 rounded-xl cursor-pointer",
-                    "border-2 transition-all",
-                    form.requires_multi_sig
-                      ? "border-purple-500 bg-purple-50"
-                      : "border-border/60"
-                  )}>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, requires_multi_sig: !f.requires_multi_sig }))}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all border-2 active:scale-[0.97]",
+                      form.requires_multi_sig
+                        ? "border-brand bg-brand/5"
+                        : "border-border/60"
+                    )}
+                  >
                     <input
                       type="checkbox"
                       checked={form.requires_multi_sig}
                       onChange={(e) => setForm(f => ({ ...f, requires_multi_sig: e.target.checked }))}
-                      className="w-5 h-5 text-purple-600 rounded"
+                      className="w-4 h-4 rounded text-brand"
+                      onClick={(e) => e.stopPropagation()}
                     />
-                    <Fingerprint className="w-6 h-6 text-purple-600" />
+                    <Fingerprint className={cn("w-5 h-5 shrink-0", form.requires_multi_sig ? "text-brand" : "text-muted-foreground")} />
                     <div>
-                      <p className="font-semibold text-foreground">Multi-Signature</p>
+                      <p className="text-sm font-semibold text-foreground">Multi-Signature</p>
                       <p className="text-xs text-muted-foreground">Require multiple approvals for release</p>
                     </div>
-                  </label>
+                  </button>
 
                   <div>
-                    <label className="text-sm font-medium text-foreground">Lock Period (Days)</label>
-                    <Input
-                      type="number"
-                      value={form.lock_days}
-                      onChange={(e) => setForm(f => ({ ...f, lock_days: parseInt(e.target.value) || 0 }))}
-                      placeholder="0"
-                      className="mt-2 h-12"
-                    />
+                    <label className="text-xs font-medium text-foreground block mb-1.5">Lock Period (Days)</label>
+                    <div className="rounded-xl border border-border/60 bg-card px-3 py-2">
+                      <input
+                        type="number"
+                        value={form.lock_days}
+                        onChange={(e) => setForm(f => ({ ...f, lock_days: parseInt(e.target.value) || 0 }))}
+                        placeholder="0"
+                        className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground/50"
+                        inputMode="numeric"
+                      />
+                    </div>
                     <p className="text-xs text-muted-foreground mt-1">Funds cannot be released during this period</p>
                   </div>
 
                   {form.escrow_type === "milestone" && (
                     <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <label className="text-sm font-medium text-foreground">Milestones</label>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-medium text-foreground">Milestones</label>
                         <button
+                          type="button"
                           onClick={() => setForm(f => ({ ...f, milestones: [...f.milestones, { title: "", amount: "", description: "" }] }))}
-                          className="text-sm text-brand flex items-center gap-1"
+                          className="text-xs text-brand flex items-center gap-1 active:scale-[0.97]"
                         >
-                          <Plus className="w-4 h-4" /> Add
+                          <Plus className="w-3.5 h-3.5" /> Add
                         </button>
                       </div>
-                      {form.milestones.map((m, i) => (
-                        <div key={i} className="flex gap-2 mb-2">
-                          <Input
-                            value={m.title}
-                            onChange={(e) => setForm(f => ({ ...f, milestones: f.milestones.map((x, j) => j === i ? { ...x, title: e.target.value } : x) }))}
-                            placeholder="Title"
-                            className="flex-1"
-                          />
-                          <Input
-                            type="number"
-                            value={m.amount}
-                            onChange={(e) => setForm(f => ({ ...f, milestones: f.milestones.map((x, j) => j === i ? { ...x, amount: e.target.value } : x) }))}
-                            placeholder="Amount"
-                            className="w-28"
-                          />
-                          <button onClick={() => setForm(f => ({ ...f, milestones: f.milestones.filter((_, j) => j !== i) }))} className="p-2 text-red-500">
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      ))}
+                      <div className="space-y-2">
+                        {form.milestones.map((m, i) => (
+                          <div key={i} className="flex gap-2">
+                            <div className="flex-1 rounded-xl border border-border/60 bg-card px-3 py-2">
+                              <input
+                                value={m.title}
+                                onChange={(e) => setForm(f => ({ ...f, milestones: f.milestones.map((x, j) => j === i ? { ...x, title: e.target.value } : x) }))}
+                                placeholder="Title"
+                                className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground/50"
+                              />
+                            </div>
+                            <div className="w-24 rounded-xl border border-border/60 bg-card px-3 py-2">
+                              <input
+                                type="number"
+                                value={m.amount}
+                                onChange={(e) => setForm(f => ({ ...f, milestones: f.milestones.map((x, j) => j === i ? { ...x, amount: e.target.value } : x) }))}
+                                placeholder="KES"
+                                className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground/50"
+                                inputMode="decimal"
+                              />
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => setForm(f => ({ ...f, milestones: f.milestones.filter((_, j) => j !== i) }))}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  <div className={cn("p-5 rounded-xl", "bg-muted/30")}>
-                    <h4 className="text-sm font-semibold text-foreground mb-3">Summary</h4>
-                    <div className="space-y-2 text-sm">
+                  {/* Summary */}
+                  <div className="p-3 rounded-xl bg-muted/30">
+                    <h4 className="text-xs font-semibold text-foreground mb-2">Summary</h4>
+                    <div className="space-y-1.5 text-xs">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Title:</span>
                         <span className="font-medium text-foreground">{form.title || "—"}</span>
@@ -871,103 +838,111 @@ export default function EscrowPage() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
 
-            <div className="flex items-center justify-between p-6 border-t border-border/60">
-              <button
+            {/* Footer */}
+            <div className="flex items-center justify-between px-5 py-4 border-t border-border/60">
+              <Button
+                variant="ghost"
                 onClick={() => createStep > 1 ? setCreateStep(s => s - 1) : (setShowCreateModal(false), resetForm())}
-                className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted rounded-xl"
               >
                 {createStep > 1 ? "Back" : "Cancel"}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => createStep < 3 ? setCreateStep(s => s + 1) : createEscrow()}
                 disabled={createStep === 1 && (!form.title || !form.total_amount)}
-                className={cn(
-                  "px-8 py-2.5 rounded-xl text-sm font-semibold",
-                  "bg-brand hover:bg-brand/90 text-white",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                  "shadow-lg shadow-brand/20"
-                )}
               >
                 {createStep < 3 ? "Continue" : "Create Escrow"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Detail Modal */}
+      {/* Detail Modal — bottom sheet */}
       {showDetailModal && selectedEscrow && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className={cn(
-            "w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl",
-            "bg-card",
-            "shadow-2xl"
-          )}>
-            <div className="flex items-center justify-between p-6 border-b border-border/60 bg-brand">
-              <div>
-                <h2 className="text-xl font-bold text-white">{selectedEscrow.title}</h2>
-                <span className="px-2 py-0.5 text-xs bg-card/20 text-white rounded-full">
-                  {selectedEscrow.status.replace("_", " ")}
-                </span>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={() => setShowDetailModal(false)}>
+          <div
+            className="fixed inset-x-0 bottom-0 bg-background border-t border-border/60 rounded-t-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold text-foreground truncate">{selectedEscrow.title}</h2>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className={cn("px-2 py-0.5 text-[10px] font-semibold rounded-full", getStatusBadge(selectedEscrow.status))}>
+                    {selectedEscrow.status.replace(/_/g, " ")}
+                  </span>
+                  <span className="text-xs text-muted-foreground capitalize">{selectedEscrow.escrow_type.replace("_", " ")}</span>
+                </div>
               </div>
-              <button onClick={() => setShowDetailModal(false)} className="p-2 hover:bg-card/20 rounded-xl text-white">
-                <X className="w-6 h-6" />
-              </button>
+              <Button variant="ghost" size="icon-sm" onClick={() => setShowDetailModal(false)} aria-label="Close">
+                <X className="h-4 w-4" />
+              </Button>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[70vh] space-y-5">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="p-4 bg-muted/30 rounded-xl text-center">
-                  <p className="text-xs text-muted-foreground mb-1">Total</p>
-                  <p className="text-xl font-bold text-foreground">{formatCurrency(selectedEscrow.total_amount)}</p>
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+              {/* Amount stats */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="p-3 rounded-xl bg-muted/30 text-center">
+                  <p className="text-[10px] text-muted-foreground mb-1">Total</p>
+                  <p className="text-sm font-bold text-foreground" style={{ fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(selectedEscrow.total_amount)}
+                  </p>
                 </div>
-                <div className="p-4 bg-brand/5 rounded-xl text-center">
-                  <p className="text-xs text-brand mb-1">Funded</p>
-                  <p className="text-xl font-bold text-brand">{formatCurrency(selectedEscrow.funded_amount)}</p>
+                <div className="p-3 rounded-xl bg-brand/5 text-center">
+                  <p className="text-[10px] text-brand mb-1">Funded</p>
+                  <p className="text-sm font-bold text-brand" style={{ fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(selectedEscrow.funded_amount)}
+                  </p>
                 </div>
-                <div className="p-4 bg-blue-50 rounded-xl text-center">
-                  <p className="text-xs text-blue-600 mb-1">Released</p>
-                  <p className="text-xl font-bold text-blue-700">{formatCurrency(selectedEscrow.released_amount)}</p>
+                <div className="p-3 rounded-xl bg-muted/30 text-center">
+                  <p className="text-[10px] text-muted-foreground mb-1">Released</p>
+                  <p className="text-sm font-bold text-foreground" style={{ fontVariantNumeric: "tabular-nums" }}>
+                    {formatCurrency(selectedEscrow.released_amount)}
+                  </p>
                 </div>
               </div>
 
               {selectedEscrow.description && (
                 <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground mb-2">Description</h4>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Description</h4>
                   <p className="text-sm text-foreground">{selectedEscrow.description}</p>
                 </div>
               )}
 
-              {/* Participants with exit requests */}
+              {/* Participants */}
               {selectedEscrow.participants && selectedEscrow.participants.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground mb-2">Participants</h4>
-                  <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Participants</h4>
+                  <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
                     {selectedEscrow.participants.map((p: any) => (
-                      <div key={p.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                            <User className="w-4 h-4 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground capitalize">{p.role}</p>
-                            <p className="text-xs text-muted-foreground">{p.phone_number}</p>
-                          </div>
+                      <div key={p.id} className="flex items-center gap-3 px-4 py-3">
+                        <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                          <User className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground capitalize">{p.role}</p>
+                          <p className="text-xs text-muted-foreground">{p.phone_number}</p>
                         </div>
                         {p.status === "exit_requested" && selectedEscrow.creator_id === user?.id && (
-                          <button
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => approveExit(selectedEscrow.id, p.id)}
-                            className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-lg"
+                            className="text-destructive border-destructive/30"
                           >
                             Approve Exit
-                          </button>
+                          </Button>
                         )}
-                        {p.status === "exit_requested" && (
-                          <span className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded-lg">Exit Requested</span>
+                        {p.status === "exit_requested" && selectedEscrow.creator_id !== user?.id && (
+                          <span className="px-2 py-0.5 text-[10px] font-medium bg-amber-500/10 text-amber-600 rounded-full">
+                            Exit Requested
+                          </span>
                         )}
                       </div>
                     ))}
@@ -975,20 +950,25 @@ export default function EscrowPage() {
                 </div>
               )}
 
+              {/* Milestones */}
               {selectedEscrow.milestones && selectedEscrow.milestones.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground mb-2">Milestones</h4>
-                  <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Milestones</h4>
+                  <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
                     {selectedEscrow.milestones.map((m: any, i: number) => (
-                      <div key={m.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl">
+                      <div key={m.id} className="flex items-center gap-3 px-4 py-3">
                         <div className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
+                          "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold",
                           m.status === "released" ? "bg-brand text-white" : "bg-muted text-muted-foreground"
-                        )}>{i + 1}</div>
-                        <div className="flex-1">
+                        )}>
+                          {i + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground">{m.title}</p>
                         </div>
-                        <span className="text-sm font-mono text-muted-foreground">{formatCurrency(m.amount)}</span>
+                        <span className="text-sm font-bold text-foreground shrink-0" style={{ fontVariantNumeric: "tabular-nums" }}>
+                          {formatCurrency(m.amount)}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -996,27 +976,30 @@ export default function EscrowPage() {
               )}
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-border/60">
+            {/* Footer actions */}
+            <div className="flex gap-2 px-5 py-4 border-t border-border/60">
               {selectedEscrow.status === "pending_funding" && (
-                <button className="flex-1 py-3 bg-brand text-white rounded-xl font-semibold">
+                <Button className="flex-1">
                   Fund Escrow
-                </button>
+                </Button>
               )}
               {selectedEscrow.status === "funded" && (
-                <button className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold">
+                <Button className="flex-1">
                   Release Funds
-                </button>
+                </Button>
               )}
               {["funded", "in_progress"].includes(selectedEscrow.status) && (
-                <button className="px-6 py-3 bg-red-100 text-red-700 rounded-xl font-semibold">
+                <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/5">
                   Dispute
-                </button>
+                </Button>
               )}
+              <Button variant="ghost" onClick={() => setShowDetailModal(false)}>
+                Close
+              </Button>
             </div>
           </div>
         </div>
       )}
     </div>
-    </ScreenShell>
   )
 }

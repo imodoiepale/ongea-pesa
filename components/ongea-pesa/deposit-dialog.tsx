@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Wallet, Phone, DollarSign, Loader2, CheckCircle2, Clock } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { X, Wallet, Phone, DollarSign, Loader2, Clock } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useTransactionPolling } from '@/hooks/use-transaction-polling';
+
+type DepositRail = 'indexpay' | 'daraja';
 
 interface DepositDialogProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface DepositDialogProps {
 }
 
 export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDialogProps) {
+  const [rail, setRail] = useState<DepositRail>('indexpay');
   const [amount, setAmount] = useState('');
   const [phone, setPhone] = useState('');
   const [gateName, setGateName] = useState('');
@@ -21,6 +24,82 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [depositAmount, setDepositAmount] = useState<number>(0);
+
+  // ── Daraja polling state ───────────────────────────────────────────────────
+  const [darajaPolling, setDarajaPolling] = useState(false);
+  const [darajaAttempts, setDarajaAttempts] = useState(0);
+  const darajaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const darajaTxId = useRef<string | null>(null);
+
+  const stopDarajaPolling = useCallback(() => {
+    if (darajaTimerRef.current) {
+      clearTimeout(darajaTimerRef.current);
+      darajaTimerRef.current = null;
+    }
+    setDarajaPolling(false);
+    darajaTxId.current = null;
+  }, []);
+
+  const startDarajaPolling = useCallback(
+    (txId: string, paidAmount: number) => {
+      darajaTxId.current = txId;
+      setDarajaPolling(true);
+      setDarajaAttempts(0);
+      let attempts = 0;
+      const MAX_ATTEMPTS = 60; // 5 minutes
+
+      const poll = async () => {
+        if (!darajaTxId.current) return;
+        attempts += 1;
+        setDarajaAttempts(attempts);
+
+        try {
+          const res = await fetch('/api/daraja/stk-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transaction_id: txId }),
+          });
+          const data = await res.json();
+
+          if (data.status === 'completed') {
+            stopDarajaPolling();
+            setSuccess('Payment confirmed! Your wallet has been credited.');
+            setLoading(false);
+            onSuccess?.(paidAmount);
+            setTimeout(() => {
+              onClose();
+              setSuccess('');
+            }, 3000);
+            return;
+          }
+
+          if (data.status === 'failed') {
+            stopDarajaPolling();
+            setError(data.error_message || 'Transaction failed. Please try again.');
+            setLoading(false);
+            return;
+          }
+        } catch {
+          // Network blip — keep polling
+        }
+
+        if (attempts >= MAX_ATTEMPTS) {
+          stopDarajaPolling();
+          setSuccess(
+            'Transaction is taking longer than expected. Check your M-Pesa messages or wallet balance.'
+          );
+          setLoading(false);
+          onSuccess?.(paidAmount);
+          return;
+        }
+
+        darajaTimerRef.current = setTimeout(poll, 5000);
+      };
+
+      poll();
+    },
+    [stopDarajaPolling, onClose, onSuccess]
+  );
 
   // Transaction polling hook
   const polling = useTransactionPolling({
@@ -64,8 +143,11 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
   useEffect(() => {
     if (isOpen) {
       loadUserProfile();
+    } else {
+      // Stop Daraja polling if dialog is closed externally
+      stopDarajaPolling();
     }
-  }, [isOpen]);
+  }, [isOpen, stopDarajaPolling]);
 
   const loadUserProfile = async () => {
     try {
@@ -92,6 +174,56 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
     }
   };
 
+  // ── IndexPay (existing) deposit handler ───────────────────────────────────
+  const handleIndexPayDeposit = async (amountValue: number) => {
+    const response = await fetch('/api/gate/deposit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: amountValue, phone }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setSuccess('M-Pesa prompt sent! Waiting for payment confirmation...');
+      setAmount('');
+      setDepositAmount(amountValue);
+
+      if (data.transaction_id) {
+        setTransactionId(data.transaction_id);
+        // useTransactionPolling hook takes over from here
+      } else {
+        setLoading(false);
+        onSuccess?.(amountValue);
+        setTimeout(() => { onClose(); setSuccess(''); }, 3000);
+      }
+    } else {
+      setError(data.error || 'Failed to initiate deposit');
+      setLoading(false);
+    }
+  };
+
+  // ── M-Pesa Direct (Daraja STK) deposit handler ────────────────────────────
+  const handleDarajaDeposit = async (amountValue: number) => {
+    const response = await fetch('/api/daraja/stk-deposit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: amountValue, phone }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      setSuccess('M-Pesa prompt sent! Waiting for payment confirmation...');
+      setAmount('');
+      startDarajaPolling(data.transaction_id, amountValue);
+    } else {
+      setError(data.error || 'Failed to initiate M-Pesa STK push');
+      setLoading(false);
+    }
+  };
+
+  // ── Shared submit handler ─────────────────────────────────────────────────
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -100,7 +232,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
 
     try {
       const amountValue = parseFloat(amount);
-      
+
       if (isNaN(amountValue) || amountValue <= 0) {
         setError('Please enter a valid amount greater than 0');
         setLoading(false);
@@ -119,42 +251,10 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
         return;
       }
 
-      const response = await fetch('/api/gate/deposit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: amountValue,
-          phone: phone,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess('📱 M-Pesa prompt sent! Waiting for payment confirmation...');
-        setAmount('');
-        setDepositAmount(amountValue);
-        
-        // Start polling if transaction ID is available
-        if (data.transaction_id) {
-          setTransactionId(data.transaction_id);
-          // Polling hook will take over from here
-        } else {
-          // Fallback if no transaction ID (shouldn't happen)
-          setLoading(false);
-          if (onSuccess) {
-            onSuccess(amountValue);
-          }
-          setTimeout(() => {
-            onClose();
-            setSuccess('');
-          }, 3000);
-        }
+      if (rail === 'daraja') {
+        await handleDarajaDeposit(amountValue);
       } else {
-        setError(data.error || 'Failed to initiate deposit');
-        setLoading(false);
+        await handleIndexPayDeposit(amountValue);
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred. Please try again.');
@@ -212,8 +312,34 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
             </div>
           ) : (
             <>
-              {/* Gate Name Display */}
-              {gateName && (
+              {/* Rail Selector */}
+              <div className="flex gap-2 p-1 bg-muted rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => { setRail('indexpay'); setError(''); setSuccess(''); }}
+                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all ${
+                    rail === 'indexpay'
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Wallet Top-up
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setRail('daraja'); setError(''); setSuccess(''); }}
+                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all ${
+                    rail === 'daraja'
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  M-Pesa Direct
+                </button>
+              </div>
+
+              {/* Gate Name Display (IndexPay only) */}
+              {gateName && rail === 'indexpay' && (
                 <div className="bg-brand/10 border border-brand/20 rounded-xl p-4">
                   <div className="flex items-center gap-2 text-brand">
                     <Wallet size={18} />
@@ -297,8 +423,8 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
                 </div>
               )}
 
-              {/* Polling Status */}
-              {polling.isPolling && (
+              {/* Polling Status — IndexPay */}
+              {rail === 'indexpay' && polling.isPolling && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3">
                   <div className="flex items-center gap-2">
                     <Clock className="animate-pulse text-blue-600" size={18} />
@@ -314,10 +440,27 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
                 </div>
               )}
 
+              {/* Polling Status — Daraja */}
+              {rail === 'daraja' && darajaPolling && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3">
+                  <div className="flex items-center gap-2">
+                    <Clock className="animate-pulse text-blue-600" size={18} />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                        Checking transaction status...
+                      </p>
+                      <p className="text-xs text-blue-600 dark:text-blue-500 mt-1">
+                        Attempt {darajaAttempts} - This usually takes 10-30 seconds
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={loading || !gateName}
+                disabled={loading || (rail === 'indexpay' && !gateName)}
                 className="w-full py-3 px-4 bg-brand hover:bg-brand/90 active:scale-[0.97] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
@@ -328,7 +471,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
                 ) : (
                   <>
                     <Wallet size={20} />
-                    Deposit via M-Pesa
+                    {rail === 'daraja' ? 'Pay via M-Pesa Direct' : 'Deposit via M-Pesa'}
                   </>
                 )}
               </button>
@@ -336,7 +479,9 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
               {/* Info */}
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3">
                 <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
-                  ℹ️ You will receive an M-Pesa prompt on your phone. Enter your M-Pesa PIN to complete the transaction. Funds will reflect in your wallet instantly.
+                  {rail === 'daraja'
+                    ? 'M-Pesa Direct uses Safaricom Daraja. You will receive an STK push on your phone. Enter your M-Pesa PIN to complete the transaction. Funds will reflect in your wallet once confirmed.'
+                    : 'You will receive an M-Pesa prompt on your phone. Enter your M-Pesa PIN to complete the transaction. Funds will reflect in your wallet instantly.'}
                 </p>
               </div>
             </>

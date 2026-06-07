@@ -16,6 +16,7 @@ import {
   Menu,
   ShieldCheck,
   UsersRound,
+  TrendingDown,
 } from "lucide-react"
 
 import { Home } from "lucide-react"
@@ -106,6 +107,9 @@ export default function Sidebar() {
                   </NavItem>
                   <NavItem href="/admin-analytics/revenue" icon={CreditCard}>
                     Revenue
+                  </NavItem>
+                  <NavItem href="/admin-analytics/transaction-costs" icon={TrendingDown}>
+                    Transaction Costs
                   </NavItem>
                 </div>
               </div>
