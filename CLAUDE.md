@@ -37,9 +37,9 @@ Server-side routes use `createServiceClient()` (service-role, bypasses RLS). Cli
 
 ## Knowledge Graph (ALWAYS reference before architectural changes)
 
-Run `/graphify` to rebuild. Last built: 2026-05-20.
+Run `/graphify` to rebuild. Last built: 2026-06-07.
 
-- `graphify-out/GRAPH_REPORT.md` — overview: **1,479 nodes, 1,788 edges, 286 communities**
+- `graphify-out/GRAPH_REPORT.md` — overview: **1,869 nodes, 2,350 edges, 341 communities**
 - `graphify-out/graph.json` — raw graph data (for `/graphify query` and `/graphify path`)
 - `graphify-out/graph.html` — interactive visualization (open in browser)
 
@@ -48,11 +48,14 @@ Run `/graphify` to rebuild. Last built: 2026-05-20.
 |---|---|---|
 | `cn()` | 81 | Tailwind utility — in every UI component |
 | `createClient()` browser | 47 | Supabase browser client |
-| `Button (CVA)` | 35 | ShadCN button — used across all pages |
+| `Button Component (CVA)` | 35 | ShadCN button — used across all pages |
 | `Supabase MCP Server` | 33 | OngeaPesaMCPServer wiring |
 | `profiles` table | 28 | Central user/wallet/gate table |
 | `createClient()` server | 26 | Supabase server-side client |
 | `Card Component` | 26 | UI shell for every data panel |
+| `logSecurityEvent()` | 21 | Audit trail — every sensitive action |
+| `ONGEA PESA V2 Agent` | 19 | ElevenLabs voice agent (central hub) |
+| `WalletService` | 16 | Payment rail router |
 
 **Core flows (graph hyperedges):**
 1. **Voice Transaction**: ElevenLabs Agent → `POST /webhook/send_money` (n8n) → AI Agent parses intent → Supabase write → response
