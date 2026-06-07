@@ -93,10 +93,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!stepup_token) {
+      return NextResponse.json(
+        { error: 'Step-up authentication required', code: 'STEPUP_REQUIRED' },
+        { status: 403 }
+      );
+    }
+
     const stepUpOk = await consumeStepupToken(admin, user.id, stepup_token);
     if (!stepUpOk) {
       return NextResponse.json(
-        { error: 'Step-up authentication required', code: 'STEPUP_REQUIRED' },
+        { error: 'Invalid or expired step-up token', code: 'STEPUP_REQUIRED' },
         { status: 403 }
       );
     }

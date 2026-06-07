@@ -21,6 +21,8 @@ export function SecuritySetupScreen() {
   const [voiceDone, setVoiceDone] = useState(false);
   const [voicePhrase, setVoicePhrase] = useState<string | null>(null);
   const [voiceStep, setVoiceStep] = useState<'idle' | 'phrase' | 'recording' | 'processing'>('idle');
+  // Separate bool for recording indicator — avoids TypeScript narrowing issues inside voiceStep === 'phrase' blocks
+  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
 
   const handleSetPin = async () => {
     setError(null);
@@ -221,12 +223,13 @@ export function SecuritySetupScreen() {
                   <button
                     className={cn(
                       "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300",
-                      voiceStep === 'recording'
+                      isVoiceRecording
                         ? "bg-red-500/20 border-2 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.3)]"
                         : "bg-[rgba(0,255,136,0.12)] border-2 border-[rgba(0,255,136,0.25)] hover:bg-[rgba(0,255,136,0.2)]"
                     )}
                     onClick={async () => {
                       setVoiceStep('recording');
+                      setIsVoiceRecording(true);
                       try {
                         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                         const mr = new MediaRecorder(stream);
@@ -234,6 +237,7 @@ export function SecuritySetupScreen() {
                         mr.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
                         mr.onstop = async () => {
                           stream.getTracks().forEach(t => t.stop());
+                          setIsVoiceRecording(false);
                           setVoiceStep('processing');
                           try {
                             const blob = new Blob(chunks, { type: 'audio/webm' });
@@ -270,18 +274,19 @@ export function SecuritySetupScreen() {
                         setTimeout(() => { if (mr.state === 'recording') mr.stop(); }, 5000);
                       } catch {
                         setError('Microphone access denied');
+                        setIsVoiceRecording(false);
                         setVoiceStep('phrase');
                       }
                     }}
                   >
                     <Mic className={cn(
                       "h-6 w-6 transition-all duration-300",
-                      voiceStep === 'recording' ? "text-red-400 animate-pulse" : "text-[hsl(var(--voice-accent))]"
+                      isVoiceRecording ? "text-red-400 animate-pulse" : "text-[hsl(var(--voice-accent))]"
                     )} />
                   </button>
                 </div>
                 <p className="text-xs text-center text-white/40">
-                  {voiceStep === 'recording' ? 'Recording… (5s)' : 'Tap mic to record'}
+                  {isVoiceRecording ? 'Recording… (5s)' : 'Tap mic to record'}
                 </p>
               </div>
             )}
