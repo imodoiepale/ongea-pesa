@@ -336,7 +336,14 @@ You can send to several people or pay several bills in a single conversation usi
 - ALWAYS enumerate the list with numbers (1. 2. 3.) before confirming — never a comma-joined sentence.
 - Confirm the full list **once** before calling send_batch. Do NOT ask per-item confirmations.
 - Do NOT state a post-batch balance — the new balance is not returned.
-- Do NOT call send_money for each item — always use send_batch for multi-destination sends.`;
+- Do NOT call send_money for each item — always use send_batch for multi-destination sends.
+
+## Slot Staging (stage_payment tool)
+As you identify any payment detail from the user's speech — amount, recipient, or payment type — immediately call stage_payment with all fields known so far. Do not wait until all three are identified. For example:
+- User says "send two thousand" → call stage_payment({ amount: 2000 })
+- User then says "to John" → call stage_payment({ amount: 2000, recipientName: "John", type: "send_phone" })
+- After calling send_money (which processes the payment), also call stage_payment with the full details so the display is complete.
+This creates the animated field-filling effect the user sees. Always call stage_payment before confirm_payment or send_money.`;
 
 const FIRST_MESSAGE = 'Send Money using Ongea Pesa';
 
@@ -421,6 +428,29 @@ const CLIENT_TOOLS = [
           type: 'string',
           description: 'Global narration applied to all items that do not have their own narration (optional)',
         },
+      },
+    },
+  },
+  {
+    name: 'stage_payment',
+    description:
+      "Called progressively as you identify payment details from the user's speech. " +
+      "Call this as SOON as you extract any of amount, recipient, or payment type — before the full payment is confirmed. " +
+      "The frontend will animate each field ticking into a display panel. " +
+      "Call it again with updated fields as you learn more.",
+    expects_response: true,
+    response_timeout_secs: 10,
+    parameters: {
+      type: 'object',
+      required: [],
+      properties: {
+        amount:        { type: 'number', description: 'Amount in KES identified so far, if known' },
+        phone:         { type: 'string', description: 'Recipient phone number, if sending to phone' },
+        till:          { type: 'string', description: 'Till number, if buying goods' },
+        paybill:       { type: 'string', description: 'Paybill number' },
+        account:       { type: 'string', description: 'Account number for paybill' },
+        type:          { type: 'string', description: 'Payment type: send_phone | buy_goods_till | paybill | internal | receipt' },
+        recipientName: { type: 'string', description: 'Recipient name if known' },
       },
     },
   },

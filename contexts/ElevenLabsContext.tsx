@@ -13,6 +13,16 @@ interface Message {
   timestamp: Date;
 }
 
+export interface PaymentSlots {
+  amount?: number;
+  phone?: string;
+  till?: string;
+  paybill?: string;
+  account?: string;
+  type?: string;
+  recipientName?: string;
+}
+
 interface ToolHandlers {
   openScanner?: () => void;
   startScan?: (mode?: string | null) => void;
@@ -20,6 +30,7 @@ interface ToolHandlers {
   getBalance?: () => number;
   /** Called after send_batch completes — navigate to batch screen and show results */
   showBatch?: (payments: BatchItem[], results?: BatchResponse) => void;
+  stagePayment?: (slots: PaymentSlots) => void;
 }
 
 interface ElevenLabsContextType {
@@ -126,6 +137,10 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
        * Each item is normalised by normalizeVoiceItem and sent to /api/payments/batch.
        * Returns a spoken summary the agent can read back directly.
        */
+      stage_payment: async (params: PaymentSlots) => {
+        toolHandlersRef.current.stagePayment?.(params);
+        return 'staged';
+      },
       send_batch: async (params: { payments?: Record<string, any>[]; narration?: string }) => {
         const rawItems = params?.payments ?? [];
         if (rawItems.length === 0) return 'No payments specified. Please tell me who to send to and how much.';
