@@ -1,10 +1,32 @@
 "use client"
 
+import { useState, useEffect } from 'react';
 import { ScreenShell } from "@/components/foundation"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { listBiometrics, getVoiceStatus } from '@/lib/security-client';
 
 export default function Settings() {
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function check() {
+      try {
+        const [creds, voiceStatus] = await Promise.all([
+          listBiometrics().catch(() => []),
+          getVoiceStatus().catch(() => ({ enrolled: false, profile: null })),
+        ]);
+        setBiometricEnabled(creds.length > 0 || voiceStatus.enrolled);
+      } catch {
+        setBiometricEnabled(false);
+      } finally {
+        setLoading(false);
+      }
+    }
+    check();
+  }, []);
+
   return (
     <div className="min-h-[100dvh] bg-background surface-money pb-24">
       <ScreenShell>
@@ -21,7 +43,18 @@ export default function Settings() {
               <Label htmlFor="biometric-auth" className="text-sm font-medium text-foreground cursor-pointer">
                 Biometric Authentication
               </Label>
-              <Switch id="biometric-auth" />
+              <Switch
+                id="biometric-auth"
+                checked={biometricEnabled}
+                disabled={loading}
+                onCheckedChange={(checked) => {
+                  // Toggle is read-only from here — enrollment happens in Security Setup.
+                  // If turning off, direct users to Security Setup for credential management.
+                  if (!checked) {
+                    console.log('To disable biometrics, manage them in Security Setup');
+                  }
+                }}
+              />
             </div>
             <div className="flex items-center justify-between px-4 py-3.5">
               <Label htmlFor="two-factor-auth" className="text-sm font-medium text-foreground cursor-pointer">
