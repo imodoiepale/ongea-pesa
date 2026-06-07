@@ -1475,12 +1475,24 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
     )
   }
 
+  // In overlay mode, never show the landing page — show a loading placeholder until the camera starts
+  if (variant === 'overlay' && !isScanning && !scanResult) {
+    return (
+      <div className="flex items-center justify-center min-h-[100dvh] bg-background">
+        <div className="text-center">
+          <Camera className="h-12 w-12 mx-auto mb-3 animate-pulse text-brand" />
+          <p className="text-sm text-muted-foreground">Opening camera…</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-[100dvh] bg-background surface-money">
       <ScreenShell className="pt-0">
         {/* Compact Header */}
         <div className="flex items-center mb-3 pt-2">
-          <Button variant="ghost" size="sm" onClick={() => onNavigate("dashboard")} className="mr-2 p-1">
+          <Button variant="ghost" size="sm" onClick={() => onClose ? onClose() : onNavigate("dashboard")} className="mr-2 p-1">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
