@@ -41,7 +41,7 @@ export async function saveChallenge(
   supabase: SupabaseClient,
   userId: string,
   challenge: string,
-  purpose: 'register' | 'authenticate'
+  purpose: 'register' | 'authenticate' | 'voice'
 ): Promise<void> {
   await supabase.from('webauthn_challenges').insert({ user_id: userId, challenge, purpose });
 }
@@ -50,7 +50,7 @@ export async function saveChallenge(
 export async function consumeChallenge(
   supabase: SupabaseClient,
   userId: string,
-  purpose: 'register' | 'authenticate'
+  purpose: 'register' | 'authenticate' | 'voice'
 ): Promise<string | null> {
   const { data } = await supabase
     .from('webauthn_challenges')

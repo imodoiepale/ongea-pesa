@@ -20,6 +20,13 @@ export type SecurityEventType =
   | 'voice_session_end'
   | 'money_send_initiated'
   | 'money_send_result'
+  | 'face_enrolled'
+  | 'fingerprint_enrolled'
+  | 'voice_enrolled'
+  | 'voice_verified'
+  | 'voice_failed'
+  | 'voice_revoked'
+  | 'passkey_revoked'
   | string;
 
 export interface SecurityEventInput {
