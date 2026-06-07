@@ -42,7 +42,6 @@ type Screen =
   | "dashboard"
   | "voice"
   | "send"
-  | "camera"
   | "recurring"
   | "analytics"
   | "test"

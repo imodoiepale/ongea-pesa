@@ -5,7 +5,7 @@ import { ArrowLeft, Mic, Play, Volume2, TestTube } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
 interface VoiceTestProps {
   onNavigate: (screen: Screen) => void;

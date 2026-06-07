@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ScreenShell } from "@/components/foundation"
 import { cn } from "@/lib/utils"
 
-type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
 interface RecurringPaymentsProps {
   onNavigate: (screen: Screen) => void;

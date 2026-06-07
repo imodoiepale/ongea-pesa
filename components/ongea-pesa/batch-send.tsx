@@ -19,7 +19,7 @@ import type { BatchItem, BatchResponse, BatchResult } from '@/lib/batch-payments
 import type { SearchableContact } from '@/hooks/use-contact-search'
 import { buildFuseIndex, searchContacts } from '@/lib/contact-search'
 
-type Screen = 'dashboard' | 'voice' | 'send' | 'camera' | 'recurring' | 'analytics' | 'test' | 'permissions' | 'scanner' | 'batch'
+type Screen = 'dashboard' | 'voice' | 'send' | 'recurring' | 'analytics' | 'test' | 'permissions' | 'scanner' | 'batch'
 
 type DestKind = 'phone' | 'till' | 'paybill' | 'bill'
 

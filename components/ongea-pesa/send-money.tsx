@@ -9,7 +9,7 @@ import { useContactSearch } from "@/hooks/use-contact-search"
 import type { SearchableContact } from "@/hooks/use-contact-search"
 import ContactImport from "@/components/ongea-pesa/contact-import"
 
-type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
 interface SendMoneyProps {
   onNavigate: (screen: Screen) => void;

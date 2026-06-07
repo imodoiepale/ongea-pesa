@@ -8,7 +8,6 @@ import GlobalVoiceWidget from "./global-voice-widget"
 import MainDashboard from "./main-dashboard"
 import VoiceInterface from "./voice-interface"
 import SendMoney from "./send-money"
-import CameraCapture from "./camera-capture"
 import RecurringPayments from "./recurring-payments"
 import Analytics from "./analytics"
 import VoiceTest from "./voice-test"
@@ -21,7 +20,7 @@ import { createClient } from '@/lib/supabase/client'
 import { FluidNav, mobileNavItems } from "@/components/foundation"
 import type { BatchItem, BatchResponse } from '@/lib/batch-payments'
 
-type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner" | "batch"
+type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner" | "batch"
 
 // Inner component — must be a child of ElevenLabsProvider to call useElevenLabs
 function AppShell() {
@@ -95,8 +94,6 @@ function AppShell() {
         return <VoiceInterface onNavigate={navigate} />
       case "send":
         return <SendMoney onNavigate={navigate} />
-      case "camera":
-        return <CameraCapture onNavigate={navigate} />
       case "recurring":
         return <RecurringPayments onNavigate={navigate} />
       case "analytics":

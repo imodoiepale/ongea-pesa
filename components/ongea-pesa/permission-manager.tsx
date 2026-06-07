@@ -10,7 +10,7 @@ import { useAuth } from "@/components/providers/auth-provider"
 import { ScreenShell } from "@/components/foundation"
 import { cn } from "@/lib/utils"
 
-type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
 interface PermissionManagerProps {
   onNavigate?: (screen: Screen) => void;

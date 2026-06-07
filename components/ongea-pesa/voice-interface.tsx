@@ -14,7 +14,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useElevenLabs } from '@/contexts/ElevenLabsContext';
 import { GlassCard, ScreenShell } from "@/components/foundation"
 
-type Screen = "dashboard" | "voice" | "send" | "camera" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
+type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
 interface VoiceInterfaceProps {
   onNavigate: (screen: Screen) => void;
