@@ -26,7 +26,7 @@ export async function verifyPinForStepUp(pin: string): Promise<string> {
 }
 
 /** Enroll a device passkey (Face/Touch ID). */
-export async function enrollPasskey(deviceLabel?: string): Promise<void> {
+export async function enrollPasskey(deviceLabel?: string, modality?: string): Promise<void> {
   const optRes = await fetch('/api/security/passkey/register/options', { method: 'POST' });
   if (!optRes.ok) throw new Error((await optRes.json()).error || 'Failed to start enrollment');
   const options = await optRes.json();
@@ -36,7 +36,7 @@ export async function enrollPasskey(deviceLabel?: string): Promise<void> {
   const verifyRes = await fetch('/api/security/passkey/register/verify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ response: attResp, deviceLabel }),
+    body: JSON.stringify({ response: attResp, deviceLabel, modality }),
   });
   if (!verifyRes.ok) throw new Error((await verifyRes.json()).error || 'Passkey enrollment failed');
 }
@@ -74,4 +74,33 @@ export async function getStepUpToken(opts?: { preferPasskey?: boolean; pin?: str
   }
   if (opts?.pin) return verifyPinForStepUp(opts.pin);
   throw new Error('Step-up authentication required (PIN or passkey)');
+}
+
+export async function enrollFace(): Promise<void> {
+  return enrollPasskey('Face ID', 'face');
+}
+
+export async function enrollFingerprint(): Promise<void> {
+  return enrollPasskey('Fingerprint', 'fingerprint');
+}
+
+export async function listBiometrics(): Promise<Array<{
+  id: string;
+  device_label: string | null;
+  modality: string | null;
+  last_used_at: string | null;
+  created_at: string | null;
+}>> {
+  const res = await fetch('/api/security/passkey/list', { method: 'GET' });
+  if (!res.ok) throw new Error('Failed to list biometrics');
+  const data = await res.json();
+  return data.credentials;
+}
+
+export async function revokeBiometric(id: string): Promise<void> {
+  const res = await fetch(`/api/security/passkey/${id}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to revoke biometric');
+  }
 }

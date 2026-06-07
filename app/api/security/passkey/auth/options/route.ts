@@ -11,6 +11,8 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const body = await request.json().catch(() => ({}));
+    const modality: string | undefined = body?.modality ?? undefined;
     const { rpID } = getRpConfig(request);
     const admin = createServiceClient();
 
@@ -23,10 +25,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Account temporarily locked', lockedUntil: profile!.locked_until }, { status: 423 });
     }
 
-    const { data: creds } = await admin
+    let credQuery = admin
       .from('webauthn_credentials')
       .select('credential_id, transports')
       .eq('user_id', user.id);
+    if (modality) {
+      credQuery = credQuery.eq('modality', modality);
+    }
+    const { data: creds } = await credQuery;
 
     if (!creds || creds.length === 0) {
       return NextResponse.json({ error: 'No passkey enrolled' }, { status: 400 });

@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { response, deviceLabel } = await request.json();
+    const { response, deviceLabel, modality } = await request.json();
     const { rpID, origin } = getRpConfig(request);
     const { ip, userAgent } = requestContext(request);
     const admin = createServiceClient();
@@ -43,13 +43,14 @@ export async function POST(request: NextRequest) {
       counter: credential.counter ?? 0,
       transports: credential.transports ?? null,
       device_label: deviceLabel || `${credentialDeviceType}${credentialBackedUp ? ' (synced)' : ''}`,
+      modality: modality || null,
     });
     if (insertError) {
       return NextResponse.json({ error: 'Failed to store passkey' }, { status: 500 });
     }
 
     await admin.from('profiles').update({ biometric_enabled: true }).eq('id', user.id);
-    await logSecurityEvent({ userId: user.id, eventType: 'passkey_enrolled', ip, userAgent }, admin);
+    await logSecurityEvent({ userId: user.id, eventType: modality === 'face' ? 'face_enrolled' : modality === 'fingerprint' ? 'fingerprint_enrolled' : 'passkey_enrolled', ip, userAgent }, admin);
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
