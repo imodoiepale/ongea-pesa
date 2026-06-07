@@ -33,6 +33,8 @@ function AppShell() {
   const [checkingMpesa, setCheckingMpesa] = useState(true)
   // Batch: pre-populated payments + results from voice-triggered send_batch
   const [pendingBatch, setPendingBatch] = useState<{ payments?: BatchItem[]; results?: BatchResponse } | null>(null)
+  // Voice-triggered scan overlay — null = hidden, {} = open (auto-detect mode), { mode } = specific mode
+  const [scanOverlay, setScanOverlay] = useState<{ mode?: string | null } | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -50,13 +52,15 @@ function AppShell() {
   // Register navigation handlers so voice agent can open the scanner or the batch screen
   useEffect(() => {
     registerToolHandlers({
-      openScanner: () => navigate('scanner'),
+      // Voice "scan / open camera" — opens animated overlay immediately on the current screen
+      openScanner: () => setScanOverlay({}),
+      startScan: (mode) => setScanOverlay({ mode: mode ?? null }),
       showBatch: (payments, batchResponse) => {
         setPendingBatch({ payments, results: batchResponse })
         navigate('batch')
       },
     });
-    return () => unregisterToolHandlers(['openScanner', 'showBatch']);
+    return () => unregisterToolHandlers(['openScanner', 'startScan', 'showBatch']);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkMpesaNumber = async () => {
@@ -120,6 +124,20 @@ function AppShell() {
   return (
     <div className="min-h-[100dvh] pb-20 lg:pb-0 bg-background">
       {renderScreen()}
+
+      {/* Voice-triggered scan overlay — animates camera open on the current screen */}
+      {scanOverlay !== null && (
+        <div className="fixed inset-0 z-[60] animate-in fade-in zoom-in-95 duration-300">
+          <PaymentScanner
+            variant="overlay"
+            autoStart
+            initialMode={scanOverlay.mode as any}
+            onClose={() => setScanOverlay(null)}
+            onNavigate={navigate}
+          />
+        </div>
+      )}
+
       {/* GlobalVoiceWidget commented out — removed floating popup per UX review.
           ElevenLabsProvider stays active for the Voice page + client-tool integration. */}
       {/* {currentScreen !== "voice" && <GlobalVoiceWidget />} */}
