@@ -37,55 +37,72 @@ export function emailLayout({ title, preheader, bodyHtml }: LayoutOptions): stri
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>${title}</title>
-  <!--[if mso]>
-  <noscript><xml><o:OfficeDocumentSettings>
-    <o:PixelsPerInch>96</o:PixelsPerInch>
-  </o:OfficeDocumentSettings></xml></noscript>
-  <![endif]-->
+  <style>
+    @keyframes shimmer { 0% { background-position:-1000px 0 } 100% { background-position:1000px 0 } }
+    @keyframes pulse   { 0%,100% { opacity:1 } 50% { opacity:0.5 } }
+    @keyframes float   { 0%,100% { transform:translateY(0px) } 50% { transform:translateY(-10px) } }
+    @keyframes scan    { 0% { transform:translateY(-100%) } 100% { transform:translateY(200%) } }
+  </style>
 </head>
-<body style="margin:0;padding:0;background-color:${b.bg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
 
   <!-- Preheader (hidden preview text) -->
-  <div style="display:none;max-height:0;overflow:hidden;color:${b.bg};">${preheader}&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+  <div style="display:none;max-height:0;overflow:hidden;color:#f3f4f6;">${preheader}&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
 
   <!-- Outer wrapper -->
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${b.bg};padding:32px 0;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:40px 20px;">
     <tr><td align="center">
 
       <!-- Card -->
-      <table role="presentation" width="100%" style="max-width:520px;margin:0 auto;" cellpadding="0" cellspacing="0">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,0.2);overflow:hidden;">
 
-        <!-- Header -->
+        <!-- Hero header with image -->
         <tr>
-          <td align="center" style="background-color:${b.green};border-radius:12px 12px 0 0;padding:28px 32px 24px;">
-            <p style="margin:0;font-size:26px;font-weight:700;letter-spacing:-0.5px;color:#ffffff;">
-              Ongea Pesa
-            </p>
-            <p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.8);letter-spacing:0.4px;text-transform:uppercase;">
-              Voice-Powered Payments
-            </p>
+          <td style="position:relative;padding:0;height:220px;background:url('https://mp.astria.ai/dv21aj7zth30898l03nastiai3g2?auto=compress&cs=tinysrgb&w=1600') no-repeat center center/cover;">
+            <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,rgba(16,185,129,0.5) 0%,rgba(5,150,105,0.6) 100%);"></div>
+            <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.8),transparent);animation:scan 3s ease-in-out infinite;"></div>
+            <div style="position:absolute;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(255,255,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.05) 1px,transparent 1px);background-size:20px 20px;"></div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="position:relative;z-index:2;height:220px;">
+              <tr><td align="center" valign="middle" style="padding:30px;">
+                <div style="margin-bottom:16px;text-align:center;">
+                  <div style="display:inline-block;width:6px;height:6px;background:rgba(255,255,255,0.95);border-radius:50%;margin:0 3px;animation:pulse 1.5s ease-in-out infinite;"></div>
+                  <div style="display:inline-block;width:6px;height:6px;background:rgba(255,255,255,0.95);border-radius:50%;margin:0 3px;animation:pulse 1.5s ease-in-out 0.2s infinite;"></div>
+                  <div style="display:inline-block;width:6px;height:6px;background:rgba(255,255,255,0.95);border-radius:50%;margin:0 3px;animation:pulse 1.5s ease-in-out 0.4s infinite;"></div>
+                </div>
+                <h1 style="margin:0;font-size:38px;font-weight:600;color:#ffffff;letter-spacing:-0.02em;text-shadow:0 2px 20px rgba(0,0,0,0.3);animation:float 3s ease-in-out infinite;">Ongea Pesa</h1>
+                <div style="margin:10px 0 0;position:relative;display:inline-block;">
+                  <p style="margin:0;font-size:16px;font-weight:400;color:rgba(255,255,255,0.98);letter-spacing:0.5px;">Voice-Powered Payments</p>
+                  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);background-size:1000px 100%;animation:shimmer 2s infinite;"></div>
+                </div>
+              </td></tr>
+            </table>
           </td>
         </tr>
 
         <!-- Body card -->
         <tr>
-          <td style="background-color:${b.card};padding:32px 36px 28px;border-radius:0 0 12px 12px;">
+          <td style="background-color:${b.card};padding:50px 40px;text-align:center;">
             ${bodyHtml}
+          </td>
+        </tr>
+
+        <!-- Divider -->
+        <tr>
+          <td style="padding:0 40px;">
+            <div style="height:1px;background:linear-gradient(90deg,transparent,#e5e7eb,transparent);"></div>
           </td>
         </tr>
 
         <!-- Footer -->
         <tr>
-          <td align="center" style="padding:24px 16px 8px;">
-            <p style="margin:0 0 8px;font-size:12px;color:${b.muted};">
-              <a href="${b.site}/privacy" style="color:${b.muted};text-decoration:none;">Privacy Policy</a>
-              &nbsp;·&nbsp;
-              <a href="${b.site}/terms" style="color:${b.muted};text-decoration:none;">Terms of Service</a>
-              &nbsp;·&nbsp;
-              <a href="${b.site}/support" style="color:${b.muted};text-decoration:none;">Support</a>
-            </p>
-            <p style="margin:0;font-size:11px;color:#94a3b8;">
-              &copy; Ongea Pesa &mdash; sent by Ongea Pesa &middot; nsait.co.ke
+          <td style="background:#f9fafb;padding:30px;text-align:center;">
+            <p style="margin:0 0 12px;font-size:13px;color:${b.muted};">&copy; 2025 Ongea Pesa. All rights reserved.</p>
+            <p style="margin:0;font-size:12px;color:#9ca3af;">
+              <a href="${b.site}/privacy" style="color:${b.green};text-decoration:none;margin:0 10px;">Privacy Policy</a>
+              <span style="color:#d1d5db;">•</span>
+              <a href="${b.site}/terms" style="color:${b.green};text-decoration:none;margin:0 10px;">Terms of Service</a>
+              <span style="color:#d1d5db;">•</span>
+              <a href="${b.site}/support" style="color:${b.green};text-decoration:none;margin:0 10px;">Support</a>
             </p>
           </td>
         </tr>
