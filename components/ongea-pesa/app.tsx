@@ -15,7 +15,7 @@ import PermissionManager from "./permission-manager"
 import PaymentScanner from "./payment-scanner"
 import type { ScanMode } from "./payment-scanner"
 import BatchSend from "./batch-send"
-import MpesaSettingsDialog from "./mpesa-settings-dialog"
+import PhoneSetupDialog from "./phone-setup-dialog"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from '@/lib/supabase/client'
 import { FluidNav, mobileNavItems } from "@/components/foundation"
@@ -30,7 +30,7 @@ function AppShell() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("dashboard")
   const [isListening, setIsListening] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [isMpesaDialogOpen, setIsMpesaDialogOpen] = useState(false)
+  const [isPhoneSetupOpen, setIsPhoneSetupOpen] = useState(false)
   const [checkingMpesa, setCheckingMpesa] = useState(true)
   // Batch: pre-populated payments + results from voice-triggered send_batch
   const [pendingBatch, setPendingBatch] = useState<{ payments?: BatchItem[]; results?: BatchResponse } | null>(null)
@@ -44,10 +44,10 @@ function AppShell() {
     setMounted(true)
   }, [])
 
-  // Global check for M-Pesa number on mount or user change
+  // Global check for profile setup on mount or user change
   useEffect(() => {
     if (mounted && user?.id) {
-      checkMpesaNumber()
+      checkProfileSetup()
     }
   }, [mounted, user?.id])
 
@@ -83,7 +83,7 @@ function AppShell() {
   }, [scanOverlay, currentScreen]); // re-register when overlay closes or screen changes
   // Note: registerToolHandlers and setScanOverlay are stable refs/setters, no need to list
 
-  const checkMpesaNumber = async () => {
+  const checkProfileSetup = async () => {
     if (!user?.id) return
 
     try {
@@ -91,16 +91,16 @@ function AppShell() {
       const supabase = createClient()
       const { data: profile } = await supabase
         .from('profiles')
-        .select('mpesa_number')
+        .select('mpesa_number, pin_hash, phone_verified')
         .eq('id', user.id)
         .single()
 
-      // Auto-show dialog if mpesa_number is null or empty
-      if (!profile?.mpesa_number) {
-        setIsMpesaDialogOpen(true)
+      // Show phone setup dialog if phone is not verified
+      if (!profile?.phone_verified) {
+        setIsPhoneSetupOpen(true)
       }
     } catch (err) {
-      console.error('Error checking M-Pesa number:', err)
+      console.error('Error checking profile setup:', err)
     } finally {
       setCheckingMpesa(false)
     }
@@ -177,13 +177,13 @@ function AppShell() {
       {/* {currentScreen !== "voice" && <GlobalVoiceWidget />} */}
       <Toaster />
 
-      {/* Global M-Pesa Settings Dialog — auto-shown when mpesa_number is not set */}
-      <MpesaSettingsDialog
-        isOpen={isMpesaDialogOpen}
-        onClose={() => setIsMpesaDialogOpen(false)}
-        onSave={() => {
-          setIsMpesaDialogOpen(false)
-          checkMpesaNumber()
+      {/* Phone Setup Dialog — auto-shown when phone_verified is false */}
+      <PhoneSetupDialog
+        isOpen={isPhoneSetupOpen}
+        onClose={() => setIsPhoneSetupOpen(false)}
+        onComplete={() => {
+          setIsPhoneSetupOpen(false)
+          checkProfileSetup()
         }}
         required={true}
       />
