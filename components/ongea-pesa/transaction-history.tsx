@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { ArrowDownLeft, ArrowUpRight, ShoppingCart, CreditCard, Smartphone, Building, RefreshCw, ArrowLeft } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, ShoppingCart, CreditCard, Smartphone, Building, RefreshCw, ArrowLeft, Users } from 'lucide-react';
+import DependantsSheet from './dependants-sheet';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/components/providers/auth-provider';
@@ -88,6 +89,7 @@ export default function TransactionHistory() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDependantsOpen, setIsDependantsOpen] = useState(false);
   const supabase = createClient();
 
   const fetchTransactions = async () => {
@@ -150,6 +152,13 @@ export default function TransactionHistory() {
             <h1 className="text-xl font-semibold text-foreground tracking-tight">Transactions</h1>
             <p className="text-sm text-muted-foreground">{transactions.length} records • 0.05% fee</p>
           </div>
+          <button
+            onClick={() => setIsDependantsOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted text-muted-foreground hover:bg-muted/70 text-xs font-semibold transition-all active:scale-[0.97]"
+          >
+            <Users className="h-3.5 w-3.5" />
+            Family
+          </button>
           <Button variant="ghost" size="icon-sm" onClick={fetchTransactions} aria-label="Refresh">
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -225,6 +234,11 @@ export default function TransactionHistory() {
           </div>
         )}
       </ScreenShell>
+
+      <DependantsSheet
+        isOpen={isDependantsOpen}
+        onClose={() => setIsDependantsOpen(false)}
+      />
 
       {/* Canonical bottom nav — route mode (all items are Links, activeKey = "transactions") */}
       <FluidNav items={mobileNavItems} activeKey="transactions" />
