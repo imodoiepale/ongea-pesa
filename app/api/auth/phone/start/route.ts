@@ -74,6 +74,10 @@ export async function POST(request: NextRequest) {
       if (linkError || !data?.properties?.hashed_token) {
         return NextResponse.json({ error: 'Authentication failed' }, { status: 500 });
       }
+      await logSecurityEvent(
+        { userId: profile.id, eventType: 'login', severity: 'info', ip, userAgent, metadata: { method: 'phone_pin_magiclink' } },
+        admin
+      );
       return NextResponse.json({
         success: true,
         token_hash: data.properties.hashed_token,
