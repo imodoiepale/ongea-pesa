@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Plus, TrendingUp, TrendingDown, Clock, Check, XCircle, RefreshCw, Loader2, CheckCircle } from "lucide-react"
+import { X, Plus, TrendingUp, TrendingDown, Clock, Check, XCircle, RefreshCw, Loader2, CheckCircle, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from "@/components/providers/auth-provider"
 import { cn } from "@/lib/utils"
+import { displayPhone } from "@/lib/phone"
+import DependantsSheet from "./dependants-sheet"
 
 interface BalanceSheetProps {
   isOpen: boolean
@@ -24,6 +26,8 @@ interface Transaction {
   voice_command_text?: string
 }
 
+interface StkTarget { label: string; phone: string }
+
 export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanceUpdate }: BalanceSheetProps) {
   const { user } = useAuth()
   const [addAmount, setAddAmount] = useState("")
@@ -31,6 +35,9 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loadingTransactions, setLoadingTransactions] = useState(true)
   const [mpesaNumber, setMpesaNumber] = useState<string | null>(null)
+  const [stkTarget, setStkTarget] = useState<StkTarget | null>(null)
+  const [dependants, setDependants] = useState<StkTarget[]>([])
+  const [isDependantsOpen, setIsDependantsOpen] = useState(false)
   const [depositError, setDepositError] = useState('')
   const [depositSuccess, setDepositSuccess] = useState('')
   const [depositStatus, setDepositStatus] = useState<'idle' | 'sending' | 'waiting' | 'verifying' | 'completed' | 'failed'>('idle')
@@ -57,6 +64,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
 
     fetchTransactions()
     fetchMpesaNumber()
+    fetchDependants()
 
     // Fetch IndexPay balances for admin user
     if (isAdminUser) {
@@ -218,10 +226,27 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
         .eq('id', user.id)
         .single()
 
-      setMpesaNumber(profile?.mpesa_number || null)
+      const num = profile?.mpesa_number || null
+      setMpesaNumber(num)
+      if (num) {
+        setStkTarget({ label: 'My number (' + displayPhone(num) + ')', phone: num })
+      }
     } catch (err) {
       console.error('Error fetching M-Pesa number:', err)
     }
+  }
+
+  const fetchDependants = async () => {
+    try {
+      const res = await fetch('/api/dependants')
+      if (!res.ok) return
+      const data = await res.json()
+      const deps: StkTarget[] = (data.dependants || []).map((d: any) => ({
+        label: d.display_name + ' · ' + displayPhone(d.normalized_phone),
+        phone: d.normalized_phone,
+      }))
+      setDependants(deps)
+    } catch { /* silent */ }
   }
 
   // Fetch IndexPay gate and pocket balances for admin user
@@ -389,7 +414,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
       const response = await fetch('/api/daraja/stk-deposit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount, phone: mpesaNumber }),
+        body: JSON.stringify({ amount, phone: stkTarget?.phone ?? mpesaNumber }),
       })
 
       const data = await response.json()
@@ -513,9 +538,18 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
               </div>
             )}
           </div>
-          <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close">
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsDependantsOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted text-muted-foreground hover:bg-muted/70 text-xs font-semibold transition-all"
+            >
+              <Users className="h-3.5 w-3.5" />
+              Family Top-up
+            </button>
+            <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Scrollable Content */}
@@ -541,6 +575,29 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
                 </button>
               ))}
             </div>
+
+            {/* Dependants dropdown — only shown when user has dependants */}
+            {dependants.length > 0 && (
+              <select
+                value={stkTarget?.phone ?? mpesaNumber ?? ''}
+                onChange={(e) => {
+                  const phone = e.target.value
+                  const all: StkTarget[] = mpesaNumber
+                    ? [{ label: 'My number (' + displayPhone(mpesaNumber) + ')', phone: mpesaNumber }, ...dependants]
+                    : dependants
+                  const found = all.find(t => t.phone === phone)
+                  if (found) setStkTarget(found)
+                }}
+                className="w-full text-sm rounded-xl border border-border/60 bg-card px-3 py-2.5 text-foreground mb-2"
+              >
+                {mpesaNumber && (
+                  <option value={mpesaNumber}>My number ({displayPhone(mpesaNumber)})</option>
+                )}
+                {dependants.map((d) => (
+                  <option key={d.phone} value={d.phone}>{d.label}</option>
+                ))}
+              </select>
+            )}
 
             {/* Amount input + button row */}
             <div className="flex gap-2 mb-3">
@@ -627,9 +684,9 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
               </div>
             )}
 
-            {/* M-Pesa number */}
+            {/* M-Pesa number / STK target */}
             {mpesaNumber ? (
-              <p className="text-xs text-muted-foreground mt-1">📱 Using M-Pesa: {mpesaNumber}</p>
+              <p className="text-xs text-muted-foreground mt-1">📱 Sending STK to: {stkTarget?.label ?? mpesaNumber ?? '...'}</p>
             ) : (
               <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">⚠️ Set your M-Pesa number in Settings to deposit</p>
             )}
@@ -748,6 +805,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
           </div>
         </div>
       </div>
+      <DependantsSheet isOpen={isDependantsOpen} onClose={() => setIsDependantsOpen(false)} />
     </div>
   )
 }
