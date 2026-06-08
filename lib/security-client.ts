@@ -1,6 +1,20 @@
 'use client';
 
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import { createClient } from '@/lib/supabase/client';
+
+// ---------------------------------------------------------------------------
+// Phone-login result shape
+// ---------------------------------------------------------------------------
+
+export interface StartPhoneLoginResult {
+  success: true;
+  otpRequired: boolean;
+  challengeId?: string;
+  emailHint?: string;
+  token_hash?: string;
+  type?: string;
+}
 
 // Client helpers for the security layer. All return data or throw on error.
 
@@ -74,4 +88,79 @@ export async function getStepUpToken(opts?: { preferPasskey?: boolean; pin?: str
   }
   if (opts?.pin) return verifyPinForStepUp(opts.pin);
   throw new Error('Step-up authentication required (PIN or passkey)');
+}
+
+// ---------------------------------------------------------------------------
+// Phone login helpers
+// ---------------------------------------------------------------------------
+
+/** Start phone-based login — verifies PIN server-side and returns an OTP challenge if required. */
+export async function startPhoneLogin(phone: string, pin: string): Promise<StartPhoneLoginResult> {
+  const res = await fetch('/api/auth/phone/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, pin }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Login failed');
+  return data as StartPhoneLoginResult;
+}
+
+/** Verify the OTP code for phone login, then establish a Supabase session and ensure a payment gate. */
+export async function verifyPhoneOtp(challengeId: string, code: string): Promise<void> {
+  const res = await fetch('/api/auth/phone/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ challengeId, code }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'OTP verification failed');
+
+  const { token_hash, type } = data;
+  await createClient().auth.verifyOtp({ type: type as any, token_hash });
+
+  // Non-blocking: ensure the user has a payment gate (mirrors app/login/page.tsx)
+  try {
+    await fetch('/api/gate/ensure', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+  } catch {
+    // ignore — gate creation failure must not block login
+  }
+}
+
+/** Begin adding a phone number to an existing account — returns challengeId and masked emailHint. */
+export async function startPhoneSetup(phone: string, pin: string): Promise<{ challengeId: string; emailHint: string }> {
+  const res = await fetch('/api/auth/phone/setup/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, pin }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Phone setup failed');
+  return { challengeId: data.challengeId, emailHint: data.emailHint };
+}
+
+/** Verify the OTP for phone setup and confirm the phone number is now linked. */
+export async function verifyPhoneSetup(challengeId: string, code: string, phone: string): Promise<{ phone: string }> {
+  const res = await fetch('/api/auth/phone/setup/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ challengeId, code, phone }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Phone setup verification failed');
+  return { phone: data.phone as string };
+}
+
+/** Enable or disable email-OTP as a second factor for the current user. */
+export async function setEmailOtpEnabled(enabled: boolean): Promise<void> {
+  const res = await fetch('/api/auth/security/email-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  });
+  if (!res.ok) throw new Error((await res.json()).error || 'Failed to update email OTP setting');
 }
