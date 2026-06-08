@@ -7,17 +7,7 @@
  * time even when RESEND_API_KEY is not yet set (it throws only at call time).
  */
 
-const DEFAULT_FROM = 'Ongea Pesa <no-reply@ongeapesa.com>';
-
-function otpHtml(code: string): string {
-  return `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-  <h2 style="color:#1a1a1a">Ongea Pesa Verification</h2>
-  <p style="color:#555">Your one-time verification code is:</p>
-  <div style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#000;padding:16px 0">${code}</div>
-  <p style="color:#555">This code expires in <strong>10 minutes</strong>.</p>
-  <p style="color:#888;font-size:12px">If you did not request this code, please ignore this email.</p>
-</div>`;
-}
+import { emailLayout, otpBody, EMAIL_BRAND } from './emailTemplates';
 
 function otpText(code: string): string {
   return `Your Ongea Pesa code: ${code}. Expires in 10 minutes. If you did not request this, ignore this email.`;
@@ -37,7 +27,13 @@ export async function sendOtpEmail(email: string, code: string): Promise<void> {
     );
   }
 
-  const from = process.env.RESEND_FROM ?? DEFAULT_FROM;
+  const from = process.env.RESEND_FROM ?? EMAIL_BRAND.from;
+
+  const html = emailLayout({
+    title:     'Your Ongea Pesa verification code',
+    preheader: `Your Ongea Pesa code is ${code}. Expires in 10 minutes.`,
+    bodyHtml:  otpBody(code),
+  });
 
   // Lazy import — avoids top-level instantiation at build time.
   const { Resend } = await import('resend');
@@ -48,7 +44,7 @@ export async function sendOtpEmail(email: string, code: string): Promise<void> {
       from,
       to: email,
       subject: 'Your Ongea Pesa verification code',
-      html: otpHtml(code),
+      html,
       text: otpText(code),
     });
 
