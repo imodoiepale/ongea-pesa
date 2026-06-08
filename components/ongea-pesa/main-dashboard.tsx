@@ -7,7 +7,6 @@ import {
   Calendar,
   BarChart3,
   Settings,
-  TestTube,
   Moon,
   Sun,
   LogOut,
@@ -17,7 +16,6 @@ import {
   Eye,
   EyeOff,
   SendHorizonal,
-  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -34,7 +32,6 @@ import { useVoice } from "@/components/voice-provider"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from "@/lib/supabase/client"
 import BalanceSheet from "./balance-sheet"
-import DependantsSheet from "./dependants-sheet"
 import PWAInstallPrompt from "./pwa-install-prompt"
 import { PageHeader, ScreenShell } from "@/components/foundation"
 import { cn } from "@/lib/utils"
@@ -108,21 +105,6 @@ const quickActions: {
   },
 ]
 
-const voiceExamples = [
-  {
-    command: '"Ongea Pesa, tuma 500 kwa John"',
-    desc: "Send money to contact",
-  },
-  {
-    command: '"Tuma 200 kwa namba 0712345678"',
-    desc: "Send to unsaved number",
-  },
-  {
-    command: '"Angalia salio langu"',
-    desc: "Check your balance",
-  },
-]
-
 export default function MainDashboard({
   onNavigate,
   onVoiceActivate,
@@ -135,7 +117,6 @@ export default function MainDashboard({
   const [balance, setBalance] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [isBalanceSheetOpen, setIsBalanceSheetOpen] = useState(false)
-  const [isDependantsSheetOpen, setIsDependantsSheetOpen] = useState(false)
   const [pocketDeposited, setPocketDeposited] = useState<number | null>(null)
   const [hideBalance, setHideBalance] = useState(() => {
     if (typeof window === "undefined") return false
@@ -372,48 +353,6 @@ export default function MainDashboard({
           </button>
         </div>
 
-        {/* Pocket balance row + dependants shortcut */}
-        {pocketDeposited !== null && (
-          <div className="flex items-center justify-between px-4 py-3 mb-4 rounded-2xl border border-border/60 bg-card">
-            <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                Total Deposited
-              </p>
-              <p
-                className="text-sm font-bold text-foreground mt-0.5"
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              >
-                {hideBalance
-                  ? "KSh ••••••"
-                  : `KSh ${pocketDeposited.toLocaleString("en-KE", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    })}`}
-              </p>
-            </div>
-            <button
-              onClick={() => setIsDependantsSheetOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted text-muted-foreground hover:bg-muted/70 active:scale-[0.97] transition-all text-xs font-semibold"
-            >
-              <Users className="h-3.5 w-3.5" />
-              Family Top-up
-            </button>
-          </div>
-        )}
-
-        {/* Show family top-up even when pocket not yet loaded */}
-        {pocketDeposited === null && (
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={() => setIsDependantsSheetOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted text-muted-foreground hover:bg-muted/70 active:scale-[0.97] transition-all text-xs font-semibold"
-            >
-              <Users className="h-3.5 w-3.5" />
-              Family Top-up
-            </button>
-          </div>
-        )}
-
         {/* Voice Activation Button */}
         <div className="flex justify-center mb-8">
           {/* Outer shell */}
@@ -461,47 +400,6 @@ export default function MainDashboard({
             </button>
           ))}
         </div>
-
-        {/* Voice Commands Section */}
-        <div className="mb-6">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-            Voice Commands
-          </h2>
-          <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
-            {voiceExamples.map((ex) => (
-              <div
-                key={ex.command}
-                className="px-4 py-3 flex items-start gap-3"
-              >
-                <Mic className="h-4 w-4 text-brand mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {ex.command}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{ex.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Voice Test Mode */}
-        <button
-          onClick={() => handleNavigate("test")}
-          className="w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border/60 hover:border-border hover:shadow-sm transition-all duration-200 active:scale-[0.97] mb-6"
-        >
-          <div className="w-10 h-10 bg-violet-500 rounded-xl flex items-center justify-center shrink-0">
-            <TestTube className="h-5 w-5 text-white" />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-semibold text-foreground">
-              Voice Test Mode
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Test voice commands &amp; responses
-            </p>
-          </div>
-        </button>
       </ScreenShell>
 
       {/* Floating Add Balance Button — outside ScreenShell */}
@@ -523,12 +421,6 @@ export default function MainDashboard({
           setBalance(newBalance)
           console.log("✅ Balance updated to:", newBalance)
         }}
-      />
-
-      {/* Dependants Sheet — outside ScreenShell */}
-      <DependantsSheet
-        isOpen={isDependantsSheetOpen}
-        onClose={() => setIsDependantsSheetOpen(false)}
       />
 
       {/* PWA Install Prompt — outside ScreenShell */}
