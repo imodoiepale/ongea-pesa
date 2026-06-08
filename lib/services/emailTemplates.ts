@@ -8,8 +8,8 @@
  */
 
 export const EMAIL_BRAND = {
-  green:     '#22c55e',
-  greenDark: '#16a34a',
+  green:     '#10b981',
+  greenDark: '#059669',
   ink:       '#0f172a',
   muted:     '#64748b',
   bg:        '#f8fafc',
