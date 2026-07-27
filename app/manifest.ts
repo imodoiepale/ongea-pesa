@@ -8,8 +8,10 @@ export default function manifest(): MetadataRoute.Manifest {
             "Kenya's fastest voice-activated M-Pesa assistant. Pay bills, send money, and manage finances with just your voice.",
         start_url: "/",
         display: "standalone",
-        background_color: "#ffffff",
-        theme_color: "#22c55e",
+        // Match the app's pearl surface — pure white here causes a white
+        // flash at PWA launch and white strips around the viewport.
+        background_color: "#f6f6f2",
+        theme_color: "#f6f6f2",
         orientation: "portrait",
         scope: "/",
         lang: "en",

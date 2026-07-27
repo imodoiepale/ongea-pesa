@@ -67,7 +67,12 @@ export const viewport: Viewport = {
   initialScale: 1,
   // user-scalable removed — accessibility requirement (pinch-zoom must work)
   viewportFit: "cover",
-  themeColor: "#22c55e",
+  // Match the actual page surfaces so browser chrome never shows a
+  // mismatched strip (was brand green).
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f6f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a1417" },
+  ],
 }
 
 export default function RootLayout({

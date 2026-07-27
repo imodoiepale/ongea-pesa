@@ -370,7 +370,10 @@
   --font-data: var(--font-mono), ui-monospace, monospace;
 }
 
-html { scroll-behavior: smooth; }
+/* Paint the root the same as the theme so iOS never shows a white strip in
+   the safe-area / overscroll zones (html is what shows behind the page). */
+html { scroll-behavior: smooth; background: hsl(var(--pearl)); }
+html.dark { background: hsl(var(--abyss)); }
 /* overscroll-behavior-y: none stops the document-level rubber-band bounce so
    the installed PWA scrolls like a native app, not a web page. */
 body { min-height: 100dvh; overflow-x: hidden; overscroll-behavior-y: none; font-feature-settings: "kern", "liga"; background: hsl(var(--pearl)); }
@@ -387,11 +390,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* Notch/status-bar headroom for screens that don't use .orbital-screen. */
 .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top, 0px)); }
 
-/* Dark onboarding screens: paint the document root too, or iOS shows the
-   light body background as a white strip in the home-indicator / toolbar
-   zone below the screen. */
+/* Dark-surface screens: paint the document root too, or iOS shows the light
+   body background as a white strip in the home-indicator / toolbar zone
+   below (and above, on overscroll) the screen. */
 html:has(.onboarding-page--dark),
 html:has(.onboarding-page--dark) body { background: #010505; }
+html:has(.orbital-dark),
+html:has(.orbital-dark) body { background: hsl(var(--abyss)); }
 
 .orbital-page {
   min-height: 100dvh;
