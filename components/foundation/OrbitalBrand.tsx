@@ -7,9 +7,13 @@ import { cn } from "@/lib/utils"
 export function OrbitalMark({ className }: { className?: string }) {
   return (
     <span className={cn("orbital-mark h-10 w-10", className)} aria-hidden="true">
-      <span className="orbital-mark__ring" />
-      <span className="orbital-mark__ring orbital-mark__ring--two" />
-      <span className="orbital-mark__core" />
+      <Image
+        src="/brand/logos/orb-emblem.png"
+        alt=""
+        fill
+        sizes="48px"
+        className="object-contain"
+      />
     </span>
   )
 }
