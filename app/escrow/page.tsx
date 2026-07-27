@@ -401,7 +401,7 @@ export default function EscrowPage() {
 
   return (
     <main id="main-content" className="orbital-page min-h-[100dvh]">
-      <ScreenShell className="pt-0 pb-nav">
+      <ScreenShell className="pt-safe pb-nav">
         {/* Page Header */}
         <PageHeader title="Protected deals" subtitle="Hold funds safely until everyone agrees">
           <Button

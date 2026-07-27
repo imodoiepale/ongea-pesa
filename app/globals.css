@@ -384,6 +384,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .pb-nav { padding-bottom: calc(var(--bottom-nav-h) + 1.5rem); }
 @media (min-width: 1024px) { .pb-nav { padding-bottom: 2rem; } }
 
+/* Notch/status-bar headroom for screens that don't use .orbital-screen. */
+.pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top, 0px)); }
+
+/* Dark onboarding screens: paint the document root too, or iOS shows the
+   light body background as a white strip in the home-indicator / toolbar
+   zone below the screen. */
+html:has(.onboarding-page--dark),
+html:has(.onboarding-page--dark) body { background: #010505; }
+
 .orbital-page {
   min-height: 100dvh;
   position: relative;

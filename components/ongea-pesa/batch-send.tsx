@@ -284,7 +284,7 @@ export default function BatchSend({ onNavigate, initialPayments, initialResults 
   }
 
   return (
-    <ScreenShell>
+    <ScreenShell className="pt-safe">
       <div className="flex items-center gap-3 pt-4 pb-2 px-4">
         <Button variant="ghost" size="icon" onClick={() => onNavigate('dashboard')} className="-ml-2">
           <ArrowLeft className="h-5 w-5" />

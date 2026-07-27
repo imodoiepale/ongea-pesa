@@ -1388,7 +1388,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
   if (isScanning) {
     return (
       <div className="min-h-[100dvh] bg-background surface-money pb-nav">
-        <ScreenShell className="pt-0">
+        <ScreenShell className="pt-safe">
           {/* Scan Result Display - Show immediately when detected */}
           {scanResult && !showBatchSummary && renderScanResult()}
 
@@ -1604,7 +1604,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
 
   return (
     <div className="min-h-[100dvh] bg-background surface-money">
-      <ScreenShell className="pt-0">
+      <ScreenShell className="pt-safe">
         {/* Compact Header */}
         <div className="flex items-center mb-3 pt-2">
           <Button variant="ghost" size="sm" onClick={() => onClose ? onClose() : onNavigate("dashboard")} className="mr-2 p-1">

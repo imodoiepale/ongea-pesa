@@ -303,7 +303,7 @@ export default function RevenueDashboard() {
   return (
     <div className="min-h-[100dvh] bg-background">
       {/* ------------------------------------------------ header */}
-      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-xl pt-[env(safe-area-inset-top,0px)]">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3.5 md:px-8">
           <div className="flex items-center gap-3">
             <span className="h-2.5 w-2.5 rounded-full" style={{ background: c.series1 }} aria-hidden />

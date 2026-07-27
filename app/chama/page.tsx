@@ -697,7 +697,7 @@ export default function ChamaPage() {
 
   return (
     <main id="main-content" className="orbital-page min-h-[100dvh]">
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-card/80 border-b border-border/60">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-card/80 border-b border-border/60 pt-[env(safe-area-inset-top,0px)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center shadow-lg shadow-brand/20"><Users className="w-5 h-5 text-white" /></div>

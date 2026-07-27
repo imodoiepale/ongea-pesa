@@ -41,7 +41,7 @@ export default function Analytics({ onNavigate }: AnalyticsProps) {
 
   return (
     <div className="min-h-[100dvh] bg-background surface-money pb-nav">
-      <ScreenShell className="pt-0">
+      <ScreenShell className="pt-safe">
         {/* back header */}
         <div className="flex items-center gap-3 pt-6 mb-6">
           <Button variant="ghost" size="icon-sm" onClick={() => onNavigate("dashboard")} aria-label="Back">

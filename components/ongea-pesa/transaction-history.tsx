@@ -138,7 +138,7 @@ export default function TransactionHistory() {
 
   return (
     <main id="main-content" className="orbital-page min-h-[100dvh] pb-nav">
-      <ScreenShell className="max-w-3xl">
+      <ScreenShell className="max-w-3xl pt-safe">
         {/* header — back arrow + title + refresh */}
         <div className="flex items-center gap-2 pt-6 mb-6">
           <Button
