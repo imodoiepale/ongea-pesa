@@ -31,7 +31,7 @@ export default function ConfirmPage() {
           }
 
           // Redirect to home
-          router.push('/')
+          router.push('/dashboard')
           return
         }
 
@@ -56,7 +56,7 @@ export default function ConfirmPage() {
           }
 
           // Redirect to home
-          router.push('/')
+          router.push('/dashboard')
           return
         }
 

@@ -20,9 +20,15 @@ export function OrbitalMark({ className }: { className?: string }) {
 
 export function OngeaWordmark({ compact = false, className }: { compact?: boolean; className?: string }) {
   return (
-    <div className={cn("ongea-wordmark", className)} aria-label="Ongea Pesa by NSAIT">
-      <OrbitalMark className={compact ? "h-8 w-8" : undefined} />
-      <span><strong>ONGEA PESA</strong><small>BY NSAIT</small></span>
+    <div className={cn("ongea-wordmark", compact ? "is-compact" : undefined, className)}>
+      <Image
+        src="/brand/logos/ongea-pesa-logo.webp"
+        alt="Ongea Pesa by NSAIT"
+        width={1920}
+        height={819}
+        sizes={compact ? "150px" : "220px"}
+        priority={!compact}
+      />
     </div>
   )
 }

@@ -3,9 +3,12 @@
 import { useRouter } from "next/navigation"
 import { AudioLines } from "lucide-react"
 import { OngeaWordmark, VoiceCore } from "@/components/foundation"
+import { useAuth } from "@/components/providers/auth-provider"
 
 export function WelcomeScreen() {
   const router = useRouter()
+  const { user, loading } = useAuth()
+  const continueToApp = () => router.push(user ? "/dashboard" : "/signup")
 
   return (
     <main id="main-content" className="onboarding-page onboarding-page--dark onboarding-welcome">
@@ -21,11 +24,19 @@ export function WelcomeScreen() {
         </div>
 
         <div className="onboarding-welcome__actions">
-          <button onClick={() => router.push("/signup")} className="onboarding-primary onboarding-primary--mint">
+          <button
+            onClick={continueToApp}
+            disabled={loading}
+            className="onboarding-primary onboarding-primary--mint"
+          >
             <AudioLines aria-hidden="true" />
             <span>Get started</span>
           </button>
-          <button onClick={() => router.push("/login")} className="onboarding-text-action">
+          <button
+            onClick={() => router.push(user ? "/dashboard" : "/login")}
+            disabled={loading}
+            className="onboarding-text-action"
+          >
             I already have an account
           </button>
         </div>

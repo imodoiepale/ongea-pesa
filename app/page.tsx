@@ -1,10 +1,5 @@
-import OngeaPesaApp from "@/components/ongea-pesa/app";
-import { ProtectedRoute } from "@/components/protected-route";
+import { WelcomeScreen } from "@/components/ongea-pesa/welcome-screen"
 
 export default function Home() {
-  return (
-    <ProtectedRoute>
-      <OngeaPesaApp />
-    </ProtectedRoute>
-  );
+  return <WelcomeScreen />
 }

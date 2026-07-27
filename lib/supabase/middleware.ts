@@ -73,12 +73,14 @@ export async function updateSession(request: NextRequest) {
       ]) as Awaited<ReturnType<typeof supabase.auth.getUser>>
 
       const protectedRoots = [
-        '/', '/voice', '/wallet', '/transactions', '/scanner', '/chama',
+        '/dashboard', '/voice', '/wallet', '/transactions', '/scanner', '/chama',
         '/escrow', '/batch', '/scheduler', '/analytics', '/payments',
-        '/settings', '/support', '/dashboard',
+        '/settings', '/support',
       ]
       const pathname = request.nextUrl.pathname
-      const isProtected = protectedRoots.some((root) => root === '/' ? pathname === '/' : pathname === root || pathname.startsWith(`${root}/`))
+      const isProtected = protectedRoots.some(
+        (root) => pathname === root || pathname.startsWith(`${root}/`),
+      )
       if (isProtected && !authResult.data.user) {
         const loginUrl = request.nextUrl.clone()
         loginUrl.pathname = '/login'

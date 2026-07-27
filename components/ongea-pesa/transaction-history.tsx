@@ -144,7 +144,7 @@ export default function TransactionHistory() {
           <Button
             variant="ghost"
             size="icon-sm"
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/dashboard')}
             aria-label="Back to home"
           >
             <ArrowLeft className="h-4 w-4" />

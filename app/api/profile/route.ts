@@ -162,11 +162,15 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Your session expired. Sign in and try again." }, { status: 401 })
   }
 
-  const body = await request.json().catch(() => null) as { stage?: string; score?: number } | null
+  const body = await request.json().catch(() => null) as {
+    stage?: string
+    score?: number
+    device_biometrics_consent?: boolean
+  } | null
   const service = createServiceClient()
   const now = new Date().toISOString()
-  let databaseUpdate: Record<string, string | number>
-  let metadataUpdate: Record<string, string | number>
+  let databaseUpdate: Record<string, string | number | null>
+  let metadataUpdate: Record<string, string | number | null>
 
   if (body?.stage === "voice-calibration") {
     const score = Math.round(Number(body.score))
@@ -176,7 +180,10 @@ export async function PATCH(request: Request) {
     databaseUpdate = { voice_calibration_score: score, voice_calibrated_at: now }
     metadataUpdate = databaseUpdate
   } else if (body?.stage === "onboarding-complete") {
-    databaseUpdate = { onboarding_completed_at: now }
+    databaseUpdate = {
+      onboarding_completed_at: now,
+      device_biometrics_consent_at: body.device_biometrics_consent ? now : null,
+    }
     metadataUpdate = databaseUpdate
   } else {
     return NextResponse.json({ error: "Unknown onboarding step." }, { status: 400 })

@@ -57,7 +57,7 @@ export default function LoginPage() {
         } catch {
           // Wallet provisioning is retried after login and must not block access.
         }
-        router.push('/');
+        router.push('/dashboard');
         router.refresh();
         return;
       }
@@ -80,7 +80,7 @@ export default function LoginPage() {
         } catch {
           // ignore — must not block login
         }
-        router.push('/');
+        router.push('/dashboard');
         router.refresh();
       } else {
         // OTP challenge required
@@ -107,7 +107,7 @@ export default function LoginPage() {
 
     try {
       await verifyPhoneOtp(challengeId, otp);
-      router.push('/');
+      router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'OTP verification failed');
@@ -159,7 +159,7 @@ export default function LoginPage() {
       console.error('Wallet check error (non-blocking):', gateError);
     }
 
-    router.push('/');
+    router.push('/dashboard');
     router.refresh();
   };
 

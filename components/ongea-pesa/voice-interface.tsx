@@ -6,15 +6,15 @@ import { Mic, MicOff, Volume2, ArrowLeft, AlertCircle, BarChart3, LogOut, Wallet
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import VoiceWaveform from "./voice-waveform"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from '@/lib/supabase/client'
 import BalanceSheet from "./balance-sheet"
 import { useUser } from '@/contexts/UserContext';
 import { useElevenLabs } from '@/contexts/ElevenLabsContext';
 import type { PaymentSlots } from '@/contexts/ElevenLabsContext';
-import { GlassCard, ScreenShell, VoiceCore } from "@/components/foundation"
+import { ScreenShell } from "@/components/foundation"
 import PaymentIdentificationPanel from "./payment-identification-panel"
+import { VoiceNodeField } from "./voice-node-field"
 
 type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
 
@@ -356,42 +356,12 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
       <div className="flex-1 flex flex-col items-center justify-center px-5 relative z-10 gap-5">
         <h1 className="orbital-display text-[2.5rem]">Voice Assistant</h1>
         <p className="font-[family-name:var(--font-display)] text-xl text-[hsl(var(--teal))]">{isConnected ? "Tuma elfu mbili kwa Mum" : "Speak naturally"}</p>
-        <VoiceCore className={`w-[min(84vw,25rem)] -my-10 ${isConnected ? "saturate-150" : "opacity-75"}`} />
-        {/* GlassCard Double-Bezel orb */}
-        <GlassCard
-          size="lg"
-          glow={isConnected || isPushToTalk}
-          className={`transition-all duration-700 ${isConnected || isPushToTalk ? 'glow-green' : ''}`}
-        >
-          <div className="w-44 h-44 flex flex-col items-center justify-center gap-3 rounded-[calc(2rem-0.375rem)]">
-            {/* Voice waveform */}
-            <div className="h-12 flex items-center">
-              {isConnected ? (
-                <VoiceWaveform isListening={isConnected} />
-              ) : isLoading ? (
-                <div className="w-8 h-8 rounded-full border-2 border-[hsl(var(--voice-accent))] border-t-transparent animate-spin" />
-              ) : (
-                <Mic className="h-10 w-10 text-muted-foreground" />
-              )}
-            </div>
-
-            {/* Status label */}
-            <span className={`text-xs font-semibold tracking-wide uppercase ${
-              isConnected ? 'text-[hsl(var(--voice-accent))]' :
-              isLoading ? 'text-amber-400' :
-              'text-muted-foreground'
-            }`}>
-              {isConnected ? (isSpeaking ? 'Speaking' : 'Listening') : isLoading ? 'Connecting' : 'Ready'}
-            </span>
-
-            {/* Timer */}
-            {isConnected && (
-              <span className="text-[10px] text-muted-foreground font-mono">
-                {formatTime(recordingTime)}
-              </span>
-            )}
-          </div>
-        </GlassCard>
+        <VoiceNodeField
+          active={isConnected}
+          speaking={isSpeaking}
+          processing={isProcessing || isLoading}
+          timer={formatTime(recordingTime)}
+        />
 
         {/* Payment identification panel — blank until fields are identified */}
         <PaymentIdentificationPanel payments={stagedPayments} />

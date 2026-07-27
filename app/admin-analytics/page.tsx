@@ -29,7 +29,7 @@ export default async function AdminAnalyticsPage() {
   const isAdmin = user.email && ADMIN_EMAILS.includes(user.email)
   
   if (!isAdmin) {
-    redirect('/') // Redirect non-admins to home
+    redirect('/dashboard') // Redirect non-admins to home
   }
 
   return (

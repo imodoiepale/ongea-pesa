@@ -8,7 +8,7 @@
     "test:e2e": "playwright test",
     "test:visual": "playwright test tests/visual",
     "assets:orbital": "node scripts/optimize-orbital-backgrounds.mjs",
-    "assets:logos": "node scripts/build-brand-logos.mjs",
+    "assets:logos": "node scripts/export-4k-logo.mjs",
     "dev": "next dev --turbopack",
     "dev:pwa": "next dev --webpack",
     "lint": "next lint",

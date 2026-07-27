@@ -1,9 +1,9 @@
 "use client"
 
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Check, ChevronRight, Fingerprint, Grid3X3, Loader2, ShieldCheck } from "lucide-react"
+import { Check, ChevronRight, Fingerprint, Grid3X3, Loader2, Mic2, Pause, Play, ShieldCheck } from "lucide-react"
 import { enrollPasskey, getPinStatus, setPin } from "@/lib/security-client"
 import { useAuth } from "@/components/providers/auth-provider"
 import { OnboardingProgress } from "./onboarding-progress"
@@ -17,8 +17,13 @@ export function SecuritySetupScreen() {
   const [showPinForm, setShowPinForm] = useState(false)
   const [pinDone, setPinDone] = useState(false)
   const [passkeyDone, setPasskeyDone] = useState(false)
+  const [deviceBiometricsConsent, setDeviceBiometricsConsent] = useState(false)
+  const [voiceEnrolled, setVoiceEnrolled] = useState(false)
+  const [voicePlaybackUrl, setVoicePlaybackUrl] = useState<string | null>(null)
+  const [playingVoice, setPlayingVoice] = useState(false)
   const [busy, setBusy] = useState<"pin" | "passkey" | "finish" | null>(null)
   const [error, setError] = useState("")
+  const voiceAudioRef = useRef<HTMLAudioElement | null>(null)
 
   // An account can already have a PIN (re-running onboarding, or set during an
   // earlier session). Changing it requires the current PIN, so we have to know
@@ -39,6 +44,24 @@ export function SecuritySetupScreen() {
       })
     return () => {
       active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    fetch("/api/security/voice-biometric")
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}))
+        if (!active || !response.ok) return
+        setVoiceEnrolled(Boolean(payload.enrolled))
+        setVoicePlaybackUrl(typeof payload.playbackUrl === "string" ? payload.playbackUrl : null)
+      })
+      .catch(() => {
+        /* Playback is helpful but not required to finish security setup. */
+      })
+    return () => {
+      active = false
+      voiceAudioRef.current?.pause()
     }
   }, [])
 
@@ -72,6 +95,10 @@ export function SecuritySetupScreen() {
   }
 
   const addPasskey = async () => {
+    if (!deviceBiometricsConsent) {
+      setError("Allow device face or fingerprint verification before adding a passkey.")
+      return
+    }
     setBusy("passkey")
     setError("")
     try {
@@ -81,6 +108,34 @@ export function SecuritySetupScreen() {
       setError(reason instanceof Error ? reason.message : "Passkey enrollment was cancelled.")
     } finally {
       setBusy(null)
+    }
+  }
+
+  const playVoiceSample = async () => {
+    if (!voicePlaybackUrl) {
+      setError("Your voice sample is enrolled, but playback is temporarily unavailable.")
+      return
+    }
+    setError("")
+    if (!voiceAudioRef.current) {
+      voiceAudioRef.current = new Audio(voicePlaybackUrl)
+      voiceAudioRef.current.onended = () => setPlayingVoice(false)
+      voiceAudioRef.current.onerror = () => {
+        setPlayingVoice(false)
+        setError("We couldn't play your voice sample. Please retry.")
+      }
+    }
+    if (playingVoice) {
+      voiceAudioRef.current.pause()
+      setPlayingVoice(false)
+      return
+    }
+    try {
+      await voiceAudioRef.current.play()
+      setPlayingVoice(true)
+    } catch {
+      setPlayingVoice(false)
+      setError("Your browser blocked playback. Tap the voice sample again.")
     }
   }
 
@@ -95,7 +150,10 @@ export function SecuritySetupScreen() {
     const response = await fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ stage: "onboarding-complete" }),
+      body: JSON.stringify({
+        stage: "onboarding-complete",
+        device_biometrics_consent: deviceBiometricsConsent,
+      }),
     })
     const payload = await response.json().catch(() => ({}))
     if (!response.ok) {
@@ -103,7 +161,7 @@ export function SecuritySetupScreen() {
       setBusy(null)
       return
     }
-    router.replace("/")
+    router.replace("/dashboard")
     router.refresh()
   }
 
@@ -129,9 +187,34 @@ export function SecuritySetupScreen() {
         </div>
 
         <div className="onboarding-security__choices">
+          <button
+            onClick={playVoiceSample}
+            disabled={!voiceEnrolled}
+            className="onboarding-choice"
+          >
+            <Mic2 />
+            <span>
+              <strong>Voice biometrics</strong>
+              <small>{voiceEnrolled ? "Enrolled · tap to play your short sample" : "Complete voice enrollment in step 2"}</small>
+            </span>
+            {playingVoice ? <Pause /> : voiceEnrolled ? <Check /> : <Play />}
+          </button>
+
+          <label className="onboarding-device-consent">
+            <input
+              type="checkbox"
+              checked={deviceBiometricsConsent}
+              onChange={(event) => setDeviceBiometricsConsent(event.target.checked)}
+            />
+            <span>
+              <strong>Allow face or fingerprint verification</strong>
+              <small>Your phone performs the match. Ongea stores only the passkey public key.</small>
+            </span>
+          </label>
+
           <button onClick={addPasskey} disabled={busy !== null || passkeyDone} className="onboarding-choice">
             <Fingerprint />
-            <span><strong>Passkey</strong><small>Use biometrics or device<br />to sign in fast</small></span>
+            <span><strong>Passkey</strong><small>Use device face, fingerprint,<br />or screen lock to sign in</small></span>
             {busy === "passkey" ? <Loader2 className="animate-spin" /> : passkeyDone ? <Check /> : <ChevronRight />}
           </button>
 
@@ -170,7 +253,7 @@ export function SecuritySetupScreen() {
           )}
         </div>
 
-        <p className="onboarding-security__privacy"><ShieldCheck />Biometrics stay on this device</p>
+        <p className="onboarding-security__privacy"><ShieldCheck />Face and fingerprint data stay on this device</p>
         {error && <p role="alert" className="onboarding-error">{error}</p>}
         <button onClick={finish} disabled={busy !== null} className="onboarding-primary onboarding-security__finish">
           {busy === "finish" ? <Loader2 className="animate-spin" /> : "Finish setup"}
