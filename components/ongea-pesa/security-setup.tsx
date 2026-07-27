@@ -1,10 +1,10 @@
 "use client"
 
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Check, ChevronRight, Fingerprint, Grid3X3, Loader2, ShieldCheck } from "lucide-react"
-import { enrollPasskey, setPin } from "@/lib/security-client"
+import { enrollPasskey, getPinStatus, setPin } from "@/lib/security-client"
 import { useAuth } from "@/components/providers/auth-provider"
 import { OnboardingProgress } from "./onboarding-progress"
 
@@ -13,11 +13,34 @@ export function SecuritySetupScreen() {
   const { user } = useAuth()
   const [pin, setPinValue] = useState("")
   const [confirm, setConfirm] = useState("")
+  const [currentPin, setCurrentPin] = useState("")
   const [showPinForm, setShowPinForm] = useState(false)
   const [pinDone, setPinDone] = useState(false)
   const [passkeyDone, setPasskeyDone] = useState(false)
   const [busy, setBusy] = useState<"pin" | "passkey" | "finish" | null>(null)
   const [error, setError] = useState("")
+
+  // An account can already have a PIN (re-running onboarding, or set during an
+  // earlier session). Changing it requires the current PIN, so we have to know
+  // up front — otherwise the save fails with "Current PIN is incorrect".
+  const [hasExistingPin, setHasExistingPin] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    getPinStatus()
+      .then(({ hasPin }) => {
+        if (!active) return
+        setHasExistingPin(hasPin)
+        // A PIN already on file satisfies the setup requirement — don't force a change.
+        if (hasPin) setPinDone(true)
+      })
+      .catch(() => {
+        /* Non-fatal: fall back to the first-time-setup form. */
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const savePin = async () => {
     if (!/^\d{6}$/.test(pin)) {
@@ -28,14 +51,19 @@ export function SecuritySetupScreen() {
       setError("The PINs do not match.")
       return
     }
+    if (hasExistingPin && !/^\d{4,6}$/.test(currentPin)) {
+      setError("Enter your current PIN to change it.")
+      return
+    }
     setBusy("pin")
     setError("")
     try {
-      await setPin(pin)
+      await setPin(pin, hasExistingPin ? currentPin : undefined)
       setPinDone(true)
       setShowPinForm(false)
       setPinValue("")
       setConfirm("")
+      setCurrentPin("")
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "We couldn't save your PIN.")
     } finally {
@@ -108,23 +136,36 @@ export function SecuritySetupScreen() {
           </button>
 
           <button
-            onClick={() => !pinDone && setShowPinForm((value) => !value)}
+            onClick={() => setShowPinForm((value) => !value)}
             disabled={busy !== null}
             className="onboarding-choice"
             aria-expanded={showPinForm}
           >
             <Grid3X3 />
-            <span><strong>Wallet PIN</strong><small>Use a 6-digit PIN to approve<br />transactions</small></span>
+            <span>
+              <strong>Wallet PIN</strong>
+              <small>
+                {hasExistingPin
+                  ? <>Your PIN is set. Tap to<br />change it</>
+                  : <>Use a 6-digit PIN to approve<br />transactions</>}
+              </small>
+            </span>
             {pinDone ? <Check /> : <ChevronRight />}
           </button>
 
-          {showPinForm && !pinDone && (
+          {showPinForm && (
             <div className="onboarding-pin-form">
-              <input value={pin} onChange={(event) => setPinValue(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" type="password" autoComplete="new-password" aria-label="New wallet PIN" placeholder="6-digit PIN" />
+              {hasExistingPin && (
+                <input className="onboarding-pin-form__full" value={currentPin} onChange={(event) => setCurrentPin(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" type="password" autoComplete="current-password" aria-label="Current wallet PIN" placeholder="Current PIN" />
+              )}
+              <input value={pin} onChange={(event) => setPinValue(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" type="password" autoComplete="new-password" aria-label="New wallet PIN" placeholder={hasExistingPin ? "New 6-digit PIN" : "6-digit PIN"} />
               <input value={confirm} onChange={(event) => setConfirm(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" type="password" autoComplete="new-password" aria-label="Confirm wallet PIN" placeholder="Confirm PIN" />
               <button onClick={savePin} disabled={busy !== null} className="onboarding-primary">
-                {busy === "pin" ? <Loader2 className="animate-spin" /> : "Set wallet PIN"}
+                {busy === "pin" ? <Loader2 className="animate-spin" /> : hasExistingPin ? "Change wallet PIN" : "Set wallet PIN"}
               </button>
+              {hasExistingPin && (
+                <p className="onboarding-hint">Forgot your current PIN? Reset it from Settings after signing in again.</p>
+              )}
             </div>
           )}
         </div>

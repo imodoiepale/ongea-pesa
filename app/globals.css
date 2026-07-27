@@ -454,10 +454,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .ongea-wordmark { display: inline-flex; align-items: center; gap: .7rem; font-family: var(--font-label); }
 .ongea-wordmark strong { display: block; font-size: clamp(.88rem, 3.6vw, 1.15rem); letter-spacing: -.035em; }
 .ongea-wordmark small { display: block; margin-top: .12rem; text-align: center; font-size: .42rem; letter-spacing: .32em; opacity: .72; }
-.orbital-mark { position: relative; display: inline-block; flex: none; border-radius: 999px; background: radial-gradient(circle, white 0 4%, hsl(var(--cyan)) 5% 10%, hsl(var(--teal)) 11% 24%, transparent 25%); filter: drop-shadow(0 0 7px hsl(var(--cyan) / .55)); }
-.orbital-mark__ring { position: absolute; inset: 18%; border: 1px solid hsl(var(--cyan) / .9); border-radius: 50%; transform: rotate(24deg) scaleX(1.5); }
-.orbital-mark__ring--two { transform: rotate(-44deg) scaleX(1.45); border-color: hsl(var(--mint) / .8); }
-.orbital-mark__core { position: absolute; inset: 38%; border-radius: 50%; background: white; box-shadow: 0 0 9px hsl(var(--cyan)); }
+.orbital-mark { position: relative; display: inline-block; flex: none; border-radius: 999px; filter: drop-shadow(0 0 7px hsl(var(--cyan) / .45)); }
+.orbital-mark img { object-fit: contain; }
 .voice-core { position: relative; width: min(82vw, 27rem); aspect-ratio: 1; isolation: isolate; }
 .voice-core::after { content: ""; position: absolute; inset: 22%; border-radius: 50%; box-shadow: 0 0 70px hsl(var(--cyan) / .22); z-index: -1; }
 .voice-glyph { width: 2.4rem; height: 2.4rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid currentColor; }
@@ -470,7 +468,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: no-preference) {
   @keyframes orbital-turn { to { transform: rotate(360deg); } }
   @keyframes orbital-breathe { 50% { transform: scale(1.025); filter: saturate(1.15); } }
-  .orbital-mark__ring { animation: orbital-turn 9s linear infinite; }
+  .orbital-mark img { animation: orbital-turn 18s linear infinite; }
   .voice-core img { animation: orbital-breathe 3.8s ease-in-out infinite; }
 }
 
@@ -1256,6 +1254,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   font-size: 11px;
 }
 .onboarding-pin-form button { grid-column: 1 / -1; min-height: 44px; }
+/* Current-PIN field sits above the new/confirm pair when changing an existing PIN. */
+.onboarding-pin-form input.onboarding-pin-form__full { grid-column: 1 / -1; }
+.onboarding-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.4;
+  opacity: .62;
+}
 .onboarding-security__privacy {
   display: flex;
   margin-top: 10px;

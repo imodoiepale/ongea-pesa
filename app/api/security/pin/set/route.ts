@@ -3,6 +3,30 @@ import bcrypt from 'bcryptjs';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { logSecurityEvent, requestContext } from '@/lib/services/auditService';
 
+// Whether this account already has a wallet PIN. The onboarding screen needs
+// this to decide between "set a PIN" and "change your PIN" (the latter must
+// collect the current PIN). Returns a boolean only — never the hash.
+export async function GET() {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const admin = createServiceClient();
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('pin_hash')
+      .eq('id', user.id)
+      .single();
+
+    return NextResponse.json({ hasPin: Boolean(profile?.pin_hash) });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Failed to read PIN status' }, { status: 500 });
+  }
+}
+
 // Set or change the wallet PIN. Requires an authenticated session.
 // If a PIN already exists, the current PIN must be supplied to change it.
 export async function POST(request: NextRequest) {

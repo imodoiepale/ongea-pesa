@@ -18,6 +18,13 @@ export interface StartPhoneLoginResult {
 
 // Client helpers for the security layer. All return data or throw on error.
 
+/** Whether this account already has a wallet PIN (so callers know to ask for the current one). */
+export async function getPinStatus(): Promise<{ hasPin: boolean }> {
+  const res = await fetch('/api/security/pin/set');
+  if (!res.ok) throw new Error((await res.json()).error || 'Failed to read PIN status');
+  return res.json();
+}
+
 export async function setPin(pin: string, currentPin?: string): Promise<void> {
   const res = await fetch('/api/security/pin/set', {
     method: 'POST',
