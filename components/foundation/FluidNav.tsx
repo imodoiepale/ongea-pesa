@@ -84,7 +84,7 @@ export function FluidNav({
         className
       )}
     >
-      <div className="flex items-center justify-around h-[4.6rem] px-2 max-w-lg mx-auto">
+      <div className="flex items-center justify-around h-16 px-2 max-w-lg mx-auto">
         {items.map((item) => {
           const active = isActive(item)
           const Icon = item.icon

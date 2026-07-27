@@ -1387,7 +1387,7 @@ export default function PaymentScanner({ onNavigate, variant = 'page', autoStart
 
   if (isScanning) {
     return (
-      <div className="min-h-[100dvh] bg-background surface-money pb-24">
+      <div className="min-h-[100dvh] bg-background surface-money pb-nav">
         <ScreenShell className="pt-0">
           {/* Scan Result Display - Show immediately when detected */}
           {scanResult && !showBatchSummary && renderScanResult()}

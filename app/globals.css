@@ -371,10 +371,18 @@
 }
 
 html { scroll-behavior: smooth; }
-body { min-height: 100dvh; overflow-x: hidden; font-feature-settings: "kern", "liga"; background: hsl(var(--pearl)); }
+/* overscroll-behavior-y: none stops the document-level rubber-band bounce so
+   the installed PWA scrolls like a native app, not a web page. */
+body { min-height: 100dvh; overflow-x: hidden; overscroll-behavior-y: none; font-feature-settings: "kern", "liga"; background: hsl(var(--pearl)); }
 .dark body { background: hsl(var(--abyss)); }
 button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid hsl(var(--mint)); outline-offset: 3px; }
+
+/* Canonical bottom-nav clearance — FluidNav row (4rem) + iOS home-indicator
+   safe area. Screens that scroll under the fixed nav pad with .pb-nav. */
+:root { --bottom-nav-h: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+.pb-nav { padding-bottom: calc(var(--bottom-nav-h) + 1.5rem); }
+@media (min-width: 1024px) { .pb-nav { padding-bottom: 2rem; } }
 
 .orbital-page {
   min-height: 100dvh;

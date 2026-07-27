@@ -72,7 +72,7 @@ export default function VoiceTest({ onNavigate }: VoiceTestProps) {
   }
 
   return (
-    <div className="min-h-screen p-4 pb-20">
+    <div className="min-h-screen p-4 pb-nav">
       {/* Header */}
       <div className="flex items-center mb-6 pt-8">
         <Button variant="ghost" size="icon" onClick={() => onNavigate("dashboard")} className="mr-3">

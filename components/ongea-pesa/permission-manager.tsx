@@ -184,7 +184,7 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
   }
 
   return (
-    <main id="main-content" className="orbital-page min-h-[100dvh] pb-24">
+    <main id="main-content" className="orbital-page min-h-[100dvh] pb-nav">
       <ScreenShell>
         {/* Header */}
         <div className="pt-6 mb-6 text-center">

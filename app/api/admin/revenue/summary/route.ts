@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { isAdminEmail } from '@/lib/admin';
 
 // Platform fee percentage
 const PLATFORM_FEE_PERCENTAGE = 0.005; // 0.5%
@@ -16,9 +17,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Admin gate: only ADMIN_EMAILS may access revenue data
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map((e) => e.trim().toLowerCase());
-    if (!user.email || !adminEmails.includes(user.email.toLowerCase())) {
+    // Admin gate — shared allowlist (lib/admin.ts), same list the pages use
+    if (!isAdminEmail(user.email)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

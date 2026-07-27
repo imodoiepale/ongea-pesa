@@ -137,7 +137,7 @@ export default function TransactionHistory() {
   const visibleTransactions = transactions.filter((tx) => `${getTransactionDetails(tx)} ${tx.type} ${tx.status}`.toLowerCase().includes(query.toLowerCase()));
 
   return (
-    <main id="main-content" className="orbital-page min-h-[100dvh] pb-24">
+    <main id="main-content" className="orbital-page min-h-[100dvh] pb-nav">
       <ScreenShell className="max-w-3xl">
         {/* header — back arrow + title + refresh */}
         <div className="flex items-center gap-2 pt-6 mb-6">

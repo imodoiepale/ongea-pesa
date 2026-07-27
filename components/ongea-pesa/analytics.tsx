@@ -40,7 +40,7 @@ export default function Analytics({ onNavigate }: AnalyticsProps) {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background surface-money pb-24">
+    <div className="min-h-[100dvh] bg-background surface-money pb-nav">
       <ScreenShell className="pt-0">
         {/* back header */}
         <div className="flex items-center gap-3 pt-6 mb-6">

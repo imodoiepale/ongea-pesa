@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import { ScreenShell } from "@/components/foundation"
+import { ScreenShell, FluidNav, mobileNavItems } from "@/components/foundation"
 import {
   Users, Plus, RefreshCw, Eye, Trash2, UserPlus, Search,
   Upload, X, Wallet, User, Calendar, Zap, Send, Shuffle,
@@ -711,7 +711,7 @@ export default function ChamaPage() {
       </header>
 
       <ScreenShell>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-nav">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
           <div><h2 className="text-xl font-bold text-foreground">Chama Collections</h2><p className="text-sm text-muted-foreground">Manage group savings & contributions</p></div>
@@ -1992,6 +1992,7 @@ export default function ChamaPage() {
       </ScreenShell>
       <StepUpSheet open={showPayoutStepUp} title="Approve payout" description={selectedChama ? `Send the collected ${selectedChama.name} cycle to its recipient.` : undefined} onClose={() => setShowPayoutStepUp(false)} onVerified={distributeCollectedCycle} />
       {payoutError && <p className="fixed bottom-24 left-1/2 z-[90] -translate-x-1/2 rounded-full bg-red-600 px-4 py-2 text-sm text-white" role="alert">{payoutError}</p>}
+      <FluidNav items={mobileNavItems} />
     </main>
   )
 }

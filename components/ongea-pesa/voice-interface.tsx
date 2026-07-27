@@ -270,7 +270,11 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   }
 
   return (
-    <main id="main-content" className="orbital-page min-h-[100dvh] flex flex-col relative overflow-hidden">
+    <main
+      id="main-content"
+      className="orbital-page h-[100dvh] min-h-0 flex flex-col relative overflow-hidden pb-[var(--bottom-nav-h)] lg:pb-0"
+    >
+      {/* Height is locked to one viewport; nav clearance stays inside the screen. */}
       {/* Dark voice orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-[hsl(var(--voice-accent))] opacity-[0.04] blur-3xl animate-blob" />
@@ -278,8 +282,8 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-[hsl(var(--brand))] opacity-[0.03] blur-3xl animate-blob animation-delay-4000" />
       </div>
 
-      {/* Header */}
-      <div className="flex items-center justify-between pt-6 pb-4 px-5 relative z-10">
+      {/* Header — top padding respects the notch/status bar in standalone PWA mode */}
+      <div className="flex items-center justify-between pt-[max(1.5rem,calc(env(safe-area-inset-top,0px)+0.5rem))] pb-4 px-5 relative z-10">
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => onNavigate('dashboard')}
@@ -352,8 +356,9 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
         </div>
       )}
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-5 relative z-10 gap-5">
+      {/* Main content — centers when it fits, scrolls internally only if it overflows */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-5 relative z-10">
+        <div className="min-h-full flex flex-col items-center justify-center gap-5 py-2">
         <h1 className="orbital-display text-[2.5rem]">Voice Assistant</h1>
         <p className="font-[family-name:var(--font-display)] text-xl text-[hsl(var(--teal))]">{isConnected ? "Tuma elfu mbili kwa Mum" : "Speak naturally"}</p>
         <VoiceNodeField
@@ -419,6 +424,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
               End session
             </button>
           )}
+        </div>
         </div>
       </div>
 

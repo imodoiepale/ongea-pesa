@@ -152,7 +152,7 @@ export default function SendMoney({ onNavigate }: SendMoneyProps) {
   const canSend = !!amount && parseFloat(amount) > 0 && (!!selectedContact || !!phoneNumber)
 
   return (
-    <div className="min-h-[100dvh] bg-background surface-money pb-32">
+    <div className="min-h-[100dvh] bg-background surface-money pb-nav">
       <ScreenShell className="pt-0">
 
         {/* Header */}

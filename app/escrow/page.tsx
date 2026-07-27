@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { ScreenShell, PageHeader } from "@/components/foundation"
+import { ScreenShell, PageHeader, FluidNav, mobileNavItems } from "@/components/foundation"
 import {
   Shield, Plus, Clock, CheckCircle, AlertTriangle, Users, Lock, Unlock,
   FileText, DollarSign, RefreshCw, Eye, Trash2, UserPlus, Scale,
@@ -401,7 +401,7 @@ export default function EscrowPage() {
 
   return (
     <main id="main-content" className="orbital-page min-h-[100dvh]">
-      <ScreenShell className="pt-0 pb-28">
+      <ScreenShell className="pt-0 pb-nav">
         {/* Page Header */}
         <PageHeader title="Protected deals" subtitle="Hold funds safely until everyone agrees">
           <Button
@@ -1041,6 +1041,7 @@ export default function EscrowPage() {
       <StepUpSheet open={showReleaseStepUp} title="Release funds" description={selectedEscrow ? `Approve the release from ${selectedEscrow.title}.` : undefined} onClose={() => setShowReleaseStepUp(false)} onVerified={releaseEscrow} />
       {showDisputeSheet && <div className="fixed inset-0 z-[80] flex items-end justify-center bg-[hsl(var(--abyss)/.58)] backdrop-blur-sm"><section className="orbital-page w-full max-w-lg rounded-t-[2rem] p-6"><h2 className="orbital-display text-4xl">Raise a dispute</h2><p className="mt-2 text-sm opacity-60">Funds will remain held while the issue is reviewed.</p><textarea value={disputeReason} onChange={(event) => setDisputeReason(event.target.value)} className="orbital-field mt-6 min-h-32 resize-none" placeholder="Describe what went wrong" /><div className="mt-5 grid grid-cols-2 gap-3"><button onClick={() => setShowDisputeSheet(false)} className="orbital-button orbital-button--quiet">Cancel</button><button onClick={raiseDispute} disabled={actionBusy} className="orbital-button">{actionBusy ? "Submitting…" : "Hold funds"}</button></div></section></div>}
       {actionError && <p className="fixed bottom-24 left-1/2 z-[90] -translate-x-1/2 rounded-full bg-red-600 px-4 py-2 text-sm text-white" role="alert">{actionError}</p>}
+      <FluidNav items={mobileNavItems} />
     </main>
   )
 }

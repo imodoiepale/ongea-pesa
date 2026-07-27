@@ -184,7 +184,8 @@ function AppShell({ initialScreen = "dashboard" }: { initialScreen?: Screen }) {
   }
 
   return (
-    <div className="relative z-[1] min-h-[100dvh] bg-transparent pb-20 lg:pb-0">
+    <div className="relative z-[1] min-h-[100dvh] bg-transparent">
+      {/* Each screen owns its bottom-nav clearance; adding it here causes overscroll. */}
       <OrbitalBackdrop scene={scanOverlay !== null ? "scanner" : backdropScene[currentScreen]} />
       <div className="relative z-[1]">{renderScreen()}</div>
 

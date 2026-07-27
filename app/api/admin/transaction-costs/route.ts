@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { isAdminEmail } from '@/lib/admin';
 
 // Admin-only transaction cost & revenue breakdown endpoint.
 // Calls get_revenue_summary() and get_revenue_totals() RPCs defined in migration 021.
-// Guarded by ADMIN_EMAILS env var; uses the service role client to bypass RLS.
+// Guarded by the shared admin allowlist; uses the service role client to bypass RLS.
 export async function GET(request: NextRequest) {
   // 1. Authenticate via browser session
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  // 2. Admin gate via ADMIN_EMAILS env var
-  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map((e) => e.trim().toLowerCase());
-  if (!user.email || !adminEmails.includes(user.email.toLowerCase())) {
+  // 2. Admin gate — shared allowlist (lib/admin.ts)
+  if (!isAdminEmail(user.email)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
