@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { PLATFORM_FEE_RATE, platformFee } from "@/lib/transaction-fees"
 import {
   RefreshCw,
   Search,
@@ -28,8 +29,25 @@ import {
   X,
 } from "lucide-react"
 
-// Platform fee rate: 0.5% (correct rate — used as fallback for legacy rows without persisted platform_fee)
-const PLATFORM_FEE_RATE = 0.005
+const PROVIDER_LABELS: Record<string, string> = {
+  ncba_stk: "NCBA STK",
+  ncba: "NCBA",
+  safaricom_stk: "Safaricom STK",
+  daraja: "M-Pesa Daraja",
+  mpesa: "M-Pesa",
+  indexpay: "IndexPay",
+  internal: "Internal Wallet",
+}
+
+const providerLabel = (provider?: string | null) => {
+  if (!provider) return "—"
+  return PROVIDER_LABELS[provider.toLowerCase()] ?? provider
+}
+
+// Deposit rails record the Safaricom paybill tariff for transparency, but the customer
+// pays it to Safaricom — it is never an Ongea Pesa expense.
+const isCustomerBorneCost = (tx: Transaction) =>
+  tx.metadata?.cost_bearer === "customer" || tx.type?.toLowerCase() === "deposit"
 
 interface Transaction {
   id: string
@@ -44,6 +62,9 @@ interface Transaction {
   description?: string
   created_at: string
   source?: string
+  provider?: string | null
+  transaction_cost?: number | null
+  metadata?: { cost_bearer?: string; rail?: string; [key: string]: any } | null
   profiles?: {
     email?: string
     phone_number?: string
@@ -113,14 +134,10 @@ export default function TransactionsPage() {
       // Use persisted platform_fee from DB (migration 021) with fallback for legacy rows.
       const supabaseTx = (supabaseData || []).map(tx => {
         const amount = tx.amount || 0
-        const isDeposit = tx.type?.toLowerCase() === "deposit" || tx.type?.toLowerCase() === "receive"
+        const fallbackFee = platformFee(amount, tx.type?.toLowerCase())
         const persistedFee = parseFloat(String(tx.platform_fee ?? 0))
-        const resolvedFee = isDeposit
-          ? 0
-          : persistedFee > 0
-            ? persistedFee
-            : amount * PLATFORM_FEE_RATE
-        const feeRate = isDeposit ? 0 : PLATFORM_FEE_RATE * 100 // 0.5% or 0% for deposits
+        const resolvedFee = persistedFee > 0 ? persistedFee : fallbackFee
+        const feeRate = fallbackFee > 0 ? PLATFORM_FEE_RATE * 100 : 0
         return {
           ...tx,
           platform_fee: resolvedFee,
@@ -151,18 +168,19 @@ export default function TransactionsPage() {
             
             indexPayTx = txList.map((tx: IndexPayTransaction) => {
               const amount = parseFloat(tx.trans_amount || "0")
-              const isDeposit = tx.trans_type?.toLowerCase() === "deposit"
+              const fee = platformFee(amount, tx.trans_type?.toLowerCase())
               return {
                 id: tx.trans_id || `ip_${Date.now()}_${Math.random()}`,
                 user_id: "",
                 type: tx.trans_type || "unknown",
                 amount: amount,
-                platform_fee: isDeposit ? 0 : amount * PLATFORM_FEE_RATE,
-                fee_rate: isDeposit ? 0 : PLATFORM_FEE_RATE * 100,
+                platform_fee: fee,
+                fee_rate: fee > 0 ? PLATFORM_FEE_RATE * 100 : 0,
                 status: tx.trans_status || "completed",
                 description: tx.description || tx.gate_name || tx.pocket_name,
                 created_at: tx.trans_date || new Date().toISOString(),
                 source: "indexpay",
+                provider: "indexpay",
                 profiles: { email: tx.gate_name }
               }
             })
@@ -480,12 +498,15 @@ export default function TransactionsPage() {
                         <td className="px-3 py-2 text-center">
                           <span className={cn(
                             "px-1.5 py-0.5 rounded text-[10px] font-medium",
-                            tx.source === "supabase" 
+                            tx.source === "supabase"
                               ? "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
                               : "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                           )}>
                             {tx.source}
                           </span>
+                          {tx.provider && (
+                            <p className="mt-0.5 text-[10px] text-muted-foreground">{providerLabel(tx.provider)}</p>
+                          )}
                         </td>
                         <td className="px-3 py-2 text-center">
                           {expandedRow === tx.id ? (
@@ -535,6 +556,28 @@ export default function TransactionsPage() {
                               <div>
                                 <p className="text-muted-foreground dark:text-muted-foreground mb-1">Platform Fee ({tx.fee_rate?.toFixed(3) || "0.000"}%)</p>
                                 <p className="text-brand font-semibold">{formatCurrency(tx.platform_fee || 0)}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground dark:text-muted-foreground mb-1">Provider</p>
+                                <p className="text-foreground">{providerLabel(tx.provider)}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground dark:text-muted-foreground mb-1">Transaction Cost</p>
+                                <div className="flex items-center gap-1.5">
+                                  <p className={cn(
+                                    "font-semibold",
+                                    isCustomerBorneCost(tx)
+                                      ? "text-muted-foreground"
+                                      : "text-red-600 dark:text-red-400"
+                                  )}>
+                                    {formatCurrency(Number(tx.transaction_cost ?? 0))}
+                                  </p>
+                                  {isCustomerBorneCost(tx) && Number(tx.transaction_cost ?? 0) > 0 && (
+                                    <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-medium">
+                                      customer-paid
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </td>

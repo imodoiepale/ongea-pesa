@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { ArrowDownLeft, ArrowUpRight, ShoppingCart, CreditCard, Smartphone, Building, RefreshCw, ArrowLeft, Users } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, ShoppingCart, CreditCard, Smartphone, Building, RefreshCw, ArrowLeft, Users, Search, SlidersHorizontal } from 'lucide-react';
 import DependantsSheet from './dependants-sheet';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
@@ -9,9 +9,7 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { useRouter } from 'next/navigation';
 import { ScreenShell, FluidNav, mobileNavItems } from '@/components/foundation';
 import { cn } from '@/lib/utils';
-
-// Transaction fee rate: 0.05% = 0.0005
-const TRANSACTION_FEE_RATE = 0.0005;
+import { platformFee } from '@/lib/transaction-fees';
 
 interface Transaction {
   id: string;
@@ -74,9 +72,9 @@ const getTransactionDetails = (tx: Transaction) => {
   return getTransactionLabel(tx.type);
 };
 
-const calculateFee = (amount: number): number => {
-  // Fee = amount * 0.05% = amount * 0.0005
-  return amount * TRANSACTION_FEE_RATE;
+const calculateFee = (tx: Transaction): number => {
+  const persisted = tx.platform_fee ?? 0;
+  return persisted > 0 ? persisted : platformFee(tx.amount, tx.type);
 };
 
 const isDebitTransaction = (type: string): boolean => {
@@ -90,6 +88,7 @@ export default function TransactionHistory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDependantsOpen, setIsDependantsOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const supabase = createClient();
 
   const fetchTransactions = async () => {
@@ -135,9 +134,11 @@ export default function TransactionHistory() {
     return isDebit ? `- KSh ${formatted}` : `+ KSh ${formatted}`;
   };
 
+  const visibleTransactions = transactions.filter((tx) => `${getTransactionDetails(tx)} ${tx.type} ${tx.status}`.toLowerCase().includes(query.toLowerCase()));
+
   return (
-    <div className="min-h-[100dvh] bg-background surface-money pb-24">
-      <ScreenShell>
+    <main id="main-content" className="orbital-page min-h-[100dvh] pb-24">
+      <ScreenShell className="max-w-3xl">
         {/* header — back arrow + title + refresh */}
         <div className="flex items-center gap-2 pt-6 mb-6">
           <Button
@@ -149,8 +150,9 @@ export default function TransactionHistory() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Transactions</h1>
-            <p className="text-sm text-muted-foreground">{transactions.length} records • 0.05% fee</p>
+            <span className="orbital-label flex items-center gap-2"><i className="h-2 w-2 rounded-full bg-[hsl(var(--mint))]" />Transactions</span>
+            <h1 className="orbital-display mt-4 text-5xl">Transactions</h1>
+            <p className="text-sm text-muted-foreground">{transactions.length} records • 0.5% fee</p>
           </div>
           <button
             onClick={() => setIsDependantsOpen(true)}
@@ -163,6 +165,8 @@ export default function TransactionHistory() {
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
+
+        <label className="relative mb-7 block"><span className="sr-only">Search transactions</span><Search className="absolute left-4 top-4 h-4 w-4 opacity-45" /><input className="orbital-field pl-11 pr-12" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search transactions" /><SlidersHorizontal className="pointer-events-none absolute right-4 top-4 h-4 w-4 opacity-45" /></label>
 
         {/* loading */}
         {loading && (
@@ -190,10 +194,10 @@ export default function TransactionHistory() {
 
         {/* list — flat rows in hairline card container */}
         {!loading && !error && transactions.length > 0 && (
-          <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
-            {transactions.map((tx) => {
+          <div className="divide-y divide-black/8 dark:divide-white/8">
+            {visibleTransactions.map((tx) => {
               const isDebit = isDebitTransaction(tx.type);
-              const fee = isDebit ? calculateFee(tx.amount) : 0;
+              const fee = isDebit ? calculateFee(tx) : 0;
               return (
                 <div key={tx.id} className="flex items-center gap-3 px-4 py-3">
                   {/* Icon */}
@@ -242,6 +246,6 @@ export default function TransactionHistory() {
 
       {/* Canonical bottom nav — route mode (all items are Links, activeKey = "transactions") */}
       <FluidNav items={mobileNavItems} activeKey="transactions" />
-    </div>
+    </main>
   );
 }

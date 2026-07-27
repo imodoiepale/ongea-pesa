@@ -1,0 +1,16 @@
+{
+  "id": "ongea-apparel-01-polo-front",
+  "title": "Polo (Collared) — Front, Left-Breast Lockup",
+  "model_hint": "nano-banana / seedream-4 (good at apparel mockups)",
+  "aspect_ratio": "4:5",
+  "prompt": "Premium product mockup of a folded/flat polo collared shirt in deep charcoal-black with a teal undertone (#0A1A1F), ribbed collar, photographed top-down on a soft neutral studio surface with gentle shadows. On the wearer's left breast: a small refined embroidered lockup — the Ongea Pesa orbital emblem (glowing cyan #22D3EE core into teal #0FB5A6, two soundwave arcs, a green-to-cyan orbit ring) above the 'ONGEA PESA' wordmark in clean geometric uppercase white. Directly below, a small endorser mark 'by NSAIT' in a subtle violet-to-blue gradient (#6D28D9 to #2563EB) with a tiny sparkle glyph. The chest emblem ~85mm wide, tasteful and corporate-premium. Realistic fabric texture, true embroidery feel, studio catalog quality. No other graphics.",
+  "negative_prompt": "huge front print, busy patterns, purple emblem, microphone, dollar sign, wrinkled messy shirt, mannequin face, harsh neon, low-res, watermark, extra logos, distorted text",
+  "params": { "guidance": 7, "steps": 42, "placement": "left chest, ~180mm from shoulder" },
+  "brand_lock": {
+    "ongea_colors": ["#0FB5A6", "#22D3EE", "#34D399", "#FFFFFF"],
+    "nsait_colors": ["#6D28D9", "#2563EB"],
+    "garment": "#0A1A1F polo",
+    "front": "breast lockup only — Ongea emblem+wordmark, NSAIT below"
+  },
+  "notes": "Also render a Mist-white (#E6F7F5) polo variant with ink wordmark. Keep it clean and corporate — this is the boardroom version of the merch."
+}

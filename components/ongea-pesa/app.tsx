@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { UserProvider } from "@/contexts/UserContext"
 import { ElevenLabsProvider, useElevenLabs } from "@/contexts/ElevenLabsContext"
 import { Toaster } from "@/components/ui/toaster"
@@ -18,16 +19,18 @@ import BatchSend from "./batch-send"
 import PhoneSetupDialog from "./phone-setup-dialog"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from '@/lib/supabase/client'
-import { FluidNav, mobileNavItems } from "@/components/foundation"
+import { FluidNav, mobileNavItems, OrbitalBackdrop } from "@/components/foundation"
+import type { OrbitalBackdropScene } from "@/components/foundation"
 import type { BatchItem, BatchResponse } from '@/lib/batch-payments'
 
 type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner" | "batch"
 
 // Inner component — must be a child of ElevenLabsProvider to call useElevenLabs
-function AppShell() {
+function AppShell({ initialScreen = "dashboard" }: { initialScreen?: Screen }) {
+  const router = useRouter()
   const { user } = useAuth()
   const { registerToolHandlers, unregisterToolHandlers } = useElevenLabs()
-  const [currentScreen, setCurrentScreen] = useState<Screen>("dashboard")
+  const [currentScreen, setCurrentScreen] = useState<Screen>(initialScreen)
   const [isListening, setIsListening] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isPhoneSetupOpen, setIsPhoneSetupOpen] = useState(false)
@@ -89,11 +92,26 @@ function AppShell() {
     try {
       setCheckingMpesa(true)
       const supabase = createClient()
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('mpesa_number, pin_hash, phone_verified')
+        .select('*')
         .eq('id', user.id)
         .single()
+
+      if (profileError) throw profileError
+
+      const metadata = user.user_metadata || {}
+      const fullName = profile?.full_name || metadata.full_name || metadata.name
+      const voiceCalibratedAt = profile?.voice_calibrated_at || metadata.voice_calibrated_at
+      const onboardingCompletedAt = profile?.onboarding_completed_at || metadata.onboarding_completed_at
+
+      if (!onboardingCompletedAt) {
+        if (!fullName || !profile?.phone_number) router.replace('/profile-creation')
+        else if (!voiceCalibratedAt) router.replace('/voice-calibration')
+        else if (!profile?.pin_hash) router.replace('/security-setup')
+        else router.replace('/security-setup')
+        return
+      }
 
       // Show phone setup dialog if phone is not verified
       if (!profile?.phone_verified) {
@@ -153,9 +171,22 @@ function AppShell() {
     }
   }
 
+  const backdropScene: Record<Screen, OrbitalBackdropScene> = {
+    dashboard: "voice",
+    voice: "voice",
+    send: "transfer",
+    recurring: "planning",
+    analytics: "planning",
+    test: "voice",
+    permissions: "trust",
+    scanner: "scanner",
+    batch: "planning",
+  }
+
   return (
-    <div className="min-h-[100dvh] pb-20 lg:pb-0 bg-background">
-      {renderScreen()}
+    <div className="relative z-[1] min-h-[100dvh] bg-transparent pb-20 lg:pb-0">
+      <OrbitalBackdrop scene={scanOverlay !== null ? "scanner" : backdropScene[currentScreen]} />
+      <div className="relative z-[1]">{renderScreen()}</div>
 
       {/* Scan overlay — opens on top of the current screen; closing returns here.
           autoStart=true (voice path): camera begins immediately.
@@ -203,11 +234,11 @@ function AppShell() {
   )
 }
 
-export default function OngeaPesaApp() {
+export default function OngeaPesaApp({ initialScreen = "dashboard" }: { initialScreen?: Screen }) {
   return (
     <UserProvider>
       <ElevenLabsProvider>
-        <AppShell />
+        <AppShell initialScreen={initialScreen} />
       </ElevenLabsProvider>
     </UserProvider>
   )

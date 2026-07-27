@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import Layout from "@/components/kokonutui/layout"
 import { cn } from "@/lib/utils"
+import { PLATFORM_FEE_RATE } from "@/lib/transaction-fees"
 import {
   RefreshCw,
   TrendingDown,
@@ -11,6 +12,7 @@ import {
   Activity,
   Clock,
   AlertCircle,
+  Receipt,
 } from "lucide-react"
 import {
   AreaChart,
@@ -34,6 +36,7 @@ interface SummaryRow {
   gross_volume: number
   platform_revenue: number
   safaricom_cost: number
+  customer_borne_cost?: number | null
   net_margin: number
 }
 
@@ -41,6 +44,7 @@ interface Totals {
   total_volume: number
   total_revenue: number
   total_cost: number
+  total_customer_borne_cost?: number | null
   total_net_margin: number
   total_transactions: number
 }
@@ -50,6 +54,36 @@ const PERIOD_LABELS: Record<Period, string> = {
   "30d": "Last 30 Days",
   "90d": "Last 90 Days",
   "1y": "Last Year",
+}
+
+const SERIES_LABELS: Record<string, string> = {
+  revenue: "Platform Revenue",
+  cost: "Provider Cost (Ongea pays)",
+  customerCost: "Customer-Paid M-Pesa Charge",
+  platform_revenue: "Platform Revenue",
+  ongea_cost: "Provider Cost (Ongea pays)",
+  customer_cost: "Customer-Paid M-Pesa Charge",
+}
+
+const seriesLabel = (key: unknown) => SERIES_LABELS[String(key)] ?? String(key)
+
+// Deposit rails (NCBA STK, Safaricom STK) record the Safaricom paybill tariff on the row
+// for transparency, but the customer pays it — it is never an Ongea Pesa expense.
+const CUSTOMER_BORNE_TYPES = ["deposit"]
+
+const isCustomerBorneType = (type: string) =>
+  CUSTOMER_BORNE_TYPES.includes((type || "").toLowerCase())
+
+// Migration 025 makes the RPC split these itself. Before it is applied, safaricom_cost
+// still lumps both together, so classify by transaction type instead.
+const splitRowCost = (row: SummaryRow) => {
+  if (row.customer_borne_cost !== undefined && row.customer_borne_cost !== null) {
+    return { ongea: row.safaricom_cost ?? 0, customer: row.customer_borne_cost }
+  }
+  const cost = row.safaricom_cost ?? 0
+  return isCustomerBorneType(row.transaction_type)
+    ? { ongea: 0, customer: cost }
+    : { ongea: cost, customer: 0 }
 }
 
 export default function TransactionCostsPage() {
@@ -93,35 +127,61 @@ export default function TransactionCostsPage() {
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES" }).format(amount ?? 0)
 
-  // Build daily chart data: aggregate per bucket_date across all types
-  const dailyMap = new Map<string, { date: string; revenue: number; cost: number }>()
+  // Build daily chart data: aggregate per bucket_date, keeping customer-borne charges separate
+  const dailyMap = new Map<string, { date: string; revenue: number; cost: number; customerCost: number }>()
   for (const row of summary) {
-    const existing = dailyMap.get(row.bucket_date) ?? { date: row.bucket_date, revenue: 0, cost: 0 }
+    const existing = dailyMap.get(row.bucket_date) ?? { date: row.bucket_date, revenue: 0, cost: 0, customerCost: 0 }
+    const { ongea, customer } = splitRowCost(row)
     existing.revenue += row.platform_revenue ?? 0
-    existing.cost += row.safaricom_cost ?? 0
+    existing.cost += ongea
+    existing.customerCost += customer
     dailyMap.set(row.bucket_date, existing)
   }
   const dailyChartData = Array.from(dailyMap.values()).sort((a, b) => a.date.localeCompare(b.date))
 
   // Build type aggregation for bar chart and table
-  const typeMap = new Map<string, { type: string; tx_count: number; gross_volume: number; platform_revenue: number; safaricom_cost: number; net_margin: number }>()
+  const typeMap = new Map<string, {
+    type: string
+    tx_count: number
+    gross_volume: number
+    platform_revenue: number
+    ongea_cost: number
+    customer_cost: number
+  }>()
   for (const row of summary) {
+    const { ongea, customer } = splitRowCost(row)
     const existing = typeMap.get(row.transaction_type) ?? {
       type: row.transaction_type,
       tx_count: 0,
       gross_volume: 0,
       platform_revenue: 0,
-      safaricom_cost: 0,
-      net_margin: 0,
+      ongea_cost: 0,
+      customer_cost: 0,
     }
     existing.tx_count += row.tx_count ?? 0
     existing.gross_volume += row.gross_volume ?? 0
     existing.platform_revenue += row.platform_revenue ?? 0
-    existing.safaricom_cost += row.safaricom_cost ?? 0
-    existing.net_margin += row.net_margin ?? 0
+    existing.ongea_cost += ongea
+    existing.customer_cost += customer
     typeMap.set(row.transaction_type, existing)
   }
-  const typeBreakdown = Array.from(typeMap.values()).sort((a, b) => b.platform_revenue - a.platform_revenue)
+  // net_margin is recomputed here instead of using the RPC column, which subtracts
+  // customer-borne deposit charges from Ongea's margin.
+  const typeBreakdown = Array.from(typeMap.values())
+    .map((row) => ({ ...row, net_margin: row.platform_revenue - row.ongea_cost }))
+    .sort((a, b) => b.platform_revenue - a.platform_revenue)
+
+  // Migration 025 returns the split directly; before it is applied, total_cost still
+  // includes customer-borne charges and has to be netted off.
+  const rpcSplitsCost =
+    totals.total_customer_borne_cost !== undefined && totals.total_customer_borne_cost !== null
+  const customerBorneCost = rpcSplitsCost
+    ? (totals.total_customer_borne_cost as number)
+    : summary.reduce((sum, row) => sum + splitRowCost(row).customer, 0)
+  const providerCost = rpcSplitsCost
+    ? (totals.total_cost ?? 0)
+    : Math.max((totals.total_cost ?? 0) - customerBorneCost, 0)
+  const netMargin = (totals.total_revenue ?? 0) - providerCost
 
   const statCards = [
     {
@@ -136,21 +196,28 @@ export default function TransactionCostsPage() {
       value: formatCurrency(totals.total_revenue),
       icon: DollarSign,
       color: "text-brand",
-      description: "0.5% platform fee",
+      description: `${(PLATFORM_FEE_RATE * 100).toFixed(1)}% platform fee`,
     },
     {
-      label: "Safaricom Costs",
-      value: formatCurrency(totals.total_cost),
+      label: "Provider Costs",
+      value: formatCurrency(providerCost),
       icon: TrendingDown,
       color: "text-red-600 dark:text-red-400",
-      description: "B2C transaction charges",
+      description: "B2C charges Ongea Pesa pays",
+    },
+    {
+      label: "Customer-Paid Charges",
+      value: formatCurrency(customerBorneCost),
+      icon: Receipt,
+      color: "text-amber-600 dark:text-amber-400",
+      description: "Deposit tariff paid to Safaricom by customers",
     },
     {
       label: "Net Margin",
-      value: formatCurrency(totals.total_net_margin),
+      value: formatCurrency(netMargin),
       icon: Activity,
-      color: totals.total_net_margin >= 0 ? "text-brand" : "text-red-600 dark:text-red-400",
-      description: "Revenue minus Safaricom costs",
+      color: netMargin >= 0 ? "text-brand" : "text-red-600 dark:text-red-400",
+      description: "Revenue minus provider costs",
     },
   ]
 
@@ -162,7 +229,7 @@ export default function TransactionCostsPage() {
           <div>
             <h1 className="text-lg font-semibold text-foreground">Transaction Costs</h1>
             <p className="text-xs text-muted-foreground">
-              Platform revenue vs Safaricom B2C charges — {PERIOD_LABELS[period]}
+              Platform revenue vs provider charges Ongea Pesa pays — {PERIOD_LABELS[period]}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -231,12 +298,12 @@ export default function TransactionCostsPage() {
         )}>
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span>
-            <strong>Note:</strong> Safaricom <code>TransactionCost</code> only appears on B2C payouts (withdrawals &amp; chama disbursements). STK Push deposits carry no explicit per-transaction charge from Safaricom.
+            <strong>Note:</strong> Only B2C payouts (withdrawals, bill pay &amp; chama disbursements) carry a <code>transaction_cost</code> Ongea Pesa actually bears. NCBA STK and Safaricom STK deposits record the Safaricom paybill tariff for transparency only — the customer pays it, so it is excluded from Provider Costs and Net Margin.
           </span>
         </div>
 
         {/* Stat cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {statCards.map((stat, i) => (
             <div
               key={i}
@@ -269,7 +336,7 @@ export default function TransactionCostsPage() {
                 <div className={cn("p-2 rounded-lg bg-muted")}>
                   <Activity className="w-4 h-4 text-brand" />
                 </div>
-                <h2 className="text-sm font-semibold text-foreground">Daily Revenue vs Safaricom Costs</h2>
+                <h2 className="text-sm font-semibold text-foreground">Daily Revenue vs Provider Costs</h2>
               </div>
             </div>
             <div className="p-4 h-[220px]">
@@ -283,6 +350,10 @@ export default function TransactionCostsPage() {
                     <linearGradient id="costGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
                       <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="customerCostGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -298,10 +369,7 @@ export default function TransactionCostsPage() {
                     tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`}
                   />
                   <Tooltip
-                    formatter={(value: number, name: string) => [
-                      formatCurrency(value),
-                      name === "revenue" ? "Platform Revenue" : "Safaricom Cost",
-                    ]}
+                    formatter={(value: number, name: string) => [formatCurrency(value), seriesLabel(name)]}
                     labelFormatter={(l) =>
                       new Date(l).toLocaleDateString("en-KE", {
                         weekday: "short",
@@ -310,7 +378,7 @@ export default function TransactionCostsPage() {
                       })
                     }
                   />
-                  <Legend formatter={(v) => (v === "revenue" ? "Platform Revenue" : "Safaricom Cost")} />
+                  <Legend formatter={(v) => seriesLabel(v)} />
                   <Area
                     type="monotone"
                     dataKey="revenue"
@@ -324,6 +392,14 @@ export default function TransactionCostsPage() {
                     stroke="#ef4444"
                     fill="url(#costGrad)"
                     strokeWidth={2}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="customerCost"
+                    stroke="#f59e0b"
+                    fill="url(#customerCostGrad)"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -347,18 +423,12 @@ export default function TransactionCostsPage() {
                   <XAxis dataKey="type" tick={{ fontSize: 9 }} />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
                   <Tooltip
-                    formatter={(value: number, name: string) => [
-                      formatCurrency(value),
-                      name === "platform_revenue" ? "Platform Revenue" : "Safaricom Cost",
-                    ]}
+                    formatter={(value: number, name: string) => [formatCurrency(value), seriesLabel(name)]}
                   />
-                  <Legend
-                    formatter={(v) =>
-                      v === "platform_revenue" ? "Platform Revenue" : "Safaricom Cost"
-                    }
-                  />
+                  <Legend formatter={(v) => seriesLabel(v)} />
                   <Bar dataKey="platform_revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="safaricom_cost" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="ongea_cost" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="customer_cost" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -384,21 +454,22 @@ export default function TransactionCostsPage() {
                   <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Count</th>
                   <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Gross Volume</th>
                   <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Platform Revenue</th>
-                  <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Safaricom Cost</th>
+                  <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Provider Cost</th>
+                  <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Customer-Paid</th>
                   <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Net Margin</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-3 py-8 text-center">
+                    <td colSpan={8} className="px-3 py-8 text-center">
                       <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-1 text-muted-foreground" />
                       <p className="text-muted-foreground">Loading...</p>
                     </td>
                   </tr>
                 ) : typeBreakdown.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">
+                    <td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">
                       No completed transactions in this period
                     </td>
                   </tr>
@@ -419,7 +490,19 @@ export default function TransactionCostsPage() {
                         {formatCurrency(row.platform_revenue)}
                       </td>
                       <td className="px-3 py-2 text-right font-mono text-red-600 dark:text-red-400">
-                        {formatCurrency(row.safaricom_cost)}
+                        {formatCurrency(row.ongea_cost)}
+                      </td>
+                      <td className="px-3 py-2 text-right font-mono text-muted-foreground">
+                        {row.customer_cost > 0 ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-medium">
+                              customer-paid
+                            </span>
+                            {formatCurrency(row.customer_cost)}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
                       </td>
                       <td className={cn(
                         "px-3 py-2 text-right font-mono font-medium",
@@ -445,15 +528,18 @@ export default function TransactionCostsPage() {
                       {formatCurrency(totals.total_revenue)}
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-red-600 dark:text-red-400 text-xs">
-                      {formatCurrency(totals.total_cost)}
+                      {formatCurrency(providerCost)}
+                    </td>
+                    <td className="px-3 py-2 text-right font-mono text-amber-600 dark:text-amber-400 text-xs">
+                      {formatCurrency(customerBorneCost)}
                     </td>
                     <td className={cn(
                       "px-3 py-2 text-right font-mono text-xs",
-                      totals.total_net_margin >= 0
+                      netMargin >= 0
                         ? "text-brand"
                         : "text-red-600 dark:text-red-400"
                     )}>
-                      {formatCurrency(totals.total_net_margin)}
+                      {formatCurrency(netMargin)}
                     </td>
                   </tr>
                 </tfoot>

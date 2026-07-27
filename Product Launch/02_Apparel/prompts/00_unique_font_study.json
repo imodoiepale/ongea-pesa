@@ -1,0 +1,15 @@
+{
+  "id": "ongea-apparel-00-unique-font",
+  "title": "Ongea Pesa — Custom Display Font Specimen",
+  "model_hint": "ideogram-v2 (best text) / nano-banana / seedream-4",
+  "aspect_ratio": "16:9",
+  "prompt": "A custom display-typography specimen for the word 'ONGEA PESA' for a voice-first African fintech. Bespoke wide, tall, athletic uppercase letterforms — slightly extended/stretched, confident and modern with a tech edge. The 'O' in ONGEA has a custom cut that echoes an orbital ring (a thin gap and an inner dot, like a small planet). A subtle soundwave underline runs beneath the wordmark in a green-to-cyan gradient (#34D399 to #22D3EE). Two rows shown: top row 'ONGEA PESA' in white on a deep near-black teal background (#0A1A1F); bottom row the same word in Deep Voice Teal (#0FB5A6) on white. Crisp, even strokes, generous tracking, premium sports/streetwear lettering quality, perfectly spelled, no distortion.",
+  "negative_prompt": "misspelling, jumbled letters, extra letters, purple wordmark, serif, thin fragile strokes, drop shadow, photo, 3D extrude, busy background, lorem ipsum, clipart, distorted text",
+  "params": { "guidance": 7.5, "steps": 45, "text_accuracy": "critical — must read ONGEA PESA exactly" },
+  "brand_lock": {
+    "string": "ONGEA PESA",
+    "colors": ["#FFFFFF", "#0FB5A6", "#34D399", "#22D3EE", "#0A1A1F"],
+    "signature": "orbital cut in the O + soundwave underline"
+  },
+  "notes": "This defines the merch display font. The big hoodie back print reuses this exact lettering. Reserve for hero merch — never UI."
+}

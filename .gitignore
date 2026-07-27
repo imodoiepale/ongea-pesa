@@ -6,6 +6,8 @@
 # next.js
 /.next/
 /out/
+/playwright-report/
+/test-results/
 
 # production
 /build
@@ -28,6 +30,9 @@ next-env.d.ts
 
 # MCP server config (contains API keys)
 .mcp.json
+
+# Codex CLI config (contains ElevenLabs API key + n8n bearer token)
+.codex/
 
 # graphify temp and cache files
 graphify-out/cache/

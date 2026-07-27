@@ -1,0 +1,15 @@
+{
+  "id": "ongea-social-01-announcement",
+  "title": "Launch Announcement — We're Live",
+  "model_hint": "nano-banana / seedream-4 / ideogram-v2",
+  "aspect_ratio": "4:5",
+  "prompt": "A premium fintech launch-announcement graphic for 'Ongea Pesa'. Deep near-black teal canvas (#0A1A1F) with a large soft radial halo of electric cyan glow (#22D3EE) in the upper third. Centered hero: the glowing Ongea Pesa orbital emblem (cyan core into teal #0FB5A6, soundwave arcs, green-to-cyan orbit ring) with a faint comet point traveling the orbit. Below, the white 'ONGEA PESA' wordmark in geometric uppercase, and beneath it a bold short headline 'SPEAK. SEND. DONE.' in clean uppercase. Near the bottom edge, small: 'Now live · Built in Nairobi by NSAIT'. Lots of negative space, cinematic, minimal, app-launch energy, perfectly spelled. A faint waveform line crosses the lower third in signal green.",
+  "negative_prompt": "purple background, microphone, dollar sign, stock people, busy layout, lots of text, lorem ipsum, neon clutter, low-res, distorted text, multiple logos",
+  "params": { "guidance": 7.2, "steps": 45, "also_export": "1:1 center crop" },
+  "brand_lock": {
+    "colors": ["#0FB5A6", "#22D3EE", "#34D399", "#0A1A1F", "#FFFFFF"],
+    "headline": "SPEAK. SEND. DONE.",
+    "maker_line": "Built in Nairobi by NSAIT"
+  },
+  "notes": "The flagship launch post. Export 4:5 for feed and a 1:1 crop for grid."
+}

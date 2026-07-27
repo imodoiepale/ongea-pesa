@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { consumeStepupToken, isLocked } from '@/lib/services/securityService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { escrow_id, milestone_id } = await request.json();
+    const { escrow_id, milestone_id, stepup_token } = await request.json();
 
     if (!escrow_id) {
       return NextResponse.json({ error: 'Missing escrow_id' }, { status: 400 });
@@ -43,6 +44,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         error: `Funds are locked until ${new Date(escrow.lock_until).toLocaleString()}` 
       }, { status: 400 });
+    }
+
+    const admin = createServiceClient();
+    const { data: lockState } = await admin.from('profiles').select('locked_until, failed_attempts').eq('id', user.id).single();
+    if (isLocked(lockState)) {
+      return NextResponse.json({ error: 'Account temporarily locked', code: 'ACCOUNT_LOCKED' }, { status: 423 });
+    }
+    if (!(await consumeStepupToken(admin, user.id, stepup_token))) {
+      return NextResponse.json({ error: 'Step-up authentication required', code: 'STEPUP_REQUIRED' }, { status: 403 });
     }
 
     // Handle multi-signature requirement

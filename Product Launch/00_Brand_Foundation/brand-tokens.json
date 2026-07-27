@@ -1,0 +1,51 @@
+{
+  "brand": "Ongea Pesa",
+  "maker": "NSAIT — Nairobi Space of AI Tools",
+  "version": "1.0.0",
+  "updated": "2026-06-30",
+  "taglines": {
+    "primary": "Speak. Send. Done.",
+    "swahili": "Ongea. Pesa itembee.",
+    "positioning": "The bank that listens."
+  },
+  "direction": "Light glassmorphic premium fintech — pearl-white canvas, deep-navy wordmark, cyan/mint glass orb, warm-gold accent. (Chosen 2026-06-30, supersedes the dark-teal v1.)",
+  "color": {
+    "ongea": {
+      "electric_cyan": "#70D0E0",
+      "neon_mint": "#69CEA9",
+      "soft_aqua": "#A9D3DF",
+      "deep_navy": "#2A5D73",
+      "pearl_white": "#DDE8ED",
+      "warm_gold": "#F4DFA0",
+      "pure_white": "#FFFFFF"
+    },
+    "signature_gradient": ["#69CEA9", "#70D0E0", "#A9D3DF"],
+    "wordmark_gradient": ["#2A5D73", "#70D0E0"],
+    "gold_accent": "#F4DFA0",
+    "halo_glow": "radial-gradient(#70D0E0 0%, rgba(112,208,224,0) 70%)",
+    "nsait_endorser": {
+      "violet": "#6D28D9",
+      "indigo": "#4F46E5",
+      "blue": "#2563EB",
+      "gradient": ["#6D28D9", "#2563EB"]
+    }
+  },
+  "typography": {
+    "wordmark": { "family": "Sora", "fallback": "Space Grotesk", "case": "uppercase", "tracking": "+6%", "weight": 700 },
+    "headline": { "family": "Sora", "weight": 600 },
+    "body": { "family": "Inter", "weight": 400 },
+    "mono": { "family": "JetBrains Mono", "weight": 500 }
+  },
+  "logo": {
+    "concept": "Luminous orbital core (listening intelligence) wrapped in soundwave rings (the spoken command) and a closed orbit (money settled).",
+    "min_size_px": 16,
+    "clear_space": "height of the 'O' in the wordmark, all sides",
+    "small_size_simplification": "core + 2 wave arcs + 1 orbit only"
+  },
+  "rules": {
+    "ongea_owns": "cyan + mint glass on pearl-white, deep-navy wordmark, sparing warm-gold accent",
+    "nsait_restricted_to": "by-NSAIT endorser mark only",
+    "one_idea_per_logo": "ONE central device (orb OR halo OR portal) + at most a waveform + 2 rings. Never stack currency particles + money paths + arrows + mic + waveform + 3 rings together — that is what causes mushy renders.",
+    "forbidden": ["currency particles", "dollar signs", "coins/crypto look", "clip-art microphone", "transfer arrows inside the orb", "stock people", "dark background", "more than one gold accent per mark", "misspelled wordmark"]
+  }
+}

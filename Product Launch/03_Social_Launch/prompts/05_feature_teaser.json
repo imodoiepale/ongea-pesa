@@ -1,0 +1,15 @@
+{
+  "id": "ongea-social-05-feature",
+  "title": "Feature Teaser — Speak a Payment",
+  "model_hint": "nano-banana / seedream-4",
+  "aspect_ratio": "1:1",
+  "prompt": "A premium feature-teaser graphic for Ongea Pesa showing the core magic: voice becomes money. Deep teal-black canvas (#0A1A1F). Center: a sleek phone silhouette (corner crop, minimal) with a glowing voice-command bar on screen containing a green-to-cyan waveform (#34D399 to #22D3EE) and the spoken phrase as a caption chip: 'Tuma elfu mbili kwa Mama Boi'. The waveform flows out of the phone and resolves into the Ongea Pesa orbital emblem with a green check, suggesting 'done'. Small white wordmark 'ONGEA PESA' top-left; bottom 'Speak. Send. Done. · by NSAIT'. Clean, cinematic, one idea, lots of negative space, perfectly spelled Swahili text.",
+  "negative_prompt": "purple, full busy UI, dollar sign, stock people, clutter, lots of text, misspelling, neon, low-res, distorted text, realistic human hands",
+  "params": { "guidance": 7.2, "steps": 45 },
+  "brand_lock": {
+    "colors": ["#0FB5A6", "#22D3EE", "#34D399", "#0A1A1F", "#FFFFFF"],
+    "spoken_phrase": "Tuma elfu mbili kwa Mama Boi",
+    "footer": "Speak. Send. Done. · by NSAIT"
+  },
+  "notes": "Shows the product promise in one frame. The waveform-to-emblem flow is the signature visual device."
+}

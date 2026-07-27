@@ -67,10 +67,26 @@ export async function updateSession(request: NextRequest) {
     )
     
     try {
-      await Promise.race([
+      const authResult = await Promise.race([
         supabase.auth.getUser(),
         timeoutPromise
-      ])
+      ]) as Awaited<ReturnType<typeof supabase.auth.getUser>>
+
+      const protectedRoots = [
+        '/', '/voice', '/wallet', '/transactions', '/scanner', '/chama',
+        '/escrow', '/batch', '/scheduler', '/analytics', '/payments',
+        '/settings', '/support', '/dashboard',
+      ]
+      const pathname = request.nextUrl.pathname
+      const isProtected = protectedRoots.some((root) => root === '/' ? pathname === '/' : pathname === root || pathname.startsWith(`${root}/`))
+      if (isProtected && !authResult.data.user) {
+        const loginUrl = request.nextUrl.clone()
+        loginUrl.pathname = '/login'
+        loginUrl.searchParams.set('next', pathname)
+        const redirect = NextResponse.redirect(loginUrl)
+        response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie))
+        return redirect
+      }
     } catch (error: any) {
       // Handle invalid refresh token by clearing auth cookies
       if (error?.code === 'refresh_token_not_found' || error?.message?.includes('Refresh Token')) {

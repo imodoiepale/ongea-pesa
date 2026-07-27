@@ -1,0 +1,16 @@
+{
+  "id": "ongea-logo-02-voice-wave-halo",
+  "variation_name": "Voice Wave Transaction Halo",
+  "title": "App Icon — Minimal Waveform Halo (icon only)",
+  "model_hint": "nano_banana_pro (2K) — text-to-image",
+  "aspect_ratio": "1:1",
+  "prompt": "Minimal premium app icon for a voice-first African fintech. NO text. A luminous circular halo formed from a single smooth voice waveform that curves around into a closed orbit, set on a soft pearl-white background (#DDE8ED) inside a rounded-square icon. At the exact center, a small glowing neon-mint pulse (#69CEA9) marks a completed payment. The halo ring is electric cyan (#70D0E0) fading to soft aqua (#A9D3DF), with one delicate warm-gold glint (#F4DFA0) at the top of the ring. Lots of clean negative space, strong simple silhouette that reads at tiny sizes, glassy soft reflections, Apple-grade polish, app-store ready.",
+  "negative_prompt": "text, wordmark, currency particles, dollar signs, coins, microphone, arrows, clutter, dark background, busy detail, harsh neon, low-res, multiple icons",
+  "params": { "guidance": 7, "steps": 45, "resolution": "2k", "icon_safe_zone": "emblem within central 80%" },
+  "brand_lock": {
+    "colors": ["#70D0E0", "#69CEA9", "#A9D3DF", "#DDE8ED", "#F4DFA0"],
+    "text": "NONE",
+    "one_idea": "waveform that becomes a halo orbit + mint center pulse"
+  },
+  "notes": "Decluttered 'Voice Wave Transaction Halo'. The cleanest, most iconic option — likely best as the actual app/favicon. Export to all PWA sizes once approved."
+}

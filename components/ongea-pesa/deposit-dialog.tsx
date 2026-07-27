@@ -4,8 +4,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Wallet, Phone, DollarSign, Loader2, Clock } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useTransactionPolling } from '@/hooks/use-transaction-polling';
+import { depositFeeBreakdown } from '@/lib/transaction-fees';
 
-type DepositRail = 'indexpay' | 'daraja';
+type DepositRail = 'indexpay' | 'ncba';
 
 interface DepositDialogProps {
   isOpen: boolean;
@@ -25,33 +26,33 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [depositAmount, setDepositAmount] = useState<number>(0);
 
-  // ── Daraja polling state ───────────────────────────────────────────────────
-  const [darajaPolling, setDarajaPolling] = useState(false);
-  const [darajaAttempts, setDarajaAttempts] = useState(0);
-  const darajaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const darajaTxId = useRef<string | null>(null);
+  // ── STK polling state ──────────────────────────────────────────────────────
+  const [stkPolling, setStkPolling] = useState(false);
+  const [stkAttempts, setStkAttempts] = useState(0);
+  const stkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stkTxId = useRef<string | null>(null);
 
-  const stopDarajaPolling = useCallback(() => {
-    if (darajaTimerRef.current) {
-      clearTimeout(darajaTimerRef.current);
-      darajaTimerRef.current = null;
+  const stopStkPolling = useCallback(() => {
+    if (stkTimerRef.current) {
+      clearTimeout(stkTimerRef.current);
+      stkTimerRef.current = null;
     }
-    setDarajaPolling(false);
-    darajaTxId.current = null;
+    setStkPolling(false);
+    stkTxId.current = null;
   }, []);
 
-  const startDarajaPolling = useCallback(
+  const startStkPolling = useCallback(
     (txId: string, paidAmount: number) => {
-      darajaTxId.current = txId;
-      setDarajaPolling(true);
-      setDarajaAttempts(0);
+      stkTxId.current = txId;
+      setStkPolling(true);
+      setStkAttempts(0);
       let attempts = 0;
       const MAX_ATTEMPTS = 60; // 5 minutes
 
       const poll = async () => {
-        if (!darajaTxId.current) return;
+        if (!stkTxId.current) return;
         attempts += 1;
-        setDarajaAttempts(attempts);
+        setStkAttempts(attempts);
 
         try {
           const res = await fetch('/api/daraja/stk-status', {
@@ -62,7 +63,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
           const data = await res.json();
 
           if (data.status === 'completed') {
-            stopDarajaPolling();
+            stopStkPolling();
             setSuccess('Payment confirmed! Your wallet has been credited.');
             setLoading(false);
             onSuccess?.(paidAmount);
@@ -74,7 +75,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
           }
 
           if (data.status === 'failed') {
-            stopDarajaPolling();
+            stopStkPolling();
             setError(data.error_message || 'Transaction failed. Please try again.');
             setLoading(false);
             return;
@@ -84,7 +85,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
         }
 
         if (attempts >= MAX_ATTEMPTS) {
-          stopDarajaPolling();
+          stopStkPolling();
           setSuccess(
             'Transaction is taking longer than expected. Check your M-Pesa messages or wallet balance.'
           );
@@ -93,12 +94,12 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
           return;
         }
 
-        darajaTimerRef.current = setTimeout(poll, 5000);
+        stkTimerRef.current = setTimeout(poll, 5000);
       };
 
       poll();
     },
-    [stopDarajaPolling, onClose, onSuccess]
+    [stopStkPolling, onClose, onSuccess]
   );
 
   // Transaction polling hook
@@ -144,10 +145,10 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
     if (isOpen) {
       loadUserProfile();
     } else {
-      // Stop Daraja polling if dialog is closed externally
-      stopDarajaPolling();
+      // Stop STK polling if dialog is closed externally
+      stopStkPolling();
     }
-  }, [isOpen, stopDarajaPolling]);
+  }, [isOpen, stopStkPolling]);
 
   const loadUserProfile = async () => {
     try {
@@ -203,9 +204,9 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
     }
   };
 
-  // ── M-Pesa Direct (Daraja STK) deposit handler ────────────────────────────
-  const handleDarajaDeposit = async (amountValue: number) => {
-    const response = await fetch('/api/daraja/stk-deposit', {
+  // ── M-Pesa STK (NCBA) deposit handler ─────────────────────────────────────
+  const handleNcbaDeposit = async (amountValue: number) => {
+    const response = await fetch('/api/ncba/stk-deposit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount: amountValue, phone }),
@@ -216,7 +217,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
     if (response.ok && data.success) {
       setSuccess('M-Pesa prompt sent! Waiting for payment confirmation...');
       setAmount('');
-      startDarajaPolling(data.transaction_id, amountValue);
+      startStkPolling(data.transaction_id, amountValue);
     } else {
       setError(data.error || 'Failed to initiate M-Pesa STK push');
       setLoading(false);
@@ -251,8 +252,8 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
         return;
       }
 
-      if (rail === 'daraja') {
-        await handleDarajaDeposit(amountValue);
+      if (rail === 'ncba') {
+        await handleNcbaDeposit(amountValue);
       } else {
         await handleIndexPayDeposit(amountValue);
       }
@@ -279,6 +280,12 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
     const formatted = formatPhoneNumber(e.target.value);
     setPhone(formatted);
   };
+
+  const parsedAmount = parseFloat(amount);
+  const fees =
+    rail === 'ncba' && !isNaN(parsedAmount) && parsedAmount >= 10
+      ? depositFeeBreakdown(parsedAmount)
+      : null;
 
   if (!isOpen) return null;
 
@@ -327,14 +334,14 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setRail('daraja'); setError(''); setSuccess(''); }}
+                  onClick={() => { setRail('ncba'); setError(''); setSuccess(''); }}
                   className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all ${
-                    rail === 'daraja'
+                    rail === 'ncba'
                       ? 'bg-card text-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  M-Pesa Direct
+                  M-Pesa STK
                 </button>
               </div>
 
@@ -409,6 +416,49 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
                 ))}
               </div>
 
+              {/* Fee Breakdown */}
+              {fees && (
+                <div className="bg-muted/50 border border-border/60 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Deposit amount</span>
+                    <span className="font-medium text-foreground">
+                      KSh {fees.amount.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">M-Pesa charge (paid to Safaricom)</span>
+                    <span className="font-medium text-foreground">
+                      KSh {fees.mpesaCharge.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Ongea Pesa fee</span>
+                    <span className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-brand bg-brand/10 px-2 py-0.5 rounded-md">
+                        Free
+                      </span>
+                      <span className="font-medium text-foreground">
+                        KSh {fees.ongeaFee.toLocaleString()}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="border-t border-border/60 pt-2 space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-foreground">Total deducted from M-Pesa</span>
+                      <span className="font-bold text-foreground">
+                        KSh {fees.totalFromMpesa.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-foreground">Credited to your wallet</span>
+                      <span className="font-bold text-brand">
+                        KSh {fees.creditedToWallet.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Error Message */}
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3">
@@ -440,8 +490,8 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
                 </div>
               )}
 
-              {/* Polling Status — Daraja */}
-              {rail === 'daraja' && darajaPolling && (
+              {/* Polling Status — M-Pesa STK */}
+              {rail === 'ncba' && stkPolling && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3">
                   <div className="flex items-center gap-2">
                     <Clock className="animate-pulse text-blue-600" size={18} />
@@ -450,7 +500,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
                         Checking transaction status...
                       </p>
                       <p className="text-xs text-blue-600 dark:text-blue-500 mt-1">
-                        Attempt {darajaAttempts} - This usually takes 10-30 seconds
+                        Attempt {stkAttempts} - This usually takes 10-30 seconds
                       </p>
                     </div>
                   </div>
@@ -471,7 +521,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
                 ) : (
                   <>
                     <Wallet size={20} />
-                    {rail === 'daraja' ? 'Pay via M-Pesa Direct' : 'Deposit via M-Pesa'}
+                    {rail === 'ncba' ? 'Pay via M-Pesa STK' : 'Deposit via M-Pesa'}
                   </>
                 )}
               </button>
@@ -479,8 +529,8 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
               {/* Info */}
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3">
                 <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
-                  {rail === 'daraja'
-                    ? 'M-Pesa Direct uses Safaricom Daraja. You will receive an STK push on your phone. Enter your M-Pesa PIN to complete the transaction. Funds will reflect in your wallet once confirmed.'
+                  {rail === 'ncba'
+                    ? 'The STK prompt arrives via our NCBA paybill. Enter your M-Pesa PIN to complete the payment. Safaricom charges the standard paybill fee shown above, Ongea Pesa charges nothing on deposits, and the full amount you enter is credited to your wallet.'
                     : 'You will receive an M-Pesa prompt on your phone. Enter your M-Pesa PIN to complete the transaction. Funds will reflect in your wallet instantly.'}
                 </p>
               </div>

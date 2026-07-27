@@ -2,6 +2,7 @@
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/providers/auth-provider"
+import { OrbitalRouteBackdrop } from "@/components/foundation"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
+      <OrbitalRouteBackdrop />
       <AuthProvider>{children}</AuthProvider>
     </ThemeProvider>
   )

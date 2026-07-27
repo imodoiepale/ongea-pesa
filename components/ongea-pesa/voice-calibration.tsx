@@ -1,92 +1,131 @@
-// components/ongea-pesa/voice-calibration.tsx
-'use client';
+"use client"
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Mic } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
+import { ArrowLeft, AudioLines, Loader2, RotateCcw, Square } from "lucide-react"
+import { useAuth } from "@/components/providers/auth-provider"
+import { VoiceCore } from "@/components/foundation"
 
-const phrases = [
-  "Ongea Pesa, send 500 shillings to my mother.",
-  "What is my M-Pesa balance?",
-  "Pay my electricity bill.",
-  "Tuma elfu moja kwa baba.",
-  "Angalia salio langu la benki."
-];
+const TARGET_MS = 5200
 
 export function VoiceCalibrationScreen() {
-  const router = useRouter();
-  const [currentPhrase, setCurrentPhrase] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
+  const router = useRouter()
+  const { user } = useAuth()
+  const streamRef = useRef<MediaStream | null>(null)
+  const rafRef = useRef<number | null>(null)
+  const startedRef = useRef(0)
+  const [recording, setRecording] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [level, setLevel] = useState(0)
+  const [score, setScore] = useState(0)
+  const [error, setError] = useState("")
 
-  const handleRecord = () => {
-    setIsRecording(true);
-    setTimeout(() => {
-      setIsRecording(false);
-      if (currentPhrase < phrases.length - 1) {
-        setCurrentPhrase(currentPhrase + 1);
-      } else {
-        router.push('/permissions');
+  const stop = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    streamRef.current?.getTracks().forEach((track) => track.stop())
+    streamRef.current = null
+    setRecording(false)
+  }
+
+  useEffect(() => stop, [])
+
+  const listen = async () => {
+    setError("")
+    setScore(0)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true },
+        video: false,
+      })
+      streamRef.current = stream
+      const context = new AudioContext()
+      const analyser = context.createAnalyser()
+      analyser.fftSize = 512
+      context.createMediaStreamSource(stream).connect(analyser)
+      const values = new Uint8Array(analyser.fftSize)
+      let audibleFrames = 0
+      let frames = 0
+      startedRef.current = performance.now()
+      setRecording(true)
+
+      const sample = () => {
+        analyser.getByteTimeDomainData(values)
+        const rms = Math.sqrt(values.reduce((sum, value) => sum + Math.pow((value - 128) / 128, 2), 0) / values.length)
+        const normalized = Math.min(100, Math.round(rms * 420))
+        frames += 1
+        if (normalized > 8) audibleFrames += 1
+        setLevel(normalized)
+        const elapsed = performance.now() - startedRef.current
+        setScore(Math.min(96, Math.round((audibleFrames / Math.max(frames, 1)) * 74 + Math.min(22, elapsed / TARGET_MS * 22))))
+        if (elapsed >= TARGET_MS) {
+          void context.close()
+          stop()
+          return
+        }
+        rafRef.current = requestAnimationFrame(sample)
       }
-    }, 2000);
-  };
+      sample()
+    } catch {
+      setError("Microphone access is off. Allow it in your browser settings, then retry.")
+    }
+  }
+
+  const continueSetup = async () => {
+    if (!user?.id || score < 40) return
+    setSaving(true)
+    setError("")
+    const response = await fetch("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stage: "voice-calibration", score }),
+    })
+    const payload = await response.json().catch(() => ({}))
+    setSaving(false)
+    if (!response.ok) {
+      setError(typeof payload.error === "string" ? payload.error : "We couldn't save your voice check. Please retry.")
+      return
+    }
+    router.push("/security-setup")
+    router.refresh()
+  }
 
   return (
-    <div className="min-h-[100dvh] surface-voice flex flex-col items-center justify-center relative overflow-hidden px-6">
-      {/* Background orbs */}
-      <div className="absolute top-1/4 -left-20 w-64 h-64 rounded-full bg-[hsl(var(--voice-accent))] opacity-[0.05] blur-3xl pointer-events-none" />
+    <main id="main-content" className="onboarding-page onboarding-page--dark onboarding-calibration">
+      <section className="onboarding-frame">
+        <header className="onboarding-step-header">
+          <button onClick={() => router.back()} aria-label="Go back"><ArrowLeft /></button>
+          <span>2 of 3</span>
+          <i aria-hidden="true" />
+        </header>
 
-      <div className="w-full max-w-sm text-center relative z-10">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">Voice Calibration</h1>
-          <p className="text-sm text-white/60 mt-2">Please say the following phrase clearly:</p>
+        <div className="onboarding-calibration__intro">
+          <h1 className="orbital-display">Teach Ongea<br /><span>your rhythm</span></h1>
+          <p>Say the phrase below<br />clearly and naturally</p>
         </div>
 
-        {/* Phrase display */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-5 mb-6">
-          <p className="text-base font-semibold text-white leading-relaxed">{phrases[currentPhrase]}</p>
+        <div className="onboarding-calibration__visual">
+          <VoiceCore className={recording ? "is-listening" : ""} />
+          <span style={{ boxShadow: `0 0 ${10 + level / 2}px hsl(var(--mint))` }} />
         </div>
 
-        {/* Mic orb — animated when recording */}
-        <div className="flex items-center justify-center mb-6">
-          <div className={cn(
-            "w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300",
-            isRecording
-              ? "bg-red-500/20 border-2 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.3)]"
-              : "bg-[rgba(0,255,136,0.12)] border-2 border-[rgba(0,255,136,0.25)]"
-          )}>
-            <Mic className={cn(
-              "h-8 w-8 transition-all duration-300",
-              isRecording ? "text-red-400 animate-pulse" : "text-[hsl(var(--voice-accent))]"
-            )} />
-          </div>
-        </div>
+        <blockquote className="orbital-display">“Tuma elfu moja<br />kwa Mama”</blockquote>
+        <p className="onboarding-calibration__status">{recording ? "Listening…" : score ? "Voice pattern ready" : "Tap listen and speak naturally"}</p>
+        <output>{score}%</output>
+        <p className="onboarding-calibration__hint">Speak naturally</p>
 
-        <Button
-          onClick={handleRecord}
-          disabled={isRecording}
-          size="xl"
-          className="w-full mb-4"
-        >
-          <Mic className="mr-2 h-4 w-4" />
-          {isRecording ? 'Recording…' : 'Record Phrase'}
-        </Button>
+        {error && <p role="alert" className="onboarding-error">{error}</p>}
 
-        {/* Progress indicator */}
-        <div className="flex items-center justify-center gap-1.5">
-          {phrases.map((_, i) => (
-            <div key={i} className={cn(
-              "h-1.5 rounded-full transition-all duration-300",
-              i < currentPhrase ? "w-6 bg-[hsl(var(--voice-accent))]" :
-              i === currentPhrase ? "w-8 bg-[hsl(var(--voice-accent))]" :
-              "w-3 bg-white/20"
-            )} />
-          ))}
+        <div className="onboarding-calibration__actions">
+          <button onClick={recording ? stop : listen} className="onboarding-secondary">
+            {recording ? <Square /> : <RotateCcw />}
+            {recording ? "Stop" : "Retry"}
+          </button>
+          <button onClick={score >= 40 ? continueSetup : listen} disabled={saving} className="onboarding-primary onboarding-primary--mint">
+            {saving ? <Loader2 className="animate-spin" /> : <AudioLines />}
+            {score >= 40 ? "Continue" : "Start listening"}
+          </button>
         </div>
-        <p className="text-xs text-white/40 mt-2">{currentPhrase + 1} of {phrases.length}</p>
-      </div>
-    </div>
-  );
+      </section>
+    </main>
+  )
 }

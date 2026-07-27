@@ -1,0 +1,14 @@
+{
+  "id": "ongea-board-04-appstore",
+  "title": "App-Store Screenshot Frames (5 phones)",
+  "model_hint": "nano-banana / seedream-4",
+  "aspect_ratio": "16:9",
+  "prompt": "Five premium app-store screenshot frames for Ongea Pesa, shown as five phone mockups in a row on a deep teal-black background (#0A1A1F), each with a short bold caption above it in white. Phone 1 (caption 'Just speak.'): a clean home screen with a large glowing voice-command orb and a green-to-cyan waveform. Phone 2 (caption 'Send in seconds.'): a confirmation screen 'KES 2,000 sent' with a green check. Phone 3 (caption 'Your money, your voice.'): a balance card in teal with the emblem. Phone 4 (caption 'Chama made easy.'): a group-contribution screen. Phone 5 (caption 'Built in Nairobi.'): a branded splash with the emblem and 'by NSAIT'. Consistent teal UI, clean minimal screens (not overloaded), realistic phone frames, perfectly spelled, premium app-store quality.",
+  "negative_prompt": "purple UI, overloaded dense dashboards, microphone clipart, dollar sign, stock people, misspelling, neon, low-res, distorted text, cluttered screens",
+  "params": { "guidance": 7, "steps": 48, "phones": 5 },
+  "brand_lock": {
+    "colors": ["#0FB5A6", "#22D3EE", "#34D399", "#0A1A1F", "#FFFFFF"],
+    "captions": ["Just speak.", "Send in seconds.", "Your money, your voice.", "Chama made easy.", "Built in Nairobi."]
+  },
+  "notes": "For Play Store / App Store listing. Keep each screen minimal — one idea per phone."
+}

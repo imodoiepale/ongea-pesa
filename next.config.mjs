@@ -45,7 +45,7 @@ const withPWA = withPWAInit({
         },
       },
       {
-        urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
+        urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp|avif)$/i,
         handler: "StaleWhileRevalidate",
         options: {
           cacheName: "static-image-assets",
@@ -145,6 +145,7 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  devIndicators: false,
   typescript: {
     ignoreBuildErrors: true,
   },

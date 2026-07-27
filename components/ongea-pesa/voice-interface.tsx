@@ -13,7 +13,7 @@ import BalanceSheet from "./balance-sheet"
 import { useUser } from '@/contexts/UserContext';
 import { useElevenLabs } from '@/contexts/ElevenLabsContext';
 import type { PaymentSlots } from '@/contexts/ElevenLabsContext';
-import { GlassCard, ScreenShell } from "@/components/foundation"
+import { GlassCard, ScreenShell, VoiceCore } from "@/components/foundation"
 import PaymentIdentificationPanel from "./payment-identification-panel"
 
 type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner";
@@ -270,7 +270,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
   }
 
   return (
-    <div className="min-h-[100dvh] surface-voice flex flex-col relative overflow-hidden">
+    <main id="main-content" className="orbital-page min-h-[100dvh] flex flex-col relative overflow-hidden">
       {/* Dark voice orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-[hsl(var(--voice-accent))] opacity-[0.04] blur-3xl animate-blob" />
@@ -288,7 +288,7 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <span className="text-foreground font-semibold text-base">Voice Assistant</span>
+          <span className="orbital-label">{isConnected ? "Listening" : "Voice"}</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -353,7 +353,10 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
       )}
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-5 relative z-10 gap-8">
+      <div className="flex-1 flex flex-col items-center justify-center px-5 relative z-10 gap-5">
+        <h1 className="orbital-display text-[2.5rem]">Voice Assistant</h1>
+        <p className="font-[family-name:var(--font-display)] text-xl text-[hsl(var(--teal))]">{isConnected ? "Tuma elfu mbili kwa Mum" : "Speak naturally"}</p>
+        <VoiceCore className={`w-[min(84vw,25rem)] -my-10 ${isConnected ? "saturate-150" : "opacity-75"}`} />
         {/* GlassCard Double-Bezel orb */}
         <GlassCard
           size="lg"
@@ -456,6 +459,6 @@ export default function VoiceInterface({ onNavigate }: VoiceInterfaceProps) {
         currentBalance={balance}
         onBalanceUpdate={(newBalance) => setBalance(newBalance)}
       />
-    </div>
+    </main>
   );
 }

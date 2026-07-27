@@ -65,12 +65,13 @@ export default function Support() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background surface-money py-12 px-4 sm:px-6 lg:px-8">
+    <div id="main-content" className="orbital-page min-h-[100dvh] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">How Can We Help?</h1>
+          <span className="orbital-label text-[hsl(var(--teal))]">Help &amp; support</span>
+          <h1 className="orbital-display mt-4 text-5xl text-foreground mb-4">How can we help?</h1>
           <p className="text-lg text-muted-foreground">Find answers to common questions or contact our support team</p>
         </div>
 
@@ -80,7 +81,7 @@ export default function Support() {
             <input
               type="text"
               placeholder="Search for help..."
-              className="w-full px-6 py-4 text-lg border border-border/60 rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="orbital-field w-full px-6 py-4 text-lg"
             />
             <button className="absolute right-4 top-1/2 transform -translate-y-1/2 text-brand">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,7 +114,7 @@ export default function Support() {
         </div>
 
         {/* FAQs */}
-        <div className="bg-card rounded-2xl shadow-sm p-8 mb-12">
+        <div className="orbital-panel p-8 mb-12">
           <h2 className="text-2xl font-semibold text-foreground mb-6">Frequently Asked Questions</h2>
           <div className="space-y-4">
             {faqs[selectedCategory as keyof typeof faqs].map((faq, idx) => (
@@ -143,9 +144,7 @@ export default function Support() {
             <div className="text-4xl mb-4">💬</div>
             <h3 className="text-lg font-semibold text-foreground mb-2">Live Chat</h3>
             <p className="text-sm text-muted-foreground mb-4">Available 24/7</p>
-            <button className="text-brand hover:underline">
-              Start Chat
-            </button>
+            <a href="/voice" className="text-brand hover:underline">Start voice support</a>
           </div>
 
           <div className="bg-card rounded-2xl shadow-sm p-6 text-center">
@@ -162,12 +161,9 @@ export default function Support() {
         <div className="bg-brand/5 rounded-2xl p-8 text-center">
           <div className="flex items-center justify-center mb-4">
             <div className="w-3 h-3 bg-brand rounded-full animate-pulse mr-3"></div>
-            <h3 className="text-xl font-semibold text-foreground">All Systems Operational</h3>
+            <h3 className="text-xl font-semibold text-foreground">Service status</h3>
           </div>
-          <p className="text-muted-foreground mb-4">Check our status page for real-time service updates</p>
-          <a href="/status" className="text-brand hover:underline">
-            View Status Page →
-          </a>
+          <p className="text-muted-foreground">Live provider availability is checked whenever you start a payment.</p>
         </div>
 
       </div>

@@ -1,5 +1,5 @@
-import MainDashboard from "@/components/ongea-pesa/main-dashboard"
+import { redirect } from "next/navigation"
 
 export default function DashboardPage() {
-  return <MainDashboard />
+  redirect("/")
 }

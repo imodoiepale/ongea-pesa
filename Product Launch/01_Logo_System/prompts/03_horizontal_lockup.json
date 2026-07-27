@@ -1,0 +1,16 @@
+{
+  "id": "ongea-logo-03-african-ai-money-orb",
+  "variation_name": "African AI Mobile Money Orb",
+  "title": "Horizontal Lockup — Orb + Wordmark Beside",
+  "model_hint": "nano_banana_pro (2K) — text-to-image",
+  "aspect_ratio": "16:9",
+  "prompt": "Horizontal logo lockup for a voice-first African fintech, wordmark reads exactly 'ONGEA PESA', on a soft pearl-white background (#DDE8ED). On the left: a luminous glass orb with a soft rounded glowing core in neon-mint (#69CEA9) that subtly suggests a voice-input button; two smooth orbital trails in electric cyan (#70D0E0) and soft aqua (#A9D3DF) wrap the sphere, and a faint single horizontal voice waveform passes behind it, tipped with one warm-gold glint (#F4DFA0). To the right, vertically centered: the wordmark 'ONGEA PESA' in a premium rounded geometric sans-serif, slightly extended letterforms, wide tracking, deep navy (#2A5D73) with a subtle cyan edge light. Strong symmetry, clean negative space, baseline aligned, app-store polish, exact spelling.",
+  "negative_prompt": "currency particles, dollar signs, coins, literal microphone, arrows, clutter, dark background, busy detail, misspelling, vertical stacking, drop shadow, low-res",
+  "params": { "guidance": 7, "steps": 45, "resolution": "2k" },
+  "brand_lock": {
+    "colors": ["#70D0E0", "#69CEA9", "#A9D3DF", "#2A5D73", "#DDE8ED", "#F4DFA0"],
+    "wordmark": "ONGEA PESA — extended rounded geometric, deep navy + cyan edge",
+    "layout": "orb left, wordmark right, baseline aligned"
+  },
+  "notes": "Decluttered 'African AI Mobile Money Orb'. Primary for website nav, app header, email signature, merch breast. The mic-button hint should be VERY subtle (a soft rounded core), never a literal microphone."
+}

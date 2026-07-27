@@ -1,9 +1,13 @@
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
-// Use the API key directly since we're running this as a one-time script
-const elevenlabs = new ElevenLabsClient({
-  apiKey: "sk_1ee9cf0f83d237d1447419cba03afb247326af181a2223ba"
-});
+// Read the key from the environment — never hardcode it. This repo is public.
+const apiKey = process.env.ELEVENLABS_API_KEY;
+if (!apiKey) {
+  console.error("ELEVENLABS_API_KEY is not set. Export it before running this script.");
+  process.exit(1);
+}
+
+const elevenlabs = new ElevenLabsClient({ apiKey });
 
 async function createAgent() {
   try {

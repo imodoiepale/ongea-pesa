@@ -133,15 +133,15 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
   const handlePinChange = async () => {
     setPinError(null)
     setPinSuccess(false)
-    if (pinNewVal.length !== 4 || !/^\d{4}$/.test(pinNewVal)) {
-      setPinError('PIN must be exactly 4 digits.')
+    if (pinNewVal.length !== 6 || !/^\d{6}$/.test(pinNewVal)) {
+      setPinError('PIN must be exactly 6 digits.')
       return
     }
     if (pinNewVal !== pinConfirmVal) {
       setPinError('New PIN and confirmation do not match.')
       return
     }
-    if (pinHasExisting && pinCurrentVal.length !== 4) {
+    if (pinHasExisting && pinCurrentVal.length !== 6) {
       setPinError('Please enter your current PIN.')
       return
     }
@@ -180,17 +180,16 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
   }
 
   const handleVoicePermission = (permission: Permission) => {
-    // Simulate voice permission request
-    alert(`Voice prompt: "${permission.voicePrompt}"`)
     togglePermission(permission.id)
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background surface-money pb-24">
+    <main id="main-content" className="orbital-page min-h-[100dvh] pb-24">
       <ScreenShell>
         {/* Header */}
         <div className="pt-6 mb-6 text-center">
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">App Permissions</h1>
+          <span className="orbital-label text-[hsl(var(--teal))]">Account &amp; trust</span>
+          <h1 className="orbital-display mt-4 text-5xl">Permissions</h1>
           <p className="text-sm text-muted-foreground mt-1">Ongea Pesa needs access to some features to work correctly.</p>
         </div>
 
@@ -207,7 +206,7 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">Wallet PIN</p>
-                  <p className="text-xs text-muted-foreground">Change your 4-digit login &amp; payment PIN</p>
+                  <p className="text-xs text-muted-foreground">Change your 6-digit wallet PIN</p>
                 </div>
                 <Button
                   size="sm"
@@ -225,26 +224,26 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
                       <label className="text-xs text-muted-foreground mb-1 block">Current PIN</label>
                       <input
                         type="password"
-                        maxLength={4}
+                        maxLength={6}
                         inputMode="numeric"
-                        pattern="\d{4}"
+                        pattern="\d{6}"
                         placeholder="••••"
                         value={pinCurrentVal}
-                        onChange={(e) => setPinCurrentVal(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                        onChange={(e) => setPinCurrentVal(e.target.value.replace(/\D/g, '').slice(0, 6))}
                         className="w-full px-3 py-2 rounded-lg border border-border/60 bg-card text-foreground text-center tracking-widest text-base focus:outline-none focus:ring-2 focus:ring-brand"
                       />
                     </div>
                   )}
                   <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">New PIN (4 digits)</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">New PIN (6 digits)</label>
                     <input
                       type="password"
-                      maxLength={4}
+                      maxLength={6}
                       inputMode="numeric"
-                      pattern="\d{4}"
+                      pattern="\d{6}"
                       placeholder="••••"
                       value={pinNewVal}
-                      onChange={(e) => setPinNewVal(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      onChange={(e) => setPinNewVal(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       className="w-full px-3 py-2 rounded-lg border border-border/60 bg-card text-foreground text-center tracking-widest text-base focus:outline-none focus:ring-2 focus:ring-brand"
                     />
                   </div>
@@ -252,12 +251,12 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
                     <label className="text-xs text-muted-foreground mb-1 block">Confirm new PIN</label>
                     <input
                       type="password"
-                      maxLength={4}
+                      maxLength={6}
                       inputMode="numeric"
-                      pattern="\d{4}"
+                      pattern="\d{6}"
                       placeholder="••••"
                       value={pinConfirmVal}
-                      onChange={(e) => setPinConfirmVal(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      onChange={(e) => setPinConfirmVal(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       className="w-full px-3 py-2 rounded-lg border border-border/60 bg-card text-foreground text-center tracking-widest text-base focus:outline-none focus:ring-2 focus:ring-brand"
                     />
                   </div>
@@ -468,6 +467,6 @@ export default function PermissionManager({ onNavigate }: PermissionManagerProps
         isOpen={isDependantsOpen}
         onClose={() => setIsDependantsOpen(false)}
       />
-    </div>
+    </main>
   )
 }

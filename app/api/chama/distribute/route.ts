@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { consumeStepupToken, isLocked } from '@/lib/services/securityService';
 
 /**
  * Distribute Funds - Send collected funds to the rotating recipient
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { cycle_id } = await request.json();
+    const { cycle_id, stepup_token } = await request.json();
 
     if (!cycle_id) {
       return NextResponse.json({ error: 'Missing cycle_id' }, { status: 400 });
@@ -49,6 +50,15 @@ export async function POST(request: NextRequest) {
     const recipient = cycle.recipient;
     if (!recipient) {
       return NextResponse.json({ error: 'No recipient found for this cycle' }, { status: 400 });
+    }
+
+    const admin = createServiceClient();
+    const { data: lockState } = await admin.from('profiles').select('locked_until, failed_attempts').eq('id', user.id).single();
+    if (isLocked(lockState)) {
+      return NextResponse.json({ error: 'Account temporarily locked', code: 'ACCOUNT_LOCKED' }, { status: 423 });
+    }
+    if (!(await consumeStepupToken(admin, user.id, stepup_token))) {
+      return NextResponse.json({ error: 'Step-up authentication required', code: 'STEPUP_REQUIRED' }, { status: 403 });
     }
 
     console.log('💸 Distributing chama funds:', {

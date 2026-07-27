@@ -1,0 +1,15 @@
+{
+  "id": "ongea-social-03-cover",
+  "title": "Cover Banner (X / LinkedIn)",
+  "model_hint": "nano-banana / seedream-4",
+  "aspect_ratio": "3:1",
+  "prompt": "A wide social cover banner for Ongea Pesa, a voice-first African fintech. Deep near-black teal canvas (#0A1A1F) stretching wide. On the left third: the glowing orbital emblem with the 'ONGEA PESA' wordmark beside it (white, geometric uppercase). Sweeping across the full width behind the type, a luminous soundwave/orbit line flows from green to cyan (#34D399 to #22D3EE), like a spoken word traveling across the banner and resolving into a bright point on the right. Tagline small near the wordmark: 'The bank that listens.' Bottom-right corner, tiny: 'by NSAIT'. Cinematic, minimal, lots of negative space, premium. Keep key elements clear of the far-left avatar safe zone.",
+  "negative_prompt": "purple background, microphone, dollar sign, stock people, clutter, lots of text, lorem ipsum, neon, low-res, distorted text",
+  "params": { "guidance": 7, "steps": 42, "safe_zones": "avatar overlaps lower-left on some platforms" },
+  "brand_lock": {
+    "colors": ["#0FB5A6", "#22D3EE", "#34D399", "#0A1A1F", "#FFFFFF"],
+    "tagline": "The bank that listens.",
+    "maker_line": "by NSAIT"
+  },
+  "notes": "Render at 3:1 then export 1500x500. Keep text out of the lower-left where the avatar sits."
+}

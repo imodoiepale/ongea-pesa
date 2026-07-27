@@ -1,0 +1,16 @@
+{
+  "id": "ongea-apparel-02-polo-back",
+  "title": "Polo (Collared) — Back, Wordmark + Endorsement",
+  "model_hint": "nano-banana / seedream-4 / ideogram-v2",
+  "aspect_ratio": "4:5",
+  "prompt": "Premium top-down mockup of the BACK of a deep charcoal-black polo collared shirt (#0A1A1F) with ribbed collar, on a soft neutral studio surface. Across the upper back, centered: the Ongea Pesa orbital emblem, then the wordmark 'ONGEA PESA' in the custom wide athletic uppercase display font (white), and beneath it a thin soundwave underline in a green-to-cyan gradient (#34D399 to #22D3EE). Below that, smaller, the line 'by Nairobi Space of AI Tools  ·  NSAIT' in clean uppercase, the word NSAIT carrying a subtle violet-to-blue gradient (#6D28D9 to #2563EB). Tasteful scale (not oversized for a polo), perfectly spelled, realistic print-on-fabric texture, catalog quality.",
+  "negative_prompt": "misspelling, oversized print, purple Ongea wordmark, microphone, dollar sign, busy background, wrinkles, mannequin, neon, low-res, distorted letters, extra text lines",
+  "params": { "guidance": 7.2, "steps": 42, "text_accuracy": "must read ONGEA PESA and by Nairobi Space of AI Tools NSAIT" },
+  "brand_lock": {
+    "back_text_primary": "ONGEA PESA",
+    "back_text_secondary": "by Nairobi Space of AI Tools · NSAIT",
+    "ongea_colors": ["#FFFFFF", "#34D399", "#22D3EE"],
+    "nsait_colors": ["#6D28D9", "#2563EB"]
+  },
+  "notes": "Polo back print stays moderate in size (more corporate). The hoodie back goes large."
+}

@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { platformFee } from "@/lib/transaction-fees"
 import {
   RefreshCw,
   Search,
@@ -79,10 +80,10 @@ export default function WalletTransfersPage() {
       }
 
       const supabaseTx = (supabaseData || []).map(tx => {
-        const isDeposit = tx.type?.toLowerCase() === "deposit"
+        const persistedFee = tx.platform_fee ?? 0
         return {
           ...tx,
-          platform_fee: isDeposit ? 0 : (tx.amount || 0) * 0.0005, // Deposits have 0% fee
+          platform_fee: persistedFee > 0 ? persistedFee : platformFee(tx.amount || 0, tx.type?.toLowerCase()), // Deposits have 0% fee
           source: "supabase",
           profiles: profilesMap[tx.user_id] || null
         }
@@ -111,13 +112,12 @@ export default function WalletTransfersPage() {
             indexPayTx = txList
               .map((tx: any) => {
                 const amount = parseFloat(tx.trans_amount || "0")
-                const isDeposit = tx.trans_type?.toLowerCase() === "deposit"
                 return {
                   id: tx.trans_id || `ip_${Date.now()}_${Math.random()}`,
                   user_id: "",
                   type: tx.trans_type || "transfer",
                   amount: amount,
-                  platform_fee: isDeposit ? 0 : amount * 0.0005, // Deposits have 0% fee
+                  platform_fee: platformFee(amount, tx.trans_type?.toLowerCase()), // Deposits have 0% fee
                   status: tx.trans_status || "completed",
                   sender_gate: tx.from_gate || tx.gate_name,
                   recipient_gate: tx.to_gate || tx.pocket_name,

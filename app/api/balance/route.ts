@@ -74,28 +74,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    let balance = profile?.wallet_balance || 0
-
-    // If balance is 0, calculate from transactions as backup
-    if (balance === 0) {
-      const { data: transactions } = await supabase
-        .from('transactions')
-        .select('type, amount, status')
-        .eq('user_id', user.id)
-        .eq('status', 'completed')
-
-      if (transactions && transactions.length > 0) {
-        balance = transactions.reduce((total, tx) => {
-          if (tx.type === 'deposit' || tx.type === 'receive') {
-            return total + parseFloat(tx.amount)
-          } else {
-            return total - parseFloat(tx.amount)
-          }
-        }, 0)
-        
-        console.log('💡 Calculated balance from transactions:', balance)
-      }
-    }
+    // Single source of truth: profiles.wallet_balance is maintained by DB triggers
+    // (update_wallet_balance / update_wallet_balance_on_status_change) on every
+    // transaction that reaches 'completed'. Do NOT recompute from transactions here —
+    // that created an inconsistent third behavior that diverged from the stored ledger.
+    const balance = profile?.wallet_balance || 0
 
     return NextResponse.json({
       success: true,

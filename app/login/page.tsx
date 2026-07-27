@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, LockKeyhole, UserRound } from 'lucide-react';
 import AuthLayout from '@/components/auth/auth-layout';
 import { createClient } from '@/lib/supabase/client';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -42,6 +42,26 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      if (phone.includes('@')) {
+        const { error: emailError } = await createClient().auth.signInWithPassword({
+          email: phone.trim(),
+          password: pin,
+        });
+        if (emailError) throw emailError;
+        try {
+          await fetch('/api/gate/ensure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+          });
+        } catch {
+          // Wallet provisioning is retried after login and must not block access.
+        }
+        router.push('/');
+        router.refresh();
+        return;
+      }
+
       const result = await startPhoneLogin(phone, pin);
 
       if (!result.otpRequired) {
@@ -148,40 +168,55 @@ export default function LoginPage() {
   // ---------------------------------------------------------------------------
   if (mode === 'phone') {
     return (
-      <AuthLayout>
+      <AuthLayout variant="access">
         <div className="w-full max-w-sm">
-          <h2 className="text-3xl font-bold text-foreground mb-2">Sign in with your phone</h2>
-          <p className="text-muted-foreground mb-8">Enter your mobile number and PIN</p>
+          <h2 className="text-3xl font-bold text-foreground mb-2">Welcome back</h2>
+          <p className="text-muted-foreground mb-8">Sign in to continue</p>
 
           <form onSubmit={handlePhoneLogin}>
             <div className="mb-5">
               <label className="block text-sm font-medium text-foreground mb-2" htmlFor="phone">
-                Phone Number
+                Phone or email
               </label>
-              <input
-                className="w-full py-3 px-4 bg-input text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300 placeholder:text-muted-foreground"
-                id="phone"
-                type="tel"
-                placeholder="07XXXXXXXX"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-              />
+              <div className="onboarding-input-shell">
+                <UserRound aria-hidden="true" />
+                <input
+                  id="phone"
+                  type="text"
+                  inputMode="email"
+                  autoComplete="username"
+                  placeholder="0701 234 567 or you@example.com"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                />
+              </div>
             </div>
             <div className="mb-6">
               <label className="block text-sm font-medium text-foreground mb-2" htmlFor="pin">
-                PIN
+                Password
               </label>
-              <input
-                className="w-full py-3 px-4 bg-input text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300 placeholder:text-muted-foreground"
+              <div className="onboarding-input-shell">
+                <LockKeyhole aria-hidden="true" />
+                <input
                 id="pin"
-                type="password"
-                maxLength={4}
+                type={showPassword ? "text" : "password"}
                 placeholder="••••"
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
-                required
-              />
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </button>
+              </div>
+            </div>
+            <div className="onboarding-access__forgot">
+              <Link href="/forgot-password">Forgot password?</Link>
             </div>
             {error && <p className="text-destructive text-sm text-center mb-4">{error}</p>}
             <div className="mb-6">
@@ -193,13 +228,22 @@ export default function LoginPage() {
                 {loading ? 'Signing in…' : 'Sign In'}
               </button>
             </div>
-            <p className="text-center text-sm text-muted-foreground mb-4">
+            <div className="onboarding-access__divider"><span>or</span></div>
+            <button
+              type="button"
+              className="onboarding-passkey"
+              onClick={() => setError('Sign in once on this device before using your enrolled passkey.')}
+            >
+              <span aria-hidden="true">●◆</span>
+              Use a passkey
+            </button>
+            <p className="sr-only">
               Don&apos;t have an account?{' '}
               <Link href="/signup" className="font-semibold text-primary hover:underline">
                 Sign Up
               </Link>
             </p>
-            <p className="text-center text-sm text-muted-foreground">
+            <p className="sr-only">
               <button
                 type="button"
                 onClick={() => { setError(null); setMode('email'); }}
@@ -219,7 +263,7 @@ export default function LoginPage() {
   // ---------------------------------------------------------------------------
   if (mode === 'otp') {
     return (
-      <AuthLayout>
+      <AuthLayout variant="access">
         <div className="w-full max-w-sm">
           <h2 className="text-3xl font-bold text-foreground mb-2">Check your email</h2>
           <p className="text-muted-foreground mb-8">Sent to {emailHint}</p>
@@ -271,7 +315,7 @@ export default function LoginPage() {
   // Render: Email mode (verbatim existing form)
   // ---------------------------------------------------------------------------
   return (
-    <AuthLayout>
+    <AuthLayout variant="access">
       <div className="w-full max-w-sm">
         <h2 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h2>
         <p className="text-muted-foreground mb-8">Sign in with your email and password</p>

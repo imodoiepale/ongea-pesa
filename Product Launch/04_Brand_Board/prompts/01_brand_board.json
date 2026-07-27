@@ -1,0 +1,16 @@
+{
+  "id": "ongea-board-01-brand-board",
+  "title": "Ongea Pesa — Premium Brand Guidelines Board",
+  "model_hint": "nano-banana / seedream-4 (multi-panel) / ideogram-v2",
+  "aspect_ratio": "16:10",
+  "prompt": "A premium brand-guidelines overview board for 'ONGEA PESA', a voice-first Kenyan fintech, presented as a clean 3x3 grid on a deep near-black teal canvas (#0A1A1F) with strong gutters, refined negative space, and tiny corner labels and page numbers. Panel 1 (Logo cover): the glowing orbital emblem above the white 'ONGEA PESA' wordmark. Panel 2 (Construction): the emblem on a faint grid with circles, orbit-angle guides, and small measurement marks. Panel 3 (Digital application): a minimal phone app header showing the emblem and a voice-command bar with a green-to-cyan waveform. Panel 4 (Brand essence): the tagline 'Speak. Send. Done.' in large clean type, sparse. Panel 5 (Color system): swatch chips for Deep Voice Teal #0FB5A6, Electric Cyan #22D3EE, Signal Green #34D399, Abyss Ink #0A1A1F, plus a small NSAIT violet-blue endorser chip. Panel 6 (Typography): 'Aa' specimen and the alphabet in a geometric sans, label 'Sora / Inter'. Panel 7 (Physical application): a black polo/hoodie with the breast lockup. Panel 8 (Image direction): a cinematic Nairobi-at-dusk skyline with a teal soundwave overlay. Panel 9 (System detail): a row of UI chips, a voice pill, and the 'by NSAIT' endorser mark. Consistent teal palette across all panels, sparse premium typography, studio brand-deck quality, perfectly spelled.",
+  "negative_prompt": "purple Ongea panels, microphone clipart, dollar sign, messy collage, dense paragraphs, lorem ipsum, stock office people, neon clutter, inconsistent logo, low-res, distorted text",
+  "params": { "guidance": 7.2, "steps": 50, "layout": "3x3 grid, gutters, corner labels" },
+  "brand_lock": {
+    "colors": ["#0FB5A6", "#22D3EE", "#34D399", "#0A1A1F", "#FFFFFF"],
+    "nsait_chip": ["#6D28D9", "#2563EB"],
+    "tagline": "Speak. Send. Done.",
+    "type": "Sora / Inter"
+  },
+  "notes": "The showpiece. One image that proves the system holds together. Use as deck cover and press-kit hero."
+}

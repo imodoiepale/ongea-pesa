@@ -42,8 +42,22 @@ import {
   Cell,
 } from "recharts"
 
-// Platform fee rate: 0.5% (correct rate — was previously wrong at 0.05%)
-const PLATFORM_FEE_RATE = 0.005
+import { PLATFORM_FEE_RATE, platformFee } from "@/lib/transaction-fees"
+
+const PROVIDER_LABELS: Record<string, string> = {
+  ncba_stk: "NCBA STK",
+  ncba: "NCBA",
+  safaricom_stk: "Safaricom STK",
+  daraja: "M-Pesa Daraja",
+  mpesa: "M-Pesa",
+  indexpay: "IndexPay",
+  internal: "Internal Wallet",
+}
+
+const providerLabel = (provider?: string | null) => {
+  if (!provider) return "—"
+  return PROVIDER_LABELS[provider.toLowerCase()] ?? provider
+}
 
 type DateRange = "today" | "yesterday" | "last7days" | "last30days" | "thisMonth" | "lastMonth" | "all"
 
@@ -129,6 +143,7 @@ export default function RevenuePage() {
   })
   const [breakdown, setBreakdown] = useState<RevenueBreakdown[]>([])
   const [dailyData, setDailyData] = useState<DailyData[]>([])
+  const [depositRails, setDepositRails] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [dateRange, setDateRange] = useState<DateRange>("thisMonth")
@@ -143,7 +158,7 @@ export default function RevenuePage() {
       // Fetch all transactions — include persisted platform_fee (migration 021)
       const { data: transactions, error: txError } = await supabase
         .from("transactions")
-        .select("type, amount, status, created_at, platform_fee")
+        .select("type, amount, status, created_at, platform_fee, provider")
         .gte("created_at", start.toISOString())
         .lte("created_at", end.toISOString())
         .order("created_at", { ascending: false })
@@ -162,20 +177,26 @@ export default function RevenuePage() {
       const completedTx = (transactions || []).filter(tx => tx.status === "completed")
       
       // Use persisted platform_fee where available (post-migration 021).
-      // Fall back to computing at 0.5% for legacy rows where platform_fee is still 0.
+      // Fall back to the shared platformFee helper for legacy rows where platform_fee is still 0.
       const txWithFees = completedTx.map(tx => {
-        const isDeposit = tx.type?.toLowerCase() === "deposit" || tx.type?.toLowerCase() === "receive"
+        const fallbackFee = platformFee(tx.amount || 0, tx.type?.toLowerCase())
         const persistedFee = parseFloat(String(tx.platform_fee ?? 0))
-        const calculatedFee = isDeposit
-          ? 0
-          : persistedFee > 0
-            ? persistedFee
-            : (tx.amount || 0) * PLATFORM_FEE_RATE
         return {
           ...tx,
-          calculated_fee: calculatedFee,
+          calculated_fee: persistedFee > 0 ? persistedFee : fallbackFee,
         }
       })
+
+      // Deposit rails seen in the period — deposits carry no platform fee, and their
+      // Safaricom charge is paid by the customer, so they add nothing to revenue or cost.
+      const rails = [
+        ...new Set(
+          completedTx
+            .filter(tx => tx.type?.toLowerCase() === "deposit")
+            .map(tx => tx.provider)
+            .filter((p): p is string => Boolean(p))
+        ),
+      ]
       
       const totalFees = txWithFees.reduce((sum, tx) => sum + tx.calculated_fee, 0)
       const totalVolume = txWithFees.reduce((sum, tx) => sum + (tx.amount || 0), 0)
@@ -229,6 +250,7 @@ export default function RevenuePage() {
 
       setBreakdown(breakdownArray)
       setDailyData(dailyArray)
+      setDepositRails(rails)
       setLastUpdated(new Date())
     } catch (err) {
       console.error("Failed to fetch revenue:", err)
@@ -487,6 +509,9 @@ export default function RevenuePage() {
                   <Percent className="w-4 h-4 text-brand" />
                 </div>
                 <h2 className="text-sm font-semibold text-foreground">Fee Breakdown by Type</h2>
+                <span className="ml-auto text-[10px] text-muted-foreground">
+                  {(PLATFORM_FEE_RATE * 100).toFixed(1)}% on outbound transactions
+                </span>
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -531,6 +556,11 @@ export default function RevenuePage() {
                   )}
                 </tbody>
               </table>
+            </div>
+            <div className="px-3 py-2 border-t border-border/40 text-[10px] text-muted-foreground">
+              Deposits earn no platform fee. The Safaricom paybill charge on deposit rails
+              {depositRails.length > 0 && ` (${depositRails.map(providerLabel).join(", ")})`} is paid by the
+              customer and is not an Ongea Pesa cost, so it never reduces the revenue above.
             </div>
           </div>
 

@@ -1,0 +1,15 @@
+{
+  "id": "ongea-board-02-business-card",
+  "title": "Business Card — Front + Back",
+  "model_hint": "nano-banana / seedream-4",
+  "aspect_ratio": "16:9",
+  "prompt": "A premium business-card mockup for Ongea Pesa shown as two cards (front and back) on a soft dark surface with gentle shadow. FRONT: deep teal-black card (#0A1A1F) with the glowing orbital emblem centered-left and a subtle spot-gloss soundwave in green-to-cyan; minimal. BACK: same card with the white 'ONGEA PESA' wordmark top-left, then placeholder contact lines 'Name · Role', 'hello@ongeapesa.com', 'ongeapesa.com', and at the bottom a small 'by Nairobi Space of AI Tools · NSAIT' with NSAIT in a violet-to-blue gradient (#6D28D9 to #2563EB). Clean type hierarchy, generous margins, premium matte stock with a hint of spot-gloss on the emblem. Perfectly spelled.",
+  "negative_prompt": "purple card body, microphone, dollar sign, busy texture, lots of tiny text, lorem ipsum, neon, low-res, distorted text",
+  "params": { "guidance": 7, "steps": 42 },
+  "brand_lock": {
+    "colors": ["#0FB5A6", "#22D3EE", "#34D399", "#0A1A1F", "#FFFFFF"],
+    "nsait_colors": ["#6D28D9", "#2563EB"],
+    "maker_line": "by Nairobi Space of AI Tools · NSAIT"
+  },
+  "notes": "Matte black stock, spot-gloss emblem. Contact lines are placeholders — swap real details before print."
+}

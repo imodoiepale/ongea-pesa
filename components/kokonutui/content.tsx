@@ -23,9 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-// Platform fee rate: 0.05% (deposits have 0% fee)
-const PLATFORM_FEE_RATE = 0.0005
+import { platformFee } from "@/lib/transaction-fees"
 
 // Date range options
 type DateRange = "today" | "yesterday" | "7days" | "30days" | "this_month" | "last_month" | "all"
@@ -139,7 +137,7 @@ export default function Content() {
       // Fetch transactions within date range
       const { data: transactions } = await supabase
         .from("transactions")
-        .select("type, amount, status, created_at")
+        .select("type, amount, status, created_at, platform_fee")
         .gte("created_at", start.toISOString())
         .lte("created_at", end.toISOString())
         .order("created_at", { ascending: false })
@@ -150,12 +148,12 @@ export default function Content() {
         .select("*", { count: "exact", head: true })
         .eq("status", "active")
 
-      // Calculate fees client-side (deposits have 0% fee)
+      // Prefer the persisted platform_fee, falling back for legacy rows (deposits have 0% fee)
       const txWithFees = (transactions || []).map(tx => {
-        const isDeposit = tx.type?.toLowerCase() === "deposit"
+        const persisted = tx.platform_fee ?? 0
         return {
           ...tx,
-          calculated_fee: isDeposit ? 0 : (tx.amount || 0) * PLATFORM_FEE_RATE
+          calculated_fee: persisted > 0 ? persisted : platformFee(tx.amount || 0, tx.type?.toLowerCase())
         }
       })
 
@@ -308,7 +306,7 @@ export default function Content() {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-white">Platform Revenue ({getDateRangeLabel(dateRange)})</h3>
-            <p className="text-xs text-white/70">Fees earned (0.05% on transactions, deposits free)</p>
+            <p className="text-xs text-white/70">Fees earned (0.5% on transactions, deposits free)</p>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-white">
@@ -464,7 +462,7 @@ export default function Content() {
               { label: "Total Volume (All Time)", value: formatCurrency(stats.totalVolume), color: "text-foreground" },
               { label: "Platform Fees Earned", value: formatCurrency(stats.totalFees), color: "text-brand" },
               { label: "Avg Transaction Size", value: formatCurrency(stats.totalVolume / (stats.completedTransactions || 1)), color: "text-foreground" },
-              { label: "Fee Rate", value: "0.05% (deposits free)", color: "text-blue-600 dark:text-blue-400" },
+              { label: "Fee Rate", value: "0.5% (deposits free)", color: "text-blue-600 dark:text-blue-400" },
               { label: "Today's Volume", value: formatCurrency(stats.todayVolume), color: "text-cyan-600 dark:text-cyan-400" },
               { label: "Today's Fees", value: formatCurrency(stats.todayFees), color: "text-brand" },
             ].map((item, i) => (

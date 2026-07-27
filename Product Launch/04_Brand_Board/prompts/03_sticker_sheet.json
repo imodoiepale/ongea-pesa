@@ -1,0 +1,15 @@
+{
+  "id": "ongea-board-03-stickers",
+  "title": "Die-Cut Sticker Sheet",
+  "model_hint": "nano-banana / seedream-4",
+  "aspect_ratio": "1:1",
+  "prompt": "A die-cut sticker sheet for Ongea Pesa on a neutral light surface, top-down. A set of premium glossy vinyl stickers with white die-cut borders: (1) the orbital emblem icon, (2) a rounded pill that says 'SPEAK. SEND. DONE.', (3) the 'ONGEA PESA' wordmark lockup, (4) a small green-to-cyan waveform stripe, (5) a circular badge 'The bank that listens', (6) a tiny 'by NSAIT' chip in violet-to-blue. All in the teal/cyan/green palette on dark or white sticker bodies, cohesive, playful but premium, perfectly spelled, realistic glossy vinyl with subtle highlights.",
+  "negative_prompt": "purple emblem, microphone clipart, dollar sign, messy overlap, lots of text, misspelling, neon, low-res, distorted text",
+  "params": { "guidance": 7, "steps": 42 },
+  "brand_lock": {
+    "colors": ["#0FB5A6", "#22D3EE", "#34D399", "#0A1A1F", "#FFFFFF"],
+    "nsait_colors": ["#6D28D9", "#2563EB"],
+    "phrases": ["SPEAK. SEND. DONE.", "The bank that listens"]
+  },
+  "notes": "Launch-event swag. Keep each sticker readable as a standalone cut."
+}

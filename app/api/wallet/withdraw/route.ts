@@ -212,38 +212,45 @@ export async function PUT(request: NextRequest) {
         mpesa_transaction_id,
       });
     } else {
-      // B2C failed - refund the user's wallet
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('wallet_balance')
-        .eq('id', transaction.user_id)
-        .single();
-
-      if (profile) {
-        const currentBalance = parseFloat(String(profile.wallet_balance || 0));
-        const refundAmount = parseFloat(transaction.amount);
-        
-        // Refund the amount back to wallet
+      // B2C failed. Single source of truth: never write wallet_balance directly.
+      if (transaction.status === 'completed') {
+        // The withdrawal had already debited the wallet — record a compensating
+        // 'receive' reversal so the DB trigger credits the amount back exactly once.
+        // We keep the original row 'completed'; flipping it to 'failed' would NOT
+        // reverse the trigger (it only fires on transitions INTO 'completed') and
+        // would desync the ledger.
         await supabase
-          .from('profiles')
+          .from('transactions')
+          .insert({
+            user_id: transaction.user_id,
+            type: 'receive',
+            amount: parseFloat(transaction.amount),
+            status: 'completed',
+            voice_command_text: `Refund: failed withdrawal ${transaction.id}`,
+            external_ref: conversation_id,
+            completed_at: new Date().toISOString(),
+            metadata: { refund_for: transaction.id, reason: `M-Pesa B2C failed code ${result_code}` },
+          });
+        await supabase
+          .from('transactions')
           .update({
-            wallet_balance: currentBalance + refundAmount,
+            error_message: `M-Pesa B2C failed (code ${result_code}); amount reversed`,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', transaction.user_id);
-
-        console.log('💰 Refunded KES', refundAmount, 'back to wallet');
+          .eq('id', transaction_id);
+        console.log('💰 Reversal recorded for failed withdrawal', transaction.id);
+      } else {
+        // Still 'processing'/'pending' — the wallet was never debited, so there is
+        // nothing to refund. Just mark the withdrawal failed (no balance change).
+        await supabase
+          .from('transactions')
+          .update({
+            status: 'failed',
+            error_message: `M-Pesa B2C failed with code: ${result_code}`,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', transaction_id);
       }
-
-      // Update transaction to failed
-      await supabase
-        .from('transactions')
-        .update({
-          status: 'failed',
-          error_message: `M-Pesa B2C failed with code: ${result_code}`,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', transaction_id);
 
       console.log('❌ Withdrawal failed:', result_code);
 

@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { WalletService } from '@/lib/services/walletService'
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -13,7 +14,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const { data: bill, error: fetchErr } = await service
     .from('saved_bills')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', user.id)
     .single()
 
@@ -55,7 +56,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       paid_at: new Date().toISOString(),
       paid_transaction_id: result?.transaction_id ?? null,
     })
-    .eq('id', params.id)
+    .eq('id', id)
 
   if (updateErr) {
     console.error('Failed to mark bill as paid:', updateErr)

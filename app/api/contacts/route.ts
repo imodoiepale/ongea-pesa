@@ -354,17 +354,12 @@ export async function POST(request: NextRequest) {
     // This ensures the app works for testing and local transfers
     console.log('📊 IndexPay success:', indexPaySuccess, '- Proceeding with local balance update');
 
-    // Update local balance (deduct from sender)
-    const newBalance = senderBalance - transferAmount;
-    await supabase
-      .from('profiles')
-      .update({
-        wallet_balance: newBalance,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id);
+    // Single source of truth: do NOT write wallet_balance directly. The
+    // 'transfer_out' transaction below is inserted as 'completed', and the DB
+    // trigger (update_wallet_balance) debits the sender exactly once.
+    const newBalance = senderBalance - transferAmount; // expected value, returned to client only
 
-    // Create transaction record for sender
+    // Create transaction record for sender (DB trigger performs the debit)
     console.log('📝 Creating transaction record for sender...');
     const { data: transaction, error: txError } = await supabase
       .from('transactions')
@@ -399,22 +394,17 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (recipientProfile) {
-      const recipientNewBalance = parseFloat(String(recipientProfile.wallet_balance || 0)) + transferAmount;
-      await supabase
-        .from('profiles')
-        .update({
-          wallet_balance: recipientNewBalance,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', recipientProfile.id);
-
-      // Create receive transaction for recipient
+      // Single source of truth: credit the recipient via a 'receive' transaction
+      // (a credit type the DB trigger recognises) — never write wallet_balance
+      // directly. Previously this inserted 'transfer_in', which the trigger treats
+      // as a debit, so the manual credit and the trigger cancelled out (recipient
+      // netted zero). 'receive' credits the recipient exactly once.
       console.log('📝 Creating transaction record for recipient...');
       const { error: recipientTxError } = await supabase
         .from('transactions')
         .insert({
           user_id: recipientProfile.id,
-          type: 'transfer_in',
+          type: 'receive',
           amount: transferAmount,
           status: 'completed',
           voice_command_text: `Received from ${senderProfile.gate_name}`,

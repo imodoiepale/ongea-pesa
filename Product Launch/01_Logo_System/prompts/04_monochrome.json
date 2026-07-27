@@ -1,0 +1,16 @@
+{
+  "id": "ongea-logo-04-glassmorphic-sphere",
+  "variation_name": "Glassmorphic Payment Sphere",
+  "title": "Luxury Glass Sphere — Hero App Icon",
+  "model_hint": "nano_banana_pro (2K) — text-to-image",
+  "aspect_ratio": "1:1",
+  "prompt": "Luxury glassmorphic logo for a voice-first African fintech, on a soft pearl-white background (#DDE8ED) with a gentle radial glow. A transparent glowing glass sphere with a bright neon-mint core (#69CEA9) at its center marking a confirmed payment. Two smooth, refined orbit rings in electric cyan (#70D0E0) wrap the sphere like secure routes. Behind the sphere, a single soft horizontal audio waveform runs through, electric cyan on the left fading into warm gold (#F4DFA0) on the right. Delicate glass reflections and soft aqua (#A9D3DF) highlights on the sphere. Beneath, the wordmark 'ONGEA PESA' in a bold premium rounded sans-serif with a subtle metallic deep-navy-to-cyan gradient (#2A5D73 to #70D0E0), wide tracking, exact spelling. Clean, expensive, minimal, app-store ready.",
+  "negative_prompt": "currency sparks, dollar signs, coins, microphone, arrows, noisy particles, clutter, dark background, distorted orb, misspelling, cheap 3D, low-res",
+  "params": { "guidance": 7, "steps": 45, "resolution": "2k" },
+  "brand_lock": {
+    "colors": ["#70D0E0", "#69CEA9", "#A9D3DF", "#2A5D73", "#DDE8ED", "#F4DFA0"],
+    "wordmark": "ONGEA PESA — navy-to-cyan metallic gradient",
+    "one_idea": "glass sphere + mint core + 2 rings + 1 waveform (cyan to gold) behind"
+  },
+  "notes": "Decluttered 'Glassmorphic Payment Sphere'. The most luxurious option — marketing hero / app store. The cyan-to-gold waveform is the signature touch here."
+}

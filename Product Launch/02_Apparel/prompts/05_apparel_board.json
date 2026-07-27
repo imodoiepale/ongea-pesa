@@ -1,0 +1,15 @@
+{
+  "id": "ongea-apparel-05-board",
+  "title": "Ongea Pesa — Apparel Collection Flat-Lay Board",
+  "model_hint": "nano-banana / seedream-4",
+  "aspect_ratio": "16:10",
+  "prompt": "A premium fashion-catalog flat-lay board for the 'Ongea Pesa' launch merch collection, on a deep near-black teal canvas (#0A1A1F) with soft studio shadows and small corner labels. Four garments arranged on a clean grid: (1) black polo front showing the small left-breast Ongea emblem + ONGEA PESA wordmark + 'by NSAIT' below; (2) black hoodie back showing the large ONGEA PESA statement print in a custom wide display font with a green-to-cyan soundwave underline and 'by Nairobi Space of AI Tools · NSAIT'; (3) white polo front variant; (4) folded hoodie showing the breast lockup. Ongea Pesa graphics in teal/cyan/green (#0FB5A6/#22D3EE/#34D399) and white; the NSAIT endorser mark in violet-to-blue (#6D28D9 to #2563EB). Cohesive, expensive, streetwear-meets-fintech, realistic fabrics, perfectly spelled text.",
+  "negative_prompt": "purple Ongea graphics, microphone, dollar sign, messy pile, mannequins, neon, low-res, misspelling, watermark, clutter, inconsistent logo",
+  "params": { "guidance": 7, "steps": 45, "layout": "4-garment grid flat-lay" },
+  "brand_lock": {
+    "ongea_colors": ["#0FB5A6", "#22D3EE", "#34D399", "#FFFFFF"],
+    "nsait_colors": ["#6D28D9", "#2563EB"],
+    "garments": ["black polo", "white polo", "black hoodie front", "black hoodie back"]
+  },
+  "notes": "One image to present the whole collection. Great for the launch deck and social teaser."
+}

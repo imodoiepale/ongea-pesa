@@ -77,14 +77,14 @@ export function FluidNav({
         // Fixed to bottom, full width
         "fixed bottom-0 left-0 right-0 z-50",
         // Background: glass blur + hairline top border
-        "bg-background/95 dark:bg-zinc-950/95 backdrop-blur-xl",
-        "border-t border-border/60",
+        "bg-[hsl(var(--pearl)/.92)] dark:bg-[hsl(var(--abyss)/.92)] backdrop-blur-xl",
+        "border-t border-[hsl(var(--teal)/.18)]",
         // Safe area for iPhone notch
         "pb-[env(safe-area-inset-bottom,0px)]",
         className
       )}
     >
-      <div className="flex items-center justify-around h-16 px-2 max-w-lg mx-auto">
+      <div className="flex items-center justify-around h-[4.6rem] px-2 max-w-lg mx-auto">
         {items.map((item) => {
           const active = isActive(item)
           const Icon = item.icon
@@ -98,7 +98,7 @@ export function FluidNav({
                   "flex flex-col items-center justify-center flex-1 h-full gap-0.5",
                   "rounded-xl transition-colors duration-200",
                   active
-                    ? "text-brand"
+                    ? "text-[hsl(var(--teal))]"
                     : "text-muted-foreground active:text-foreground"
                 )}
                 aria-label={item.label}
@@ -107,7 +107,7 @@ export function FluidNav({
                 <div
                   className={cn(
                     "w-10 h-6 flex items-center justify-center rounded-full transition-all duration-200",
-                    active && "bg-brand/10"
+                    active && "bg-[hsl(var(--mint)/.1)]"
                   )}
                 >
                   <Icon
@@ -137,7 +137,7 @@ export function FluidNav({
                 "flex flex-col items-center justify-center flex-1 h-full gap-0.5",
                 "rounded-xl transition-colors duration-200",
                 active
-                  ? "text-brand"
+                  ? "text-[hsl(var(--teal))]"
                   : "text-muted-foreground active:text-foreground"
               )}
               aria-label={item.label}
@@ -146,7 +146,7 @@ export function FluidNav({
               <div
                 className={cn(
                   "w-10 h-6 flex items-center justify-center rounded-full transition-all duration-200",
-                  active && "bg-brand/10"
+                  active && "bg-[hsl(var(--mint)/.1)]"
                 )}
               >
                 <Icon

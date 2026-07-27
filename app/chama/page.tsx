@@ -21,6 +21,7 @@ import {
   Contact, Smartphone,
 } from "lucide-react"
 import Link from "next/link"
+import { StepUpSheet } from "@/components/security/step-up-sheet"
 
 interface Chama {
   id: string
@@ -119,6 +120,8 @@ export default function ChamaPage() {
   const [statusTab, setStatusTab] = useState<"all" | "active" | "inactive">("all")
   const [includeAdmin, setIncludeAdmin] = useState(true)
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set())
+  const [showPayoutStepUp, setShowPayoutStepUp] = useState(false)
+  const [payoutError, setPayoutError] = useState("")
 
   const [form, setForm] = useState({
     name: "",
@@ -554,6 +557,16 @@ export default function ChamaPage() {
     }
   }
 
+  const distributeCollectedCycle = async (stepupToken: string) => {
+    const cycle = selectedChama?.cycles?.find((item: any) => item.status === "collected")
+    if (!cycle || !user?.id) throw new Error("No collected cycle is ready for payout.")
+    setPayoutError("")
+    const response = await fetch("/api/chama/distribute", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cycle_id: cycle.id, stepup_token: stepupToken }) })
+    const body = await response.json().catch(() => ({}))
+    if (!response.ok) { setPayoutError(body.error || "We couldn't start the payout."); throw new Error(body.error || "Payout failed") }
+    setShowPayoutStepUp(false); setShowDetailModal(false); await fetchChamas(user.id)
+  }
+
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -683,12 +696,12 @@ export default function ChamaPage() {
   const getChamaIcon = (t: string) => t === "fundraising" ? Gift : t === "collection" ? HandCoins : PiggyBank
 
   return (
-    <div className="min-h-[100dvh] bg-background surface-money">
+    <main id="main-content" className="orbital-page min-h-[100dvh]">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-card/80 border-b border-border/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center shadow-lg shadow-brand/20"><Users className="w-5 h-5 text-white" /></div>
-            <div><h1 className="text-xl font-bold text-brand">Chama Collect</h1><p className="text-[10px] text-muted-foreground -mt-0.5">by Ongea Pesa</p></div>
+            <div><span className="orbital-label text-[hsl(var(--teal))]">Together</span><h1 className="orbital-display mt-2 text-4xl">Chama</h1></div>
           </Link>
           <div className="flex items-center gap-3">
             <button className="p-2 rounded-lg hover:bg-muted"><Bell className="w-5 h-5 text-muted-foreground" /></button>
@@ -698,7 +711,7 @@ export default function ChamaPage() {
       </header>
 
       <ScreenShell>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
           <div><h2 className="text-xl font-bold text-foreground">Chama Collections</h2><p className="text-sm text-muted-foreground">Manage group savings & contributions</p></div>
@@ -842,7 +855,7 @@ export default function ChamaPage() {
             })}
           </div>
         )}
-      </main>
+      </div>
 
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -1345,6 +1358,7 @@ export default function ChamaPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                {selectedChama.cycles?.some((cycle: any) => cycle.status === "collected") && <button onClick={() => setShowPayoutStepUp(true)} className="orbital-button min-h-10 px-4"><Send className="h-4 w-4" />Payout</button>}
                 {collecting && <span className="flex items-center gap-2 px-3 py-1.5 bg-card/20 rounded-lg text-sm text-white"><RefreshCw className="w-4 h-4 animate-spin" />Live</span>}
                 <button onClick={() => { setShowDetailModal(false); stopPolling(); setExpandedStkRow(null); setStkRequests([]) }} className="p-2 hover:bg-card/20 rounded-xl text-white"><X className="w-6 h-6" /></button>
               </div>
@@ -1976,6 +1990,8 @@ export default function ChamaPage() {
         )
       })()}
       </ScreenShell>
-    </div>
+      <StepUpSheet open={showPayoutStepUp} title="Approve payout" description={selectedChama ? `Send the collected ${selectedChama.name} cycle to its recipient.` : undefined} onClose={() => setShowPayoutStepUp(false)} onVerified={distributeCollectedCycle} />
+      {payoutError && <p className="fixed bottom-24 left-1/2 z-[90] -translate-x-1/2 rounded-full bg-red-600 px-4 py-2 text-sm text-white" role="alert">{payoutError}</p>}
+    </main>
   )
 }

@@ -1,0 +1,14 @@
+{
+  "id": "ongea-logo-00-board",
+  "title": "Ongea Pesa — Logo System Contact Sheet (all 5, light/gold direction)",
+  "model_hint": "nano_banana_pro (2K) — good at multi-panel grids",
+  "aspect_ratio": "16:10",
+  "prompt": "A premium brand logo-system board for a voice-first African fintech 'ONGEA PESA', laid out as a clean 2x3 grid on a soft pearl-white canvas (#DDE8ED) with light gutters and tiny deep-navy corner labels. All marks share one glassmorphic family in electric cyan (#70D0E0), neon mint (#69CEA9), soft aqua (#A9D3DF), deep navy (#2A5D73) wordmark, and a sparing warm-gold accent (#F4DFA0). Panel 1 (large): the primary glass orb with one voice waveform, a mint core, two cyan orbital rings, a gold rim glint, and the deep-navy 'ONGEA PESA' wordmark beneath. Panel 2: a minimal app-icon halo (a waveform curved into an orbit, mint center). Panel 3: the horizontal lockup (orb left, wordmark right). Panel 4: the luxury glass sphere with a cyan-to-gold waveform. Panel 5: the cinematic voice-command portal ring. Panel 6: construction geometry of the orb on a faint grid with circles and orbit-angle guides. Consistent palette, sparse premium typography, lots of clean negative space, studio brand-guidelines quality, exact spelling.",
+  "negative_prompt": "currency particles, dollar signs, coins, microphone, arrows, dark background, inconsistent colors between panels, messy collage, body text, lorem ipsum, misspelling, clutter, low-res",
+  "params": { "guidance": 7, "steps": 48, "resolution": "2k", "layout": "2x3 grid with gutters and corner labels" },
+  "brand_lock": {
+    "colors": ["#70D0E0", "#69CEA9", "#A9D3DF", "#2A5D73", "#DDE8ED", "#F4DFA0"],
+    "consistency": "the SAME glass-orb family across all panels"
+  },
+  "notes": "One board for stakeholder approval. Shows the decluttered light/gold system holding together."
+}

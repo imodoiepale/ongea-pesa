@@ -1,0 +1,14 @@
+{
+  "id": "ongea-social-04-story",
+  "title": "Story Template (IG / WhatsApp 9:16)",
+  "model_hint": "nano-banana / seedream-4",
+  "aspect_ratio": "9:16",
+  "prompt": "A vertical 9:16 social story template for Ongea Pesa. Deep teal-black background (#0A1A1F) with a soft cyan halo glow at the top. Top center: the small Ongea Pesa emblem + 'ONGEA PESA' wordmark in white. Large open center area (kept clear for overlay text/screenshots) framed subtly by a thin green-to-cyan soundwave that runs down the left edge. Bottom: a rounded 'pill' shape suggesting a voice command bar with a small waveform inside, and beneath it small text 'Speak. Send. Done. · by NSAIT'. Minimal, premium, leaves generous empty middle space for content. Perfectly spelled.",
+  "negative_prompt": "purple, microphone clipart, dollar sign, busy center, lots of text, stock people, neon, low-res, distorted text",
+  "params": { "guidance": 7, "steps": 42, "keep_center_clear": true },
+  "brand_lock": {
+    "colors": ["#0FB5A6", "#22D3EE", "#34D399", "#0A1A1F", "#FFFFFF"],
+    "footer": "Speak. Send. Done. · by NSAIT"
+  },
+  "notes": "Reusable frame — team drops screenshots/quotes into the empty center."
+}

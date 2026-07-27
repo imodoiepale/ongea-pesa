@@ -1,430 +1,106 @@
 "use client"
 
-import {
-  Mic,
-  Send,
-  Camera,
-  Calendar,
-  BarChart3,
-  Settings,
-  Moon,
-  Sun,
-  LogOut,
-  Wallet,
-  Plus,
-  Shield,
-  Eye,
-  EyeOff,
-  SendHorizonal,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useTheme } from "next-themes"
-import { useState, useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useVoice } from "@/components/voice-provider"
+import { Camera, Eye, EyeOff, Plus, Send, Settings2 } from "lucide-react"
 import { useAuth } from "@/components/providers/auth-provider"
 import { createClient } from "@/lib/supabase/client"
+import { OngeaWordmark, VoiceGlyph } from "@/components/foundation"
 import BalanceSheet from "./balance-sheet"
 import PWAInstallPrompt from "./pwa-install-prompt"
-import { PageHeader, ScreenShell } from "@/components/foundation"
-import { cn } from "@/lib/utils"
 
-type Screen =
-  | "dashboard"
-  | "voice"
-  | "send"
-  | "recurring"
-  | "analytics"
-  | "test"
-  | "permissions"
-  | "scanner"
-  | "batch"
+type Screen = "dashboard" | "voice" | "send" | "recurring" | "analytics" | "test" | "permissions" | "scanner" | "batch"
 
 interface MainDashboardProps {
   onNavigate?: (screen: Screen) => void
   onVoiceActivate?: () => void
-  /** Called when the user taps "Pay Scanner" — opens the camera overlay in the parent */
   onOpenScanner?: () => void
 }
 
-// Admin emails list
-const ADMIN_EMAILS = [
-  "ijepale@gmail.com",
-  "admin@ongeapesa.com",
-  "ongeapesa.kenya@gmail.com",
-]
-
-const quickActions: {
-  label: string
-  desc: string
-  screen: Screen
-  icon: React.ElementType
-  iconBg: string
-}[] = [
-  {
-    label: "Send Money",
-    desc: "Voice or manual",
-    screen: "send",
-    icon: Send,
-    iconBg: "bg-brand",
-  },
-  {
-    label: "Multi-Send",
-    desc: "Pay multiple at once",
-    screen: "batch",
-    icon: SendHorizonal,
-    iconBg: "bg-emerald-500",
-  },
-  {
-    label: "Pay Scanner",
-    desc: "Bills & QR codes",
-    screen: "scanner",
-    icon: Camera,
-    iconBg: "bg-blue-500",
-  },
-  {
-    label: "Recurring",
-    desc: "Auto payments",
-    screen: "recurring",
-    icon: Calendar,
-    iconBg: "bg-violet-500",
-  },
-  {
-    label: "Analytics",
-    desc: "Spending stats",
-    screen: "analytics",
-    icon: BarChart3,
-    iconBg: "bg-amber-500",
-  },
-]
-
-export default function MainDashboard({
-  onNavigate,
-  onVoiceActivate,
-  onOpenScanner,
-}: MainDashboardProps) {
-  const { user, signOut } = useAuth()
-  const { theme, setTheme } = useTheme()
+export default function MainDashboard({ onNavigate, onOpenScanner }: MainDashboardProps) {
+  const { user } = useAuth()
   const router = useRouter()
-  const [mounted, setMounted] = useState(false)
-  const [balance, setBalance] = useState<number>(0)
-  const [loading, setLoading] = useState(true)
-  const [isBalanceSheetOpen, setIsBalanceSheetOpen] = useState(false)
-  const [pocketDeposited, setPocketDeposited] = useState<number | null>(null)
-  const [hideBalance, setHideBalance] = useState(() => {
-    if (typeof window === "undefined") return false
-    return localStorage.getItem("hide-balance") === "true"
-  })
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
+  const [balance, setBalance] = useState<number | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [hidden, setHidden] = useState(false)
 
-  // Check if user is admin
-  const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email)
+  const firstName = String(user?.user_metadata?.full_name || user?.email?.split("@")[0] || "there").split(" ")[0]
 
   useEffect(() => {
-    setMounted(true)
+    setHidden(localStorage.getItem("hide-balance") === "true")
   }, [])
 
-  // Navigation helper that uses router when onNavigate is not provided
-  const handleNavigate = (screen: Screen) => {
-    if (onNavigate) {
-      onNavigate(screen)
-    } else {
-      router.push(`/${screen}`)
-    }
-  }
-
-  // Fetch user balance and setup real-time subscription
   useEffect(() => {
     if (!user?.id) return
+    let active = true
+    fetch("/api/balance").then(async (response) => {
+      if (!active) return
+      const body = response.ok ? await response.json() : null
+      setBalance(Number(body?.balance ?? 0))
+    }).catch(() => active && setBalance(0))
 
-    const fetchBalance = async () => {
-      setLoading(false) // Remove loading immediately
-      try {
-        const response = await fetch("/api/balance")
-        if (response.ok) {
-          const data = await response.json()
-          let finalBalance = data.balance || 0
+    const channel = supabase.channel("orbital-home-balance").on("postgres_changes", {
+      event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}`,
+    }, (payload) => setBalance(Number(payload.new?.wallet_balance ?? 0))).subscribe()
+    return () => { active = false; void supabase.removeChannel(channel) }
+  }, [supabase, user?.id])
 
-          // If balance is 0, calculate from transactions as fallback
-          if (finalBalance === 0) {
-            const { data: transactions } = await supabase
-              .from("transactions")
-              .select("type, amount, status")
-              .eq("user_id", user.id)
-              .eq("status", "completed")
-
-            if (transactions && transactions.length > 0) {
-              finalBalance = transactions.reduce((total, tx) => {
-                if (tx.type === "deposit" || tx.type === "receive") {
-                  return total + parseFloat(String(tx.amount))
-                } else {
-                  return total - parseFloat(String(tx.amount))
-                }
-              }, 0)
-              console.log("📊 Calculated from transactions:", finalBalance)
-            }
-          }
-
-          setBalance(finalBalance)
-          console.log("💰 Balance loaded:", finalBalance)
-        }
-      } catch (error) {
-        console.error("Failed to fetch balance:", error)
-        setBalance(0)
-      }
-    }
-
-    fetchBalance()
-
-    // Fetch pocket total_deposited (supplementary — non-blocking)
-    const fetchPocket = async () => {
-      try {
-        const { data } = await supabase
-          .from("user_pockets")
-          .select("total_deposited")
-          .eq("user_id", user.id)
-          .single()
-        if (data) {
-          setPocketDeposited(parseFloat(String(data.total_deposited)) || 0)
-        }
-      } catch {
-        // silent — pocket may not exist yet
-      }
-    }
-    fetchPocket()
-
-    // Set up real-time subscription for balance changes
-    const channel = supabase
-      .channel("dashboard-balance-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${user.id}`,
-        },
-        (payload) => {
-          console.log("✅ Balance updated in real-time:", payload)
-          if (payload.new && "wallet_balance" in payload.new) {
-            setBalance(payload.new.wallet_balance || 0)
-          }
-        }
-      )
-      .subscribe()
-
-    // Cleanup
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [user?.id, supabase])
-
-  const handleVoiceActivation = () => {
-    handleNavigate("voice")
-  }
-
-  if (!mounted) {
-    return null
-  }
+  const go = (screen: Screen, route?: string) => onNavigate ? onNavigate(screen) : router.push(route || `/${screen}`)
 
   return (
-    <div className="min-h-[100dvh] bg-background surface-money">
-      <ScreenShell className="pt-0 pb-28">
-        {/* Page Header */}
-        <PageHeader title="Ongea Pesa" subtitle="Voice-first payments">
-          {/* Admin Analytics Button — only visible for admins */}
-          {isAdmin && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push("/admin-analytics")}
-              className="rounded-full"
-              title="Admin Analytics"
-            >
-              <Shield className="h-5 w-5 text-brand" />
-            </Button>
-          )}
+    <main id="main-content" className="orbital-page">
+      <section className="orbital-screen max-w-[31rem] flex min-h-[100dvh] flex-col">
+        <header className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[hsl(var(--mint))]" /><span className="orbital-label">Home</span></div>
+          <button onClick={() => router.push("/settings")} className="grid h-11 w-11 place-items-center rounded-full" aria-label="Open settings"><Settings2 className="h-5 w-5" strokeWidth={1.5} /></button>
+        </header>
 
-          {/* Theme toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="rounded-full"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5 text-yellow-500" />
-            ) : (
-              <Moon className="h-5 w-5 text-muted-foreground" />
-            )}
-          </Button>
-
-          {/* Settings */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleNavigate("permissions")}
-            className="rounded-full"
-          >
-            <Settings className="h-5 w-5 text-muted-foreground" />
-          </Button>
-
-          {/* User dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full"
-                aria-label="User menu"
-              >
-                <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white font-semibold text-xs">
-                  {user?.email?.charAt(0).toUpperCase() || "U"}
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-medium">{user?.email}</p>
-                <p className="text-xs text-muted-foreground">
-                  Voice-activated payments
-                </p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={signOut}
-                className="text-red-600 focus:text-red-600"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </PageHeader>
-
-        {/* Balance Card — centered, with eye toggle */}
-        <div className="relative mb-6">
-          <button
-            onClick={() => setIsBalanceSheetOpen(true)}
-            className="w-full rounded-3xl bg-brand p-6 text-center transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            aria-label="Open balance details"
-          >
-            <p className="text-sm font-medium text-white/80 mb-3">
-              Wallet Balance
-            </p>
-            <p
-              className="text-3xl md:text-4xl font-bold tracking-tighter text-white"
-              style={{ fontVariantNumeric: "tabular-nums" }}
-            >
-              {hideBalance
-                ? "KSh ••••••"
-                : balance.toLocaleString("en-KE", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-            </p>
-            <p className="text-xs text-white/60 mt-3 flex items-center justify-center gap-1.5">
-              <Wallet className="h-3 w-3" />
-              {user?.email || "Ongea Pesa Wallet"} · tap to manage
-            </p>
-          </button>
-
-          {/* Eye toggle — positioned top-right inside the card */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              setHideBalance((prev) => {
-                const next = !prev
-                localStorage.setItem("hide-balance", String(next))
-                return next
-              })
-            }}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/25 active:scale-90 transition-all text-white"
-            aria-label={hideBalance ? "Show balance" : "Hide balance"}
-          >
-            {hideBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-          </button>
-        </div>
-
-        {/* Voice Activation Button */}
-        <div className="flex justify-center mb-8">
-          {/* Outer shell */}
-          <div className="p-1.5 bg-brand/8 border border-brand/20 rounded-full">
-            {/* Inner button */}
-            <button
-              onClick={handleVoiceActivation}
-              className="w-20 h-20 rounded-full bg-brand flex flex-col items-center justify-center gap-1 shadow-md active:scale-[0.97] transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              aria-label="Activate voice assistant"
-            >
-              <Mic className="h-7 w-7 text-white" />
-              <span className="text-[10px] font-semibold text-white/90">
-                Speak
-              </span>
-            </button>
+        <div className="mt-6 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm opacity-70">Good morning,</p>
+            <h1 className="font-[family-name:var(--font-label)] text-xl font-medium text-[hsl(var(--mint))]">{firstName}</h1>
           </div>
+          <OngeaWordmark compact className="scale-90 origin-right opacity-80" />
         </div>
 
-        {/* Quick Actions Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          {quickActions.map((action) => (
+        <div className="relative z-10 mt-5">
+          <div className="flex items-center justify-between">
+            <span className="orbital-label opacity-65">Balance</span>
             <button
-              key={action.label}
-              onClick={() =>
-                action.screen === "scanner" && onOpenScanner
-                  ? onOpenScanner()
-                  : handleNavigate(action.screen)
-              }
-              className="flex flex-col items-center gap-2.5 p-4 rounded-2xl bg-card border border-border/60 hover:border-border hover:shadow-sm transition-all duration-200 active:scale-[0.97] text-left"
-            >
-              <div
-                className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center",
-                  action.iconBg
-                )}
-              >
-                <action.icon className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  {action.label}
-                </p>
-                <p className="text-xs text-muted-foreground">{action.desc}</p>
-              </div>
-            </button>
-          ))}
+              className="grid h-11 w-11 place-items-center rounded-full opacity-65"
+              aria-label={hidden ? "Show balance" : "Hide balance"}
+              onClick={() => setHidden((value) => { localStorage.setItem("hide-balance", String(!value)); return !value })}
+            >{hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
+          </div>
+          <button onClick={() => setSheetOpen(true)} className="block text-left" aria-label="Open wallet balance">
+            <span className="orbital-display block text-[2rem]">KSh</span>
+            <span className="orbital-display block text-[clamp(3.6rem,17vw,5.35rem)] tabular-nums">
+              {balance === null ? "—" : hidden ? "•••••" : Math.round(balance).toLocaleString("en-KE")}
+            </span>
+            <span className="mt-2 flex items-center gap-2 text-xs opacity-65">Available <i className="h-2 w-2 rounded-full bg-[hsl(var(--mint))] not-italic" /></span>
+          </button>
         </div>
-      </ScreenShell>
 
-      {/* Floating Add Balance Button — outside ScreenShell */}
-      <Button
-        onClick={() => setIsBalanceSheetOpen(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-brand hover:bg-brand/90 shadow-lg shadow-brand/20 hover:shadow-brand/30 transition-all duration-200 active:scale-[0.97] z-40"
-        size="icon"
-        aria-label="Add balance"
-      >
-        <Plus className="h-6 w-6 text-white" />
-      </Button>
+        <div className="relative -mx-4 -mt-5 flex min-h-[17rem] flex-1 items-center justify-center" aria-hidden="true">
+          <span className="h-20 w-20 rounded-full border border-[hsl(var(--mint)/.35)] shadow-[0_0_60px_hsl(var(--cyan)/.2)]" />
+        </div>
 
-      {/* Balance Sheet — outside ScreenShell (modal/fixed) */}
-      <BalanceSheet
-        isOpen={isBalanceSheetOpen}
-        onClose={() => setIsBalanceSheetOpen(false)}
-        currentBalance={balance}
-        onBalanceUpdate={(newBalance) => {
-          setBalance(newBalance)
-          console.log("✅ Balance updated to:", newBalance)
-        }}
-      />
+        <button onClick={() => go("voice", "/voice")} className="mb-5 text-center font-[family-name:var(--font-display)] text-xl text-[hsl(var(--mint))]">
+          Say what you need
+        </button>
 
-      {/* PWA Install Prompt — outside ScreenShell */}
+        <div className="orbital-panel mx-auto grid w-full max-w-sm grid-cols-3 overflow-hidden rounded-[1.7rem] py-2">
+          <button onClick={() => go("send")} className="flex min-h-14 flex-col items-center justify-center gap-1 border-r border-current/10 text-xs"><Send className="h-5 w-5" strokeWidth={1.5} />Send</button>
+          <button onClick={() => setSheetOpen(true)} className="flex min-h-14 flex-col items-center justify-center gap-1 border-r border-current/10 text-xs"><Plus className="h-5 w-5" strokeWidth={1.5} />Add</button>
+          <button onClick={() => onOpenScanner ? onOpenScanner() : go("scanner", "/scanner")} className="flex min-h-14 flex-col items-center justify-center gap-1 text-xs"><Camera className="h-5 w-5" strokeWidth={1.5} />Scan</button>
+        </div>
+
+        <button onClick={() => go("voice", "/voice")} className="sr-only">Open voice assistant <VoiceGlyph /></button>
+      </section>
+
+      <BalanceSheet isOpen={sheetOpen} onClose={() => setSheetOpen(false)} currentBalance={balance ?? 0} onBalanceUpdate={setBalance} />
       <PWAInstallPrompt />
-    </div>
+    </main>
   )
 }

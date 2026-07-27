@@ -94,7 +94,7 @@ export const textToSpeech = async (text: string) => {
       model_id: "eleven_multilingual_v2",
     });
 
-    const audioBlob = new Blob([audio as BlobPart], { type: "audio/mpeg" });
+    const audioBlob = new Blob([audio as unknown as BlobPart], { type: "audio/mpeg" });
     const audioUrl = URL.createObjectURL(audioBlob);
     const audioElement = new Audio(audioUrl);
     audioElement.play();

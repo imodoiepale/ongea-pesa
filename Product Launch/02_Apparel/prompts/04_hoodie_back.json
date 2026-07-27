@@ -1,0 +1,16 @@
+{
+  "id": "ongea-apparel-04-hoodie-back",
+  "title": "Hoodie — Back, Large Unique-Font Statement Print",
+  "model_hint": "nano-banana / ideogram-v2 (text) / seedream-4",
+  "aspect_ratio": "4:5",
+  "prompt": "Premium top-down mockup of the BACK of a heavyweight teal-black pullover hoodie (#0A1A1F), brushed-fleece texture, on a soft neutral studio surface. A bold large statement print spanning the shoulders: at top the Ongea Pesa orbital emblem (glowing cyan-to-teal core, soundwave arcs, green-to-cyan orbit ring, soft halo), below it 'ONGEA PESA' in the custom wide athletic uppercase display font in white, where the 'O' has an orbital cut echoing the emblem. Under the wordmark, a wide thin soundwave underline in a green-to-cyan gradient (#34D399 to #22D3EE) stretching across the back. Beneath that, smaller uppercase: 'by Nairobi Space of AI Tools  ·  NSAIT', with NSAIT in a violet-to-blue gradient (#6D28D9 to #2563EB). Confident streetwear energy, perfectly spelled, realistic print on fleece, catalog quality.",
+  "negative_prompt": "misspelling, jumbled letters, purple Ongea wordmark, microphone, dollar sign, zipper, busy patterns, wrinkles, mannequin, cheap neon, low-res, distorted text, extra lines",
+  "params": { "guidance": 7.5, "steps": 45, "print_width": "large, 300mm across shoulders", "text_accuracy": "ONGEA PESA + by Nairobi Space of AI Tools NSAIT" },
+  "brand_lock": {
+    "back_text_primary": "ONGEA PESA (custom display font)",
+    "back_text_secondary": "by Nairobi Space of AI Tools · NSAIT",
+    "ongea_colors": ["#FFFFFF", "#34D399", "#22D3EE", "#0FB5A6"],
+    "nsait_colors": ["#6D28D9", "#2563EB"]
+  },
+  "notes": "The hero merch piece. This is where the unique font shines. Big, bold, balanced."
+}

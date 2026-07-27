@@ -14,6 +14,7 @@ import {
   Wallet, Phone, User, Calendar, Target, Zap, LogOut, Check, Home, Bell, Settings,
 } from "lucide-react"
 import Link from "next/link"
+import { StepUpSheet } from "@/components/security/step-up-sheet"
 
 interface Escrow {
   id: string
@@ -74,6 +75,11 @@ export default function EscrowPage() {
   const [createStep, setCreateStep] = useState(1)
   const [userSearchTerm, setUserSearchTerm] = useState("")
   const [showUserDropdown, setShowUserDropdown] = useState<string | null>(null)
+  const [showReleaseStepUp, setShowReleaseStepUp] = useState(false)
+  const [actionError, setActionError] = useState("")
+  const [actionBusy, setActionBusy] = useState(false)
+  const [showDisputeSheet, setShowDisputeSheet] = useState(false)
+  const [disputeReason, setDisputeReason] = useState("")
 
   const [form, setForm] = useState({
     title: "",
@@ -188,6 +194,38 @@ export default function EscrowPage() {
     } catch (err) {
       console.error("Error creating escrow:", err)
     }
+  }
+
+  const releaseEscrow = async (stepupToken: string) => {
+    if (!selectedEscrow || !user) return
+    setActionError("")
+    const response = await fetch("/api/escrow/release", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ escrow_id: selectedEscrow.id, stepup_token: stepupToken }),
+    })
+    const body = await response.json().catch(() => ({}))
+    if (!response.ok) { setActionError(body.error || "We couldn't release the funds."); throw new Error(body.error || "Release failed") }
+    setShowReleaseStepUp(false); setShowDetailModal(false); await fetchEscrows(user.id)
+  }
+
+  const fundEscrow = async () => {
+    if (!selectedEscrow || !user) return
+    setActionBusy(true); setActionError("")
+    const amount = Math.max(0, selectedEscrow.total_amount - selectedEscrow.funded_amount)
+    const response = await fetch("/api/escrow/fund", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ escrow_id: selectedEscrow.id, amount }) })
+    const body = await response.json().catch(() => ({})); setActionBusy(false)
+    if (!response.ok) { setActionError(body.error || "We couldn't start the M-Pesa request."); return }
+    setShowDetailModal(false); await fetchEscrows(user.id)
+  }
+
+  const raiseDispute = async () => {
+    if (!selectedEscrow || !user || disputeReason.trim().length < 8) { setActionError("Describe the problem in at least 8 characters."); return }
+    setActionBusy(true); setActionError("")
+    const response = await fetch("/api/escrow/dispute", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ escrow_id: selectedEscrow.id, reason: disputeReason.trim(), description: disputeReason.trim() }) })
+    const body = await response.json().catch(() => ({})); setActionBusy(false)
+    if (!response.ok) { setActionError(body.error || "We couldn't open the dispute."); return }
+    setShowDisputeSheet(false); setShowDetailModal(false); setDisputeReason(""); await fetchEscrows(user.id)
   }
 
   const requestExit = async (escrowId: string) => {
@@ -362,10 +400,10 @@ export default function EscrowPage() {
   )
 
   return (
-    <div className="min-h-[100dvh] bg-background surface-money">
+    <main id="main-content" className="orbital-page min-h-[100dvh]">
       <ScreenShell className="pt-0 pb-28">
         {/* Page Header */}
-        <PageHeader title="Escrow Shield" subtitle="Secure transactions with crypto-grade safety">
+        <PageHeader title="Protected deals" subtitle="Hold funds safely until everyone agrees">
           <Button
             variant="ghost"
             size="icon-sm"
@@ -979,17 +1017,17 @@ export default function EscrowPage() {
             {/* Footer actions */}
             <div className="flex gap-2 px-5 py-4 border-t border-border/60">
               {selectedEscrow.status === "pending_funding" && (
-                <Button className="flex-1">
-                  Fund Escrow
+                <Button className="flex-1" onClick={fundEscrow} disabled={actionBusy}>
+                  {actionBusy ? "Requesting…" : "Fund Escrow"}
                 </Button>
               )}
               {selectedEscrow.status === "funded" && (
-                <Button className="flex-1">
+                <Button className="flex-1" onClick={() => setShowReleaseStepUp(true)}>
                   Release Funds
                 </Button>
               )}
               {["funded", "in_progress"].includes(selectedEscrow.status) && (
-                <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/5">
+                <Button variant="outline" onClick={() => setShowDisputeSheet(true)} className="border-destructive/30 text-destructive hover:bg-destructive/5">
                   Dispute
                 </Button>
               )}
@@ -1000,6 +1038,9 @@ export default function EscrowPage() {
           </div>
         </div>
       )}
-    </div>
+      <StepUpSheet open={showReleaseStepUp} title="Release funds" description={selectedEscrow ? `Approve the release from ${selectedEscrow.title}.` : undefined} onClose={() => setShowReleaseStepUp(false)} onVerified={releaseEscrow} />
+      {showDisputeSheet && <div className="fixed inset-0 z-[80] flex items-end justify-center bg-[hsl(var(--abyss)/.58)] backdrop-blur-sm"><section className="orbital-page w-full max-w-lg rounded-t-[2rem] p-6"><h2 className="orbital-display text-4xl">Raise a dispute</h2><p className="mt-2 text-sm opacity-60">Funds will remain held while the issue is reviewed.</p><textarea value={disputeReason} onChange={(event) => setDisputeReason(event.target.value)} className="orbital-field mt-6 min-h-32 resize-none" placeholder="Describe what went wrong" /><div className="mt-5 grid grid-cols-2 gap-3"><button onClick={() => setShowDisputeSheet(false)} className="orbital-button orbital-button--quiet">Cancel</button><button onClick={raiseDispute} disabled={actionBusy} className="orbital-button">{actionBusy ? "Submitting…" : "Hold funds"}</button></div></section></div>}
+      {actionError && <p className="fixed bottom-24 left-1/2 z-[90] -translate-x-1/2 rounded-full bg-red-600 px-4 py-2 text-sm text-white" role="alert">{actionError}</p>}
+    </main>
   )
 }

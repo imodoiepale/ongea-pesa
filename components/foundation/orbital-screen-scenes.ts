@@ -1,0 +1,76 @@
+import type { OrbitalBackdropScene } from "./orbital-backgrounds"
+
+export type OrbitalScreenState =
+  | "welcome"
+  | "sign-in"
+  | "profile"
+  | "voice-calibration"
+  | "security-setup"
+  | "home"
+  | "listening"
+  | "intent"
+  | "review-verify"
+  | "success"
+  | "wallet"
+  | "add-money"
+  | "transactions"
+  | "scan-bill"
+  | "bill-review"
+  | "chama-home"
+  | "start-circle"
+  | "members"
+  | "collection-live"
+  | "payout"
+  | "escrow-home"
+  | "protect-deal"
+  | "participants-terms"
+  | "agreement-detail"
+  | "release-funds"
+  | "multi-send"
+  | "recurring"
+  | "new-schedule"
+  | "analytics"
+  | "payment-methods"
+  | "security-center"
+  | "permissions"
+  | "profile-settings"
+  | "family-friends"
+  | "help-support"
+
+export const orbitalScreenScenes: Record<OrbitalScreenState, OrbitalBackdropScene> = {
+  welcome: "auth",
+  "sign-in": "auth",
+  profile: "auth",
+  "voice-calibration": "voice",
+  "security-setup": "escrow",
+  home: "voice",
+  listening: "voice",
+  intent: "transfer",
+  "review-verify": "transfer",
+  success: "transfer",
+  wallet: "wallet",
+  "add-money": "wallet",
+  transactions: "wallet",
+  "scan-bill": "scanner",
+  "bill-review": "scanner",
+  "chama-home": "chama",
+  "start-circle": "chama",
+  members: "chama",
+  "collection-live": "chama",
+  payout: "chama",
+  "escrow-home": "escrow",
+  "protect-deal": "escrow",
+  "participants-terms": "escrow",
+  "agreement-detail": "escrow",
+  "release-funds": "escrow",
+  "multi-send": "planning",
+  recurring: "planning",
+  "new-schedule": "planning",
+  analytics: "planning",
+  "payment-methods": "planning",
+  "security-center": "trust",
+  permissions: "trust",
+  "profile-settings": "trust",
+  "family-friends": "trust",
+  "help-support": "trust",
+}

@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { platformFee } from '@/lib/transaction-fees';
 
 // n8n webhook URL and auth (env-overridable for Railway → Hostinger cutover).
 const N8N_BASE = process.env.N8N_WEBHOOK_BASE_URL || 'https://n8n-lc5r.srv1631847.hstgr.cloud';
@@ -437,9 +438,8 @@ export async function POST(request: NextRequest) {
         console.log('  Amount:', requestedAmount, '(>= KES 1,000)')
         console.log('  Free transactions remaining:', freeTxRemaining)
       } else {
-        // Calculate 0.00005% platform fee (0.00005)
-        platformFeeAmount = Math.round(requestedAmount * 0.0005 * 10000) / 10000
-        console.log('💰 REGULAR TRANSACTION (0.00005% fee)')
+        platformFeeAmount = platformFee(requestedAmount, body.type)
+        console.log('💰 REGULAR TRANSACTION (0.5% fee)')
         console.log('  Platform fee:', platformFeeAmount)
 
         if (subscriptionStatus !== 'active') {

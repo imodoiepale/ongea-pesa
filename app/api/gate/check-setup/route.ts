@@ -9,7 +9,11 @@ export async function GET(request: NextRequest) {
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    const checks = {
+    const checks: {
+      environment: { NEXT_PUBLIC_SUPABASE_URL: boolean; SUPABASE_SERVICE_ROLE_KEY: boolean };
+      authentication: { isAuthenticated: boolean; userId: string | null; userEmail: string | null; authError: string | null };
+      database: { checked: boolean; userExists: boolean; hasGate: boolean; gateId: string | null; gateName: string | null; error: string | null };
+    } = {
       environment: {
         NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
         SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,

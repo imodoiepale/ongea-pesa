@@ -54,18 +54,26 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Deduct from wallet
-      const { error: deductError } = await supabase
-        .from('profiles')
-        .update({
-          wallet_balance: walletBalance - subscriptionFee,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
+      // Single source of truth: record the wallet charge as a 'completed'
+      // transaction and let the DB trigger (update_wallet_balance) debit the
+      // wallet exactly once — never write wallet_balance directly.
+      const { error: chargeError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: user.id,
+          type: 'subscription',
+          amount: subscriptionFee,
+          status: 'completed',
+          voice_command_text: 'Subscription payment (wallet)',
+          external_ref: payment_reference || `SUB${Date.now()}`,
+          metadata: { payment_method: 'wallet', subscription_fee: subscriptionFee },
+        });
 
-      if (deductError) throw deductError;
+      if (chargeError) throw chargeError;
 
-      console.log(`Deducted KES ${subscriptionFee} from wallet. New balance: KES ${walletBalance - subscriptionFee}`);
+      console.log(`Charged KES ${subscriptionFee} via wallet (DB trigger debits the balance).`);
+      // NOTE: process_subscription_payment RPC (called below) does not yet exist in
+      // the DB — subscription activation via wallet will error until it is created.
     }
 
     // Process subscription payment via database function

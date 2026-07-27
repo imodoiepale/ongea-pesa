@@ -1,0 +1,16 @@
+{
+  "id": "ongea-logo-05-voice-command-portal",
+  "variation_name": "Voice Command Payment Portal",
+  "title": "Cinematic — Voice-Command Payment Portal",
+  "model_hint": "nano_banana_pro (2K) — text-to-image",
+  "aspect_ratio": "1:1",
+  "prompt": "Cinematic glassmorphic logo for a voice-first African fintech super-app, on a soft pearl-white mist background (#DDE8ED). The central symbol is a glowing circular portal formed from a single voice waveform that curves into a ring, with a neon-mint core (#69CEA9) at the center marking an approved transaction. Around the portal, two or three elegant electric-cyan (#70D0E0) orbit paths sweep like secure money routes, with soft aqua (#A9D3DF) glass glow. One subtle warm-gold accent (#F4DFA0) traces a short arc of the portal. Beneath, the wordmark 'ONGEA PESA' in a sleek high-tech rounded sans-serif, strong horizontal stance, deep-navy metallic gradient with cyan highlights (#2A5D73 to #70D0E0), exact spelling. Fast, smart, trustworthy, premium fintech, clean negative space, app-store ready.",
+  "negative_prompt": "messy orb, currency particles, dollar signs, coins, transfer arrows, microphone, clutter, dark background, lens flare, misspelling, fake letters, low-res, distorted text",
+  "params": { "guidance": 7.2, "steps": 45, "resolution": "2k" },
+  "brand_lock": {
+    "colors": ["#70D0E0", "#69CEA9", "#A9D3DF", "#2A5D73", "#DDE8ED", "#F4DFA0"],
+    "wordmark": "ONGEA PESA — navy-to-cyan metallic gradient",
+    "one_idea": "waveform-portal ring + mint core + cyan orbit paths + 1 gold arc"
+  },
+  "notes": "Decluttered 'Voice Command Payment Portal'. Best for landing-page hero, pitch deck, Safaricom/investor demo. The waveform-forms-a-portal is the strongest single concept of the five."
+}

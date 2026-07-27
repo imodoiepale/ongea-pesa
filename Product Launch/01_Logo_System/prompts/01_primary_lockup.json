@@ -1,0 +1,16 @@
+{
+  "id": "ongea-logo-01-orbital-voice-money-core",
+  "variation_name": "Orbital Voice Money Core",
+  "title": "Primary — Glass Orb + Wordmark (light/gold direction)",
+  "model_hint": "nano_banana_pro (2K) — text-to-image, NO dark reference (light bg)",
+  "aspect_ratio": "1:1",
+  "prompt": "Premium glassmorphic app-icon logo for a voice-first African fintech. Wordmark reads exactly 'ONGEA PESA'. A single translucent glass orb floating on a soft pearl-white background (#DDE8ED) with a gentle radial glow. Inside the orb: ONE clean horizontal voice waveform crossing the center, and a bright neon-mint core (#69CEA9) glowing where the wave peaks, like a voice command becoming a payment. Two thin elegant orbital rings in electric cyan (#70D0E0) wrap around the sphere. A single subtle warm-gold rim highlight (#F4DFA0) glints on the top edge of the orb. Below the orb, the wordmark 'ONGEA PESA' in a bold rounded geometric sans-serif, wide letter-spacing, deep navy (#2A5D73) with a soft cyan edge light. Minimal, lots of clean negative space, Apple-grade polish, soft glass reflections, app-store ready, exact spelling.",
+  "negative_prompt": "currency particles, dollar signs, coins, crypto look, clip-art microphone, transfer arrows inside orb, clutter, dark background, busy details, misspelling, extra text, cartoon, low-res, drop shadow",
+  "params": { "guidance": 7, "steps": 45, "resolution": "2k" },
+  "brand_lock": {
+    "colors": ["#70D0E0", "#69CEA9", "#A9D3DF", "#2A5D73", "#DDE8ED", "#F4DFA0"],
+    "wordmark": "ONGEA PESA — rounded geometric sans, deep navy + cyan edge",
+    "one_idea": "glass orb + 1 waveform + mint core + 2 cyan rings + 1 gold rim glint"
+  },
+  "notes": "HERO mark. The single decluttered version of the user's 'Orbital Voice Money Core'. Generate 2-3 seeds; keep the cleanest orb-to-wordmark balance."
+}

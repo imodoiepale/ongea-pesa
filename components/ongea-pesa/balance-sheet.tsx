@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from "@/components/providers/auth-provider"
 import { cn } from "@/lib/utils"
 import { displayPhone } from "@/lib/phone"
+import { platformFee } from "@/lib/transaction-fees"
 import DependantsSheet from "./dependants-sheet"
 
 interface BalanceSheetProps {
@@ -24,6 +25,7 @@ interface Transaction {
   status: string
   created_at: string
   voice_command_text?: string
+  platform_fee?: number
 }
 
 interface StkTarget { label: string; phone: string }
@@ -176,7 +178,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
     try {
       const { data, error } = await supabase
         .from('transactions')
-        .select('id, type, amount, phone, status, created_at, voice_command_text')
+        .select('id, type, amount, phone, status, created_at, voice_command_text, platform_fee')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10)
@@ -788,7 +790,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
                           {isDebit(tx.type) ? '−' : '+'}KSh {tx.amount.toLocaleString('en-KE')}
                         </p>
                         {isDebit(tx.type) && tx.status === 'completed' && (
-                          <p className="text-[10px] text-muted-foreground/70">Fee: KSh {(tx.amount * 0.0005).toFixed(2)}</p>
+                          <p className="text-[10px] text-muted-foreground/70">Fee: KSh {(tx.platform_fee || platformFee(tx.amount, tx.type)).toFixed(2)}</p>
                         )}
                         <p className={cn(
                           "text-[10px] font-semibold capitalize",

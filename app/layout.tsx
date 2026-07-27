@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next"
-import { Inter } from "next/font/google"
+import { Bodoni_Moda, Inter, JetBrains_Mono, Sora } from "next/font/google"
 import "./globals.css"
 import { Analytics } from "@vercel/analytics/next"
 import { Providers } from "./providers"
@@ -9,6 +9,10 @@ const inter = Inter({
   variable: "--font-inter",
   display: "swap",
 })
+
+const sora = Sora({ subsets: ["latin"], variable: "--font-sora", display: "swap" })
+const bodoni = Bodoni_Moda({ subsets: ["latin"], variable: "--font-bodoni", display: "swap" })
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" })
 
 export const metadata: Metadata = {
   title: "Ongea Pesa — Voice-Activated M-Pesa",
@@ -72,7 +76,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${sora.variable} ${bodoni.variable} ${mono.variable}`} suppressHydrationWarning>
       {/* Apple splash screens — kept as raw links (no Metadata API equivalent) */}
       <head>
         <link
@@ -117,6 +121,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
+        <a className="skip-link" href="#main-content">Skip to content</a>
         <Providers>{children}</Providers>
         <Analytics />
       </body>

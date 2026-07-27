@@ -1,0 +1,16 @@
+{
+  "id": "ongea-apparel-03-hoodie-front",
+  "title": "Hoodie — Front, Left-Breast Lockup",
+  "model_hint": "nano-banana / seedream-4",
+  "aspect_ratio": "4:5",
+  "prompt": "Premium product mockup of a heavyweight pullover hoodie in deep teal-black (#0A1A1F), double-lined hood with flat drawcords and a kangaroo pocket, shown flat top-down on a soft neutral studio surface with gentle directional light and realistic brushed-fleece texture. On the wearer's left breast: the Ongea Pesa orbital emblem (glowing cyan #22D3EE core into teal #0FB5A6, soundwave arcs, green-to-cyan orbit ring, soft halo) above the white 'ONGEA PESA' wordmark in geometric uppercase, and directly below a small 'by NSAIT' endorser mark in a violet-to-blue gradient (#6D28D9 to #2563EB) with a tiny sparkle glyph. Chest graphic ~90mm wide, premium streetwear quality, crisp print on fleece.",
+  "negative_prompt": "huge front print, zipper (this is pullover), purple emblem, microphone, dollar sign, messy wrinkles, mannequin face, neon, low-res, watermark, extra logos, distorted text",
+  "params": { "guidance": 7, "steps": 42, "garment": "pullover hoodie, kangaroo pocket" },
+  "brand_lock": {
+    "ongea_colors": ["#0FB5A6", "#22D3EE", "#34D399", "#FFFFFF"],
+    "nsait_colors": ["#6D28D9", "#2563EB"],
+    "garment": "#0A1A1F hoodie",
+    "front": "breast lockup only"
+  },
+  "notes": "Pairs with hoodie back (big print). Front stays minimal; the back is the statement."
+}

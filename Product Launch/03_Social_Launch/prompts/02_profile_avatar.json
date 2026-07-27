@@ -1,0 +1,11 @@
+{
+  "id": "ongea-social-02-avatar",
+  "title": "Social Profile Avatar",
+  "model_hint": "nano-banana / seedream-4",
+  "aspect_ratio": "1:1",
+  "prompt": "A social-media profile avatar for Ongea Pesa. The orbital emblem (bright cyan #22D3EE core into deep voice teal #0FB5A6, two soundwave arcs, one green-to-cyan orbit ring, soft halo) centered on a deep teal-black radial background (#0A1A1F to #0E2A30). No text. Bold, high-contrast, instantly recognizable as a small circular avatar, safe padding so nothing clips when cropped to a circle. Premium, glowing, clean.",
+  "negative_prompt": "text, wordmark, purple, microphone, dollar sign, busy detail, photo, neon, low-res, border ring, multiple icons",
+  "params": { "guidance": 7, "steps": 40, "crop_safe": "circle" },
+  "brand_lock": { "colors": ["#0FB5A6", "#22D3EE", "#34D399", "#0A1A1F", "#0E2A30"], "text": "NONE" },
+  "notes": "Same family as the app icon but tuned for a circular crop."
+}
