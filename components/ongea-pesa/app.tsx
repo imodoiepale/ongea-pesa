@@ -104,9 +104,11 @@ function AppShell({ initialScreen = "dashboard" }: { initialScreen?: Screen }) {
       const fullName = profile?.full_name || metadata.full_name || metadata.name
       const voiceCalibratedAt = profile?.voice_calibrated_at || metadata.voice_calibrated_at
       const onboardingCompletedAt = profile?.onboarding_completed_at || metadata.onboarding_completed_at
+      const voiceFundingCompletedAt = profile?.voice_funding_completed_at || metadata.voice_funding_completed_at
 
       if (!onboardingCompletedAt) {
-        if (!fullName || !profile?.phone_number) router.replace('/profile-creation')
+        if (!voiceFundingCompletedAt) router.replace('/voice-funding')
+        else if (!fullName || !profile?.phone_number) router.replace('/profile-creation')
         else if (!voiceCalibratedAt) router.replace('/voice-calibration')
         else if (!profile?.pin_hash) router.replace('/security-setup')
         else router.replace('/security-setup')

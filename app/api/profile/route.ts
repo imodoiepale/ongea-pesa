@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient, createServiceClient } from "@/lib/supabase/server"
+import { VOICE_STARTER_AMOUNT } from "@/lib/voice-funding"
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024
 const AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"]
@@ -166,13 +167,41 @@ export async function PATCH(request: Request) {
     stage?: string
     score?: number
     device_biometrics_consent?: boolean
+    transaction_id?: string
   } | null
   const service = createServiceClient()
   const now = new Date().toISOString()
   let databaseUpdate: Record<string, string | number | null>
   let metadataUpdate: Record<string, string | number | null>
 
-  if (body?.stage === "voice-calibration") {
+  if (body?.stage === "voice-funding") {
+    if (!body.transaction_id) {
+      return NextResponse.json({ error: "A completed funding transaction is required." }, { status: 400 })
+    }
+    const { data: transaction, error: transactionError } = await service
+      .from("transactions")
+      .select("id, amount, status, type")
+      .eq("id", body.transaction_id)
+      .eq("user_id", user.id)
+      .maybeSingle()
+
+    if (
+      transactionError ||
+      !transaction ||
+      transaction.type !== "deposit" ||
+      transaction.status !== "completed" ||
+      Number(transaction.amount) < VOICE_STARTER_AMOUNT
+    ) {
+      return NextResponse.json({ error: "Your KSh 200 payment has not been confirmed yet." }, { status: 409 })
+    }
+
+    databaseUpdate = {
+      voice_funding_completed_at: now,
+      voice_funding_transaction_id: transaction.id,
+      voice_funding_amount: Number(transaction.amount),
+    }
+    metadataUpdate = databaseUpdate
+  } else if (body?.stage === "voice-calibration") {
     const score = Math.round(Number(body.score))
     if (!Number.isFinite(score) || score < 40 || score > 100) {
       return NextResponse.json({ error: "Complete the voice check before continuing." }, { status: 400 })

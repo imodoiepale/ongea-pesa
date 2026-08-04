@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { mpesaPaybillCharge } from '@/lib/transaction-fees';
+import { isVoiceFundingPurpose } from '@/lib/voice-funding';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { amount, phone } = await request.json();
+    const { amount, phone, purpose } = await request.json();
 
     if (!amount || !phone) {
       return NextResponse.json(
@@ -175,6 +177,8 @@ export async function POST(request: NextRequest) {
     const transactionRef = accountNumber || trxId || depositData.transaction_id || depositData.TransactionID;
 
     // Create transaction record for the deposit
+    const customerCharge = mpesaPaybillCharge(depositAmount);
+    const voiceFunding = isVoiceFundingPurpose(purpose) && depositAmount >= 200;
     const { data: txData, error: txError } = await supabase
       .from('transactions')
       .insert({
@@ -183,15 +187,23 @@ export async function POST(request: NextRequest) {
         amount: depositAmount,
         phone: phone,
         status: 'pending', // Will be updated via verification
-        voice_command_text: `M-Pesa deposit of KSh ${depositAmount.toLocaleString()} from ${phone}`,
+        voice_command_text: voiceFunding
+          ? `Voice service starter funding of KSh ${depositAmount.toLocaleString()} from ${phone}`
+          : `M-Pesa deposit of KSh ${depositAmount.toLocaleString()} from ${phone}`,
         external_ref: transactionRef,
         mpesa_transaction_id: trxId,
+        transaction_cost: customerCharge,
+        platform_fee: 0,
+        net_amount: depositAmount,
         metadata: {
           account_number: accountNumber,
           gate_name: userData.gate_name,
           payment_mode: 'MPESA',
           initiated_at: new Date().toISOString(),
-          mpesa_response: mpesaResponse
+          mpesa_response: mpesaResponse,
+          purpose: voiceFunding ? 'voice_service_funding' : 'wallet_top_up',
+          cost_bearer: 'customer',
+          mpesa_charge_estimate: customerCharge,
         },
         created_at: new Date().toISOString()
       })

@@ -1410,6 +1410,79 @@ html:has(.orbital-dark) body { background: hsl(var(--abyss)); }
   margin-top: auto;
 }
 
+/* Wallet activation — between account creation and profile onboarding. */
+.voice-funding-frame {
+  display: flex;
+  flex-direction: column;
+  padding-inline: 18px;
+}
+.voice-funding-hero {
+  position: relative;
+  display: grid;
+  width: 150px;
+  height: 150px;
+  place-items: center;
+  margin: 10px auto 2px;
+}
+.voice-funding-hero::before,
+.voice-funding-hero::after,
+.voice-funding-hero i {
+  content: "";
+  position: absolute;
+  border: 1px solid rgb(10 169 133 / .3);
+  border-radius: 50%;
+}
+.voice-funding-hero::before { inset: 8px; }
+.voice-funding-hero::after { inset: 28px; border-style: dashed; transform: rotate(21deg) scaleX(1.24); }
+.voice-funding-hero i:nth-of-type(1) { inset: 18px 1px; transform: rotate(-38deg) scaleX(1.08); }
+.voice-funding-hero i:nth-of-type(2) { width: 7px; height: 7px; top: 23px; right: 24px; border: 0; background: #12ddb3; box-shadow: 0 0 14px #12ddb3; }
+.voice-funding-hero i:nth-of-type(3) { width: 5px; height: 5px; bottom: 28px; left: 12px; border: 0; background: #0aa985; }
+.voice-funding-hero > span {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  border-radius: 50%;
+  color: #062f32;
+  background: radial-gradient(circle at 38% 30%, #eafff9 0 9%, #12ddb3 28%, #07977c 70%);
+  box-shadow: 0 0 0 10px rgb(18 221 179 / .08), 0 18px 45px rgb(3 100 91 / .26);
+}
+.voice-funding-hero svg { width: 29px; height: 29px; }
+.voice-funding-copy { text-align: center; }
+.voice-funding-copy h1 { margin-top: 8px; font-size: clamp(2.3rem, 10vw, 2.85rem); line-height: .98; }
+.voice-funding-copy h1 span { color: #078b6e; }
+.voice-funding-copy > p:last-child { max-width: 34rem; margin: 12px auto 0; color: rgb(8 19 21 / .62); font-size: 11px; line-height: 1.55; }
+.voice-funding-breakdown { margin-top: 17px; border-block: 1px solid rgb(8 19 21 / .12); padding-block: 9px; }
+.voice-funding-breakdown > div { display: flex; min-height: 25px; align-items: center; justify-content: space-between; gap: 16px; font-size: 10px; }
+.voice-funding-breakdown span { color: rgb(8 19 21 / .58); }
+.voice-funding-breakdown strong { font-family: var(--font-mono), monospace; font-size: 10px; font-variant-numeric: tabular-nums; }
+.voice-funding-breakdown__total { margin-top: 5px; padding-top: 7px; border-top: 1px dashed rgb(8 19 21 / .14); }
+.voice-funding-breakdown__total strong { color: #078b6e; font-size: 12px; }
+.voice-funding-form { display: grid; gap: 10px; margin-top: 14px; }
+.voice-funding-form label > span:first-child { display: block; margin-bottom: 6px; font-family: var(--font-sora), sans-serif; font-size: 10px; font-weight: 600; }
+.voice-funding-input { position: relative; display: block; }
+.voice-funding-input svg { position: absolute; left: 13px; top: 50%; width: 17px; height: 17px; transform: translateY(-50%); color: #078b6e; }
+.voice-funding-input input { width: 100%; min-height: 48px; padding: 0 14px 0 42px; border: 1px solid rgb(8 19 21 / .18); border-radius: 10px; background: rgb(255 255 255 / .68); font-family: var(--font-mono), monospace; font-size: 13px; }
+.voice-funding-input input:focus { outline: 3px solid rgb(18 221 179 / .16); border-color: #0aa985; }
+.voice-funding-assurance,
+.voice-funding-status { display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 8px; color: rgb(8 19 21 / .56); }
+.voice-funding-assurance svg,
+.voice-funding-status svg { width: 14px; height: 14px; flex: none; color: #078b6e; }
+.voice-funding-status { min-height: 28px; color: #8a6811; font-size: 10px; }
+.voice-funding-status.is-success { color: #078b6e; }
+.voice-funding-form .onboarding-primary { width: 100%; min-height: 52px; }
+
+@media (max-height: 760px) {
+  .voice-funding-hero { width: 112px; height: 112px; margin-top: 1px; }
+  .voice-funding-hero > span { width: 58px; height: 58px; }
+  .voice-funding-copy h1 { font-size: 2.15rem; }
+  .voice-funding-copy > p:last-child { margin-top: 7px; }
+  .voice-funding-breakdown { margin-top: 10px; }
+  .voice-funding-form { margin-top: 9px; }
+}
+
 @media (max-height: 760px) {
   .onboarding-welcome__brand { margin-top: 8px; }
   .onboarding-welcome__orb { width: 270px; margin-top: 2px; }

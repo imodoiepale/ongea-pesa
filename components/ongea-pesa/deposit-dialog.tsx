@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Wallet, Phone, DollarSign, Loader2, Clock } from 'lucide-react';
+import { X, Wallet, Phone, DollarSign, Loader2, Clock, Mic2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useTransactionPolling } from '@/hooks/use-transaction-polling';
 import { depositFeeBreakdown } from '@/lib/transaction-fees';
@@ -283,7 +283,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
 
   const parsedAmount = parseFloat(amount);
   const fees =
-    rail === 'ncba' && !isNaN(parsedAmount) && parsedAmount >= 10
+    !isNaN(parsedAmount) && parsedAmount >= 10
       ? depositFeeBreakdown(parsedAmount)
       : null;
 
@@ -345,6 +345,21 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
                 </button>
               </div>
 
+              <div className="rounded-xl border border-brand/20 bg-brand/[0.06] p-4">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand/12 text-brand"><Mic2 size={18} /></span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-foreground">KSh 200 voice starter</p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      Recommended so you can send money and support voice-service usage, including ElevenLabs. The full deposit is credited to your wallet; it is not an activation fee.
+                    </p>
+                    <button type="button" onClick={() => setAmount('200')} className="mt-3 text-xs font-semibold text-brand hover:underline">
+                      Use KSh 200
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Gate Name Display (IndexPay only) */}
               {gateName && rail === 'indexpay' && (
                 <div className="bg-brand/10 border border-brand/20 rounded-xl p-4">
@@ -404,7 +419,7 @@ export default function DepositDialog({ isOpen, onClose, onSuccess }: DepositDia
 
               {/* Quick Amount Buttons */}
               <div className="grid grid-cols-4 gap-2">
-                {[50, 100, 500, 1000].map((preset) => (
+                {[50, 200, 500, 1000].map((preset) => (
                   <button
                     key={preset}
                     type="button"

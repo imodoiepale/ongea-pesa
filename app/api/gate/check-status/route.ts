@@ -24,6 +24,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const { data: existingTransaction } = await supabase
+      .from('transactions')
+      .select('metadata')
+      .eq('user_id', user.id)
+      .eq('id', transaction_id)
+      .maybeSingle();
+    const existingMetadata = existingTransaction?.metadata && typeof existingTransaction.metadata === 'object'
+      ? existingTransaction.metadata
+      : {};
+
     console.log(`🔍 Checking transaction status: ${transaction_id} for gate ${gate_name}`);
 
     // Prepare form data for status check
@@ -76,7 +86,7 @@ export async function POST(request: NextRequest) {
         .update({
           status: 'completed',
           updated_at: new Date().toISOString(),
-          metadata: statusData
+          metadata: { ...existingMetadata, provider_status: statusData }
         })
         .eq('user_id', user.id)
         .eq('id', transaction_id)
@@ -97,7 +107,7 @@ export async function POST(request: NextRequest) {
         .update({
           status: 'failed',
           updated_at: new Date().toISOString(),
-          metadata: statusData
+          metadata: { ...existingMetadata, provider_status: statusData }
         })
         .eq('user_id', user.id)
         .eq('id', transaction_id)

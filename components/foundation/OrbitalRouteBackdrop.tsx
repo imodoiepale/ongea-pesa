@@ -15,6 +15,7 @@ function sceneForPath(pathname: string): OrbitalBackdropScene | null {
     pathname.includes("profile-creation") ||
     pathname.includes("welcome")
   ) return "auth"
+  if (pathname.startsWith("/voice-funding")) return "wallet"
   if (pathname.startsWith("/voice") || pathname.includes("voice-calibration")) return "voice"
   if (pathname.startsWith("/scanner")) return "scanner"
   if (pathname.startsWith("/chama")) return "chama"

@@ -73,7 +73,7 @@ export async function updateSession(request: NextRequest) {
       ]) as Awaited<ReturnType<typeof supabase.auth.getUser>>
 
       const protectedRoots = [
-        '/dashboard', '/voice', '/wallet', '/transactions', '/scanner', '/chama',
+        '/dashboard', '/voice', '/voice-funding', '/wallet', '/transactions', '/scanner', '/chama',
         '/escrow', '/batch', '/scheduler', '/analytics', '/payments',
         '/settings', '/support',
       ]
