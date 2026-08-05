@@ -1,38 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-
-// M-Pesa fee calculator
-function calculateTransactionFees(amount: number) {
-  const mpesaFees = [
-    { min: 1, max: 100, fee: 0 },
-    { min: 101, max: 500, fee: 5 },
-    { min: 501, max: 1000, fee: 10 },
-    { min: 1001, max: 1500, fee: 15 },
-    { min: 1501, max: 2500, fee: 20 },
-    { min: 2501, max: 3500, fee: 25 },
-    { min: 3501, max: 5000, fee: 30 },
-    { min: 5001, max: 7500, fee: 35 },
-    { min: 7501, max: 10000, fee: 40 },
-    { min: 10001, max: 15000, fee: 45 },
-    { min: 15001, max: 20000, fee: 50 },
-    { min: 20001, max: 35000, fee: 60 },
-    { min: 35001, max: 50000, fee: 70 },
-  ];
-
-  let mpesaFee = 105; // Default for amounts above 50k
-  for (const bracket of mpesaFees) {
-    if (amount >= bracket.min && amount <= bracket.max) {
-      mpesaFee = bracket.fee;
-      break;
-    }
-  }
-
-  const platformFee = Math.round(amount * 0.005); // 0.5% Ongea Pesa fee
-  const totalFee = mpesaFee + platformFee;
-  const totalDebit = amount + totalFee;
-
-  return { mpesaFee, platformFee, totalFee, totalDebit };
-}
+import { calculateTransactionFees, type TransactionFees } from '@/lib/transaction-fees';
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,11 +24,11 @@ export async function POST(request: NextRequest) {
     if (!userBalance) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('balance')
+        .select('wallet_balance')
         .eq('id', user.id)
         .single();
       
-      userBalance = profile?.balance || 0;
+      userBalance = profile?.wallet_balance || 0;
     }
 
     // Calculate fees if amount is provided
@@ -68,7 +36,7 @@ export async function POST(request: NextRequest) {
     if (scanResult.data.amount) {
       const amountNum = parseFloat(scanResult.data.amount.replace(/[^0-9.]/g, ''));
       if (!isNaN(amountNum) && amountNum > 0) {
-        fees = calculateTransactionFees(amountNum);
+        fees = calculateTransactionFees(amountNum, scanResult.type === 'bill' ? 'utility_bill' : 'mobile_wallet');
       }
     }
 
@@ -88,7 +56,11 @@ export async function POST(request: NextRequest) {
         confidence: scanResult.confidence,
         balance: userBalance,
         userId: user.id,
-        fees
+        fees: fees ? {
+          amount: fees.amount,
+          transactionCost: fees.totalTransactionCost,
+          totalDebit: fees.totalDebit,
+        } : null
       },
       // Formatted for ElevenLabs conversation context
       contextMessage: `PAYMENT SCANNED: ${message}`
@@ -103,7 +75,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function formatScanMessage(scanResult: any, balance: number, fees: any = null): string {
+function formatScanMessage(scanResult: any, balance: number, fees: TransactionFees | null = null): string {
   const { type, data, confidence } = scanResult;
   const balanceFormatted = `KSh ${balance.toLocaleString()}`;
   
@@ -112,7 +84,7 @@ function formatScanMessage(scanResult: any, balance: number, fees: any = null): 
   let insufficientFundsWarning = '';
   
   if (fees) {
-    feeMessage = ` M-Pesa fee: KSh ${fees.mpesaFee}. Ongea Pesa platform fee: KSh ${fees.platformFee}. Total cost: KSh ${fees.totalDebit.toLocaleString()}.`;
+    feeMessage = ` Transaction cost: KSh ${fees.totalTransactionCost.toLocaleString()}. Total wallet debit: KSh ${fees.totalDebit.toLocaleString()}.`;
     
     // Check if balance is insufficient
     if (balance < fees.totalDebit) {

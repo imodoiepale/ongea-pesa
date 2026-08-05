@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { displayPhone } from "@/lib/phone"
 import DependantsSheet from "./dependants-sheet"
 import { TransactionDetailSheet, type TransactionRecord } from "./transaction-detail-sheet"
+import { customerTransactionCost } from "@/lib/transaction-fees"
 
 interface BalanceSheetProps {
   isOpen: boolean
@@ -763,7 +764,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
                           {isDebit(tx.type) ? '−' : '+'}KSh {tx.amount.toLocaleString('en-KE')}
                         </p>
                         {isDebit(tx.type) && tx.status === 'completed' && (
-                          <p className="text-[10px] text-muted-foreground/70">Fee: KSh {Number(tx.platform_fee || 0).toFixed(2)}</p>
+                          <p className="text-[10px] text-muted-foreground/70">Transaction cost: KSh {customerTransactionCost(tx).toFixed(2)}</p>
                         )}
                         <p className={cn(
                           "text-[10px] font-semibold capitalize",

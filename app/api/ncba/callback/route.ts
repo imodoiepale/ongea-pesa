@@ -18,10 +18,12 @@ export async function POST(request: NextRequest) {
       String(body?.resultCode || '').includes('200');
     const token = data?.token || data?.meterToken || data?.stdTokenRecieptNo || null;
 
-    // NCBA does not consistently surface per-transaction charges in the callback payload.
-    // Check common field names; default to 0 if not present.
-    const transactionCost =
-      parseFloat(String(data?.charges || data?.fee || data?.transaction_charge || data?.transactionCharge || 0)) || 0;
+    // NCBA does not consistently surface charges. Use an actual callback value
+    // when present; otherwise retain the published-band estimate saved at send time.
+    const rawTransactionCost = data?.charges ?? data?.fee ?? data?.transaction_charge ?? data?.transactionCharge;
+    const callbackTransactionCost = rawTransactionCost == null
+      ? null
+      : parseFloat(String(rawTransactionCost));
 
     if (!ref) {
       return NextResponse.json({ statusCode: 200, message: 'Accepted (no ref)' });
@@ -31,15 +33,39 @@ export async function POST(request: NextRequest) {
 
     const { data: tx } = await admin
       .from('transactions')
-      .select('id, status')
+      .select('id, status, transaction_cost, metadata')
       .eq('provider_ref', ref)
       .single();
 
     if (!tx) {
       return NextResponse.json({ statusCode: 200, message: 'Accepted (unknown ref)' });
     }
-    if (tx.status === 'completed' || tx.status === 'failed') {
+    if (tx.status === 'failed') {
       return NextResponse.json({ statusCode: 200, message: 'Already processed' });
+    }
+
+    const storedCost = Number(tx.transaction_cost || 0);
+    const transactionCost = callbackTransactionCost != null && Number.isFinite(callbackTransactionCost)
+      ? callbackTransactionCost
+      : storedCost;
+    const metadata = {
+      ...((tx.metadata && typeof tx.metadata === 'object') ? tx.metadata : {}),
+      transaction_cost_estimated: callbackTransactionCost == null,
+      transaction_cost_source: callbackTransactionCost == null ? 'ncba_tariff_05_26' : 'ncba_callback',
+    };
+
+    // A synchronous rail response may have completed the row using the tariff
+    // estimate first. Updating a completed row is safe: the fee-reconciliation
+    // trigger applies only the difference to the wallet.
+    if (tx.status === 'completed') {
+      if (callbackTransactionCost == null || !Number.isFinite(callbackTransactionCost)) {
+        return NextResponse.json({ statusCode: 200, message: 'Already processed' });
+      }
+      await admin
+        .from('transactions')
+        .update({ transaction_cost: transactionCost, metadata })
+        .eq('id', tx.id);
+      return NextResponse.json({ statusCode: 200, message: 'Charge reconciled' });
     }
 
     await admin
@@ -49,6 +75,7 @@ export async function POST(request: NextRequest) {
         completed_at: succeeded ? new Date().toISOString() : null,
         external_ref: token || undefined,
         transaction_cost: transactionCost,
+        metadata,
       })
       .eq('id', tx.id);
 

@@ -1,33 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
 import { SupabaseClient } from '@supabase/supabase-js';
+import {
+  calculateTransactionFees,
+  NCBA_TARIFF_VERSION,
+  platformFee as calculatePlatformFee,
+  type NcbaTariffRail,
+  type TransactionFees,
+} from '@/lib/transaction-fees';
 
-// Fee calculation constants
-const PLATFORM_FEE_PERCENTAGE = 0.005; // 0.5%
 const SYSTEM_WALLET_ID = '00000000-0000-0000-0000-000000000000'; // Special ID for system wallet
-
-// M-Pesa fee brackets
-const MPESA_FEE_BRACKETS = [
-  { min: 1, max: 100, fee: 0 },
-  { min: 101, max: 500, fee: 5 },
-  { min: 501, max: 1000, fee: 10 },
-  { min: 1001, max: 1500, fee: 15 },
-  { min: 1501, max: 2500, fee: 20 },
-  { min: 2501, max: 3500, fee: 25 },
-  { min: 3501, max: 5000, fee: 30 },
-  { min: 5001, max: 7500, fee: 35 },
-  { min: 7501, max: 10000, fee: 40 },
-  { min: 10001, max: 15000, fee: 45 },
-  { min: 15001, max: 20000, fee: 50 },
-  { min: 20001, max: 35000, fee: 60 },
-  { min: 35001, max: 50000, fee: 70 },
-];
-
-interface TransactionFees {
-  platformFee: number;
-  mpesaFee: number;
-  totalFee: number;
-  totalDebit: number;
-}
 
 interface WalletBalance {
   wallet_id: string;
@@ -55,24 +36,11 @@ export class WalletService {
   /**
    * Calculate transaction fees
    */
-  calculateFees(amount: number, includeMpesa: boolean = false): TransactionFees {
-    const platformFee = Math.round(amount * PLATFORM_FEE_PERCENTAGE * 100) / 100;
-    
-    let mpesaFee = 0;
-    if (includeMpesa) {
-      mpesaFee = 105; // Default for amounts above 50k
-      for (const bracket of MPESA_FEE_BRACKETS) {
-        if (amount >= bracket.min && amount <= bracket.max) {
-          mpesaFee = bracket.fee;
-          break;
-        }
-      }
-    }
-
-    const totalFee = platformFee + mpesaFee;
-    const totalDebit = amount + totalFee;
-
-    return { platformFee, mpesaFee, totalFee, totalDebit };
+  calculateFees(amount: number, railOrExternal: NcbaTariffRail | boolean = 'internal'): TransactionFees {
+    const rail: NcbaTariffRail = typeof railOrExternal === 'boolean'
+      ? (railOrExternal ? 'mobile_wallet' : 'internal')
+      : railOrExternal;
+    return calculateTransactionFees(amount, rail);
   }
 
   /**
@@ -147,7 +115,7 @@ export class WalletService {
     const wallet = await this.getOrCreateWallet(userId);
     
     // Calculate fees (no platform fee for loading)
-    const fees = this.calculateFees(amount, true);
+    const fees = this.calculateFees(amount, 'mobile_wallet');
     
     // Create transaction record with status 'completed'
     // The database trigger will automatically credit the wallet balance
@@ -268,8 +236,9 @@ export class WalletService {
   ): Promise<any> {
     const wallet = await this.getOrCreateWallet(userId);
 
-    // Calculate fees (platform fee + M-Pesa B2C fee)
-    const fees = this.calculateFees(amount, true);
+    // Estimate with NCBA's current published mobile-money band. The provider's
+    // actual callback charge replaces this estimate when supplied.
+    const fees = this.calculateFees(amount, 'mobile_wallet');
 
     // Validate balance
     if (wallet.available_balance < fees.totalDebit) {
@@ -291,6 +260,12 @@ export class WalletService {
         phoneNumber: phone,
         recipientName: recipientName || 'Beneficiary',
         narration: narration || 'Wallet withdrawal',
+        platform_fee: fees.platformFee,
+        transaction_cost: fees.providerFee,
+        total_transaction_cost: fees.totalTransactionCost,
+        total_debit: fees.totalDebit,
+        cost_bearer: 'customer',
+        fee_tariff: NCBA_TARIFF_VERSION,
       }),
     });
 
@@ -308,8 +283,7 @@ export class WalletService {
       bank_ref: result.bank_ref,
       status: 'completed',
       amount,
-      platform_fee: fees.platformFee,
-      mpesa_fee: fees.mpesaFee,
+      transaction_cost: fees.totalTransactionCost,
       total_debit: fees.totalDebit,
       message: result.message || 'Withdrawal sent successfully.',
     };
@@ -355,9 +329,10 @@ export class WalletService {
       });
     }
 
-    // External rails: validate balance up-front (incl. M-Pesa fee)
+    // External rails: validate balance up-front including the estimated NCBA cost.
     const wallet = await this.getOrCreateWallet(userId);
-    const fees = this.calculateFees(amount, true);
+    const rail: NcbaTariffRail = destination.kind === 'bill' ? 'utility_bill' : 'mobile_wallet';
+    const fees = this.calculateFees(amount, rail);
     if (wallet.available_balance < fees.totalDebit) {
       const shortfall = fees.totalDebit - wallet.available_balance;
       throw new Error(`Insufficient funds. You need KES ${shortfall.toFixed(2)} more.`);
@@ -392,8 +367,16 @@ export class WalletService {
       };
     }
 
-    // Compute fee for this outbound transaction (0.5% platform fee)
-    const outboundFees = this.calculateFees(amount, false);
+    const outboundFees = fees;
+    payload = {
+      ...payload,
+      platform_fee: outboundFees.platformFee,
+      transaction_cost: outboundFees.providerFee,
+      total_transaction_cost: outboundFees.totalTransactionCost,
+      total_debit: outboundFees.totalDebit,
+      cost_bearer: 'customer',
+      fee_tariff: NCBA_TARIFF_VERSION,
+    };
 
     // 1. Insert a 'processing' transaction (no balance change yet)
     const { data: tx, error: txError } = await this.supabase
@@ -409,6 +392,12 @@ export class WalletService {
         paybill: destination.kind === 'paybill' ? destination.paybill : '',
         account: destination.kind === 'paybill' ? destination.account : '',
         platform_fee: outboundFees.platformFee,
+        transaction_cost: outboundFees.providerFee,
+        metadata: {
+          cost_bearer: 'customer',
+          fee_tariff: NCBA_TARIFF_VERSION,
+          transaction_cost_estimated: true,
+        },
       })
       .select()
       .single();
@@ -432,7 +421,7 @@ export class WalletService {
             status: 'completed',
             provider_ref: result.bank_ref || result.bankRef || null,
             completed_at: new Date().toISOString(),
-            net_amount: amount - outboundFees.platformFee,
+            net_amount: amount,
           })
           .eq('id', tx.id);
         return { success: true, rail: provider, transaction_id: tx.id, bank_ref: result.bank_ref || result.bankRef, raw: result };
@@ -524,8 +513,7 @@ export class WalletService {
     const revenue = transactions!
       .filter(tx => tx.type !== 'deposit')
       .reduce((total, tx) => {
-        const platformFee = parseFloat(String(tx.amount)) * PLATFORM_FEE_PERCENTAGE;
-        return total + platformFee;
+        return total + calculatePlatformFee(parseFloat(String(tx.amount)));
       }, 0);
 
     const transactionsByType = transactions!.reduce((acc, tx) => {
@@ -535,7 +523,7 @@ export class WalletService {
       }
       acc[type].count++;
       if (type !== 'deposit') {
-        acc[type].revenue += parseFloat(String(tx.amount)) * PLATFORM_FEE_PERCENTAGE;
+        acc[type].revenue += calculatePlatformFee(parseFloat(String(tx.amount)));
       }
       return acc;
     }, {} as Record<string, { count: number; revenue: number }>);

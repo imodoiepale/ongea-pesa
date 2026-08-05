@@ -3,6 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { WalletService } from '@/lib/services/walletService';
 import { consumeStepupToken, isLocked } from '@/lib/services/securityService';
 import { logSecurityEvent, requestContext } from '@/lib/services/auditService';
+import { customerTransactionCost } from '@/lib/transaction-fees';
 
 export async function POST(request: NextRequest) {
   try {
@@ -219,17 +220,22 @@ export async function PUT(request: NextRequest) {
         // We keep the original row 'completed'; flipping it to 'failed' would NOT
         // reverse the trigger (it only fires on transitions INTO 'completed') and
         // would desync the ledger.
+        const refundAmount = parseFloat(transaction.amount) + customerTransactionCost(transaction);
         await supabase
           .from('transactions')
           .insert({
             user_id: transaction.user_id,
             type: 'receive',
-            amount: parseFloat(transaction.amount),
+            amount: refundAmount,
             status: 'completed',
             voice_command_text: `Refund: failed withdrawal ${transaction.id}`,
             external_ref: conversation_id,
             completed_at: new Date().toISOString(),
-            metadata: { refund_for: transaction.id, reason: `M-Pesa B2C failed code ${result_code}` },
+            metadata: {
+              refund_for: transaction.id,
+              refunded_transaction_cost: customerTransactionCost(transaction),
+              reason: `M-Pesa B2C failed code ${result_code}`,
+            },
           });
         await supabase
           .from('transactions')

@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
-import { platformFee } from '@/lib/transaction-fees';
+import { NCBA_TARIFF_VERSION, ncbaTransactionCost, platformFee } from '@/lib/transaction-fees';
 
 // n8n webhook URL and auth (env-overridable for Railway → Hostinger cutover).
 const N8N_BASE = process.env.N8N_WEBHOOK_BASE_URL || 'https://n8n-lc5r.srv1631847.hstgr.cloud';
@@ -415,6 +415,7 @@ export async function POST(request: NextRequest) {
     // ============================================
     let isFreeTransaction = false
     let platformFeeAmount = 0
+    let providerCostAmount = 0
 
     // Check if this is a debit transaction (money going out)
     const debitTypes = [
@@ -424,6 +425,8 @@ export async function POST(request: NextRequest) {
     const isDebitTransaction = debitTypes.includes(body.type)
 
     if (isDebitTransaction) {
+      const rail = body.billType || body.bill_type ? 'utility_bill' : 'mobile_wallet'
+      providerCostAmount = ncbaTransactionCost(requestedAmount, rail)
       console.log('\n=== CHECKING FREE TRANSACTION ELIGIBILITY ===')
 
       // Check if user qualifies for free transaction
@@ -459,10 +462,12 @@ export async function POST(request: NextRequest) {
       console.log('  Type:', body.type)
       console.log('  Amount:', requestedAmount)
       console.log('  Platform Fee:', platformFeeAmount)
-      console.log('  Total Required:', requestedAmount + platformFeeAmount)
+      console.log('  NCBA Cost:', providerCostAmount)
+      console.log('  Total Required:', requestedAmount + platformFeeAmount + providerCostAmount)
       console.log('  Current Balance:', currentBalance)
 
-      const totalRequired = requestedAmount + platformFeeAmount
+      const transactionCost = platformFeeAmount + providerCostAmount
+      const totalRequired = requestedAmount + transactionCost
 
       if (currentBalance < totalRequired) {
         const shortfall = totalRequired - currentBalance
@@ -476,12 +481,12 @@ export async function POST(request: NextRequest) {
           {
             success: false,
             error: 'Insufficient funds',
-            message: `Your current balance is KSh ${currentBalance.toLocaleString()}, but you need KSh ${totalRequired.toLocaleString()} (including fees). You need KSh ${shortfall.toLocaleString()} more.`,
+            message: `Your current balance is KSh ${currentBalance.toLocaleString()}, but you need KSh ${totalRequired.toLocaleString()} including a KSh ${transactionCost.toLocaleString()} transaction cost. You need KSh ${shortfall.toLocaleString()} more.`,
             current_balance: currentBalance,
             required_amount: totalRequired,
             shortfall: shortfall,
-            platform_fee: platformFeeAmount,
-            agent_message: `I'm sorry, but you don't have enough funds for this transaction. Your current balance is ${currentBalance.toLocaleString()} shillings, but you need ${totalRequired.toLocaleString()} shillings including fees. You need ${shortfall.toLocaleString()} shillings more. Would you like to add funds to your wallet first?`
+            transaction_cost: transactionCost,
+            agent_message: `I'm sorry, but you don't have enough funds for this transaction. Your current balance is ${currentBalance.toLocaleString()} shillings, but you need ${totalRequired.toLocaleString()} shillings including the transaction cost. You need ${shortfall.toLocaleString()} shillings more. Would you like to add funds to your wallet first?`
           },
           { status: 400 }
         )
@@ -526,6 +531,11 @@ export async function POST(request: NextRequest) {
       free_transactions_remaining: freeTxRemaining,
       is_free_transaction: isFreeTransaction,
       platform_fee: platformFeeAmount,
+      transaction_cost: providerCostAmount,
+      total_transaction_cost: platformFeeAmount + providerCostAmount,
+      total_debit: requestedAmount + platformFeeAmount + providerCostAmount,
+      cost_bearer: 'customer',
+      fee_tariff: NCBA_TARIFF_VERSION,
 
       // Transaction details from ElevenLabs
       type: body.type,
@@ -718,11 +728,44 @@ export async function POST(request: NextRequest) {
             : `Done! Money sent successfully.`)
         : `Payment failed. Please try again.`)
 
+    // Persist the cost fields even when the existing n8n workflow does not map
+    // newly-added payload fields. If n8n already completed the row, the database
+    // fee-reconciliation trigger applies only the cost delta.
+    const transactionId = n8nResult.transaction_id || n8nResult.txId || null
+    if (
+      ncbaSuccess &&
+      isDebitTransaction &&
+      typeof transactionId === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(transactionId)
+    ) {
+      const admin = createServiceClient()
+      const { data: transaction } = await admin
+        .from('transactions')
+        .select('metadata')
+        .eq('id', transactionId)
+        .maybeSingle()
+      if (transaction) {
+        await admin
+          .from('transactions')
+          .update({
+            platform_fee: platformFeeAmount,
+            transaction_cost: providerCostAmount,
+            metadata: {
+              ...((transaction.metadata && typeof transaction.metadata === 'object') ? transaction.metadata : {}),
+              cost_bearer: 'customer',
+              fee_tariff: NCBA_TARIFF_VERSION,
+              transaction_cost_estimated: true,
+            },
+          })
+          .eq('id', transactionId)
+      }
+    }
+
     const response = {
       success: ncbaSuccess,
       message: ncbaMessage,
       agent_message: ncbaMessage,
-      transaction_id: n8nResult.transaction_id || n8nResult.txId || null,
+      transaction_id: transactionId,
       bank_ref: bankRef,
       status: n8nResult.status || (ncbaSuccess ? 'completed' : 'failed'),
       data: n8nResult,

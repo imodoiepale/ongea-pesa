@@ -126,8 +126,12 @@ export async function POST(request: NextRequest) {
     // batch before sending a single payment if the user can't afford it all.
     let totalRequested = 0;
     for (const p of resolvedPayments) {
-      const isExternal = p.destination.kind !== 'internal';
-      const fees = ws.calculateFees(p.amount, isExternal);
+      const rail = p.destination.kind === 'internal'
+        ? 'internal'
+        : p.destination.kind === 'bill'
+          ? 'utility_bill'
+          : 'mobile_wallet';
+      const fees = ws.calculateFees(p.amount, rail);
       totalRequested += fees.totalDebit;
     }
 

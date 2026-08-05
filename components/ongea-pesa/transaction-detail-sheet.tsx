@@ -3,6 +3,7 @@
 import { ReceiptText } from "lucide-react"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { customerTransactionCost } from "@/lib/transaction-fees"
 
 export interface TransactionRecord {
   id: string
@@ -75,9 +76,8 @@ export function TransactionDetailSheet({ transaction, onClose }: { transaction: 
         {transaction && (() => {
           const tx = transaction
           const debit = isDebitTransaction(tx.type)
-          const ongeaFee = Number(tx.platform_fee || 0)
-          const customerProviderCost = tx.metadata?.cost_bearer === "customer" ? Number(tx.transaction_cost || 0) : 0
-          const total = Number(tx.amount) + ongeaFee + customerProviderCost
+          const transactionCost = customerTransactionCost(tx)
+          const total = Number(tx.amount) + transactionCost
           const reference = tx.provider_ref || tx.external_ref || tx.mpesa_transaction_id || tx.id
           const durationSeconds = Number(tx.metadata?.duration_seconds || 0)
           const rate = Number(tx.metadata?.rate_per_minute || 0)
@@ -104,8 +104,7 @@ export function TransactionDetailSheet({ transaction, onClose }: { transaction: 
                 {durationSeconds > 0 && <div className="flex min-h-12 items-center justify-between gap-4"><dt className="text-muted-foreground">Voice time</dt><dd className="font-mono">{Math.floor(durationSeconds / 60)}m {durationSeconds % 60}s</dd></div>}
                 {rate > 0 && <div className="flex min-h-12 items-center justify-between gap-4"><dt className="text-muted-foreground">Voice rate</dt><dd className="font-mono">KSh {money(rate)}/min</dd></div>}
                 <div className="flex min-h-12 items-center justify-between gap-4"><dt className="text-muted-foreground">Transaction amount</dt><dd className="font-mono">KSh {money(Number(tx.amount))}</dd></div>
-                <div className="flex min-h-12 items-center justify-between gap-4"><dt className="text-muted-foreground">Ongea Pesa fee · 0.5%</dt><dd className="font-mono">{ongeaFee ? `KSh ${money(ongeaFee)}` : "Free"}</dd></div>
-                <div className="flex min-h-12 items-center justify-between gap-4"><dt className="text-muted-foreground">M-Pesa/provider charge</dt><dd className="font-mono">KSh {money(customerProviderCost)}</dd></div>
+                <div className="flex min-h-12 items-center justify-between gap-4"><dt className="text-muted-foreground">Transaction cost</dt><dd className="font-mono">{transactionCost ? `KSh ${money(transactionCost)}` : "Free"}</dd></div>
                 <div className="flex min-h-14 items-center justify-between gap-4 font-semibold"><dt>{totalLabel}</dt><dd className="font-mono text-brand">KSh {money(total)}</dd></div>
               </dl>
 
@@ -116,7 +115,7 @@ export function TransactionDetailSheet({ transaction, onClose }: { transaction: 
               </dl>
 
               <p className="mt-6 text-center text-[10px] leading-relaxed text-muted-foreground">
-                This breakdown uses the fees saved with the transaction. Deposits are free from Ongea Pesa; customer-paid M-Pesa charges remain separate.
+                Transaction cost is the complete charge saved with this transaction.
               </p>
             </div>
           )

@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { ScreenShell, FluidNav, mobileNavItems } from '@/components/foundation';
 import { cn } from '@/lib/utils';
 import { TransactionDetailSheet, isDebitTransaction, type TransactionRecord } from './transaction-detail-sheet';
+import { customerTransactionCost } from '@/lib/transaction-fees';
 
 type Transaction = TransactionRecord;
 
@@ -132,7 +133,7 @@ export default function TransactionHistory() {
           <div className="flex-1">
             <span className="orbital-label flex items-center gap-2"><i className="h-2 w-2 rounded-full bg-[hsl(var(--mint))]" />Transactions</span>
             <h1 className="orbital-display mt-4 text-5xl">Transactions</h1>
-            <p className="text-sm text-muted-foreground">{transactions.length} records • 0.5% fee</p>
+            <p className="text-sm text-muted-foreground">{transactions.length} records</p>
           </div>
           <button
             onClick={() => setIsDependantsOpen(true)}
@@ -177,7 +178,7 @@ export default function TransactionHistory() {
           <div className="divide-y divide-black/8 dark:divide-white/8">
             {visibleTransactions.map((tx) => {
               const isDebit = isDebitTransaction(tx.type);
-              const fee = isDebit ? Number(tx.platform_fee || 0) : 0;
+              const fee = isDebit ? customerTransactionCost(tx) : 0;
               return (
                 <button
                   key={tx.id}
@@ -200,7 +201,7 @@ export default function TransactionHistory() {
                     <p className="text-sm font-medium text-foreground truncate">{getTransactionDetails(tx)}</p>
                     <p className="text-xs text-muted-foreground truncate">{formatDate(tx.created_at)}</p>
                     {isDebit && fee > 0 && (
-                      <p className="text-[10px] text-muted-foreground/60">Fee: KSh {fee.toFixed(2)}</p>
+                      <p className="text-[10px] text-muted-foreground/60">Transaction cost: KSh {fee.toFixed(2)}</p>
                     )}
                   </div>
                   {/* amount + status */}
