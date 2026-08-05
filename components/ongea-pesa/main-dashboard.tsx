@@ -43,7 +43,16 @@ export default function MainDashboard({ onNavigate, onOpenScanner }: MainDashboa
     const channel = supabase.channel("orbital-home-balance").on("postgres_changes", {
       event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}`,
     }, (payload) => setBalance(Number(payload.new?.wallet_balance ?? 0))).subscribe()
-    return () => { active = false; void supabase.removeChannel(channel) }
+    const onWalletBalance = (event: Event) => {
+      const next = Number((event as CustomEvent<{ balance?: number }>).detail?.balance)
+      if (Number.isFinite(next)) setBalance(next)
+    }
+    window.addEventListener("ongea:wallet-balance-updated", onWalletBalance)
+    return () => {
+      active = false
+      window.removeEventListener("ongea:wallet-balance-updated", onWalletBalance)
+      void supabase.removeChannel(channel)
+    }
   }, [supabase, user?.id])
 
   const go = (screen: Screen, route?: string) => onNavigate ? onNavigate(screen) : router.push(route || `/${screen}`)

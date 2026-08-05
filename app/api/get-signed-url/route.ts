@@ -144,8 +144,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Save voice session with user context
+    let voiceSessionId: string | null = null;
     try {
-      await supabase
+      const { data: voiceSession } = await supabase
         .from('voice_sessions')
         .insert({
           user_id: user.id,
@@ -154,7 +155,11 @@ export async function POST(request: NextRequest) {
           signed_url: signedUrl,
           status: 'active',
           expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
-        });
+        })
+        .select('id')
+        .single();
+
+      voiceSessionId = voiceSession?.id || null;
 
       console.log('Saved voice session:', sessionId, 'for user:', user.email);
     } catch (dbError: any) {
@@ -173,6 +178,7 @@ export async function POST(request: NextRequest) {
       balance: userBalance,
       gateName: gateName,
       gateId: gateId,
+      voiceSessionId,
     });
 
   } catch (error: any) {

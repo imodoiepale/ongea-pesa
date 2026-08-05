@@ -7,8 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from "@/components/providers/auth-provider"
 import { cn } from "@/lib/utils"
 import { displayPhone } from "@/lib/phone"
-import { platformFee } from "@/lib/transaction-fees"
 import DependantsSheet from "./dependants-sheet"
+import { TransactionDetailSheet, type TransactionRecord } from "./transaction-detail-sheet"
 
 interface BalanceSheetProps {
   isOpen: boolean
@@ -17,16 +17,7 @@ interface BalanceSheetProps {
   onBalanceUpdate: (newBalance: number) => void
 }
 
-interface Transaction {
-  id: string
-  type: string
-  amount: number
-  phone?: string
-  status: string
-  created_at: string
-  voice_command_text?: string
-  platform_fee?: number
-}
+type Transaction = TransactionRecord
 
 interface StkTarget { label: string; phone: string }
 
@@ -35,6 +26,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
   const [addAmount, setAddAmount] = useState("")
   const [isAdding, setIsAdding] = useState(false)
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
   const [loadingTransactions, setLoadingTransactions] = useState(true)
   const [mpesaNumber, setMpesaNumber] = useState<string | null>(null)
   const [stkTarget, setStkTarget] = useState<StkTarget | null>(null)
@@ -178,8 +170,9 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
     try {
       const { data, error } = await supabase
         .from('transactions')
-        .select('id, type, amount, phone, status, created_at, voice_command_text, platform_fee')
+        .select('*')
         .eq('user_id', user.id)
+        .neq('type', 'platform_fee')
         .order('created_at', { ascending: false })
         .limit(10)
 
@@ -188,28 +181,8 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
       } else {
         setTransactions(data || [])
 
-        // If balance is 0 but we have transactions, calculate from transactions
-        if (currentBalance === 0 && data && data.length > 0) {
-          // Fetch ALL transactions to calculate accurate balance
-          const { data: allTx } = await supabase
-            .from('transactions')
-            .select('type, amount, status')
-            .eq('user_id', user.id)
-            .eq('status', 'completed')
-
-          if (allTx && allTx.length > 0) {
-            const calculatedBalance = allTx.reduce((total, tx) => {
-              if (tx.type === 'deposit' || tx.type === 'receive') {
-                return total + parseFloat(String(tx.amount))
-              } else {
-                return total - parseFloat(String(tx.amount))
-              }
-            }, 0)
-
-            console.log('📊 Calculated balance from transactions:', calculatedBalance)
-            onBalanceUpdate(calculatedBalance)
-          }
-        }
+        // profiles.wallet_balance is the only spendable balance. Historical test
+        // rows are not a safe fallback ledger and must never replace it in the UI.
       }
     } catch (error) {
       console.error('Error:', error)
@@ -757,7 +730,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
               ) : (
                 <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
                   {filteredTransactions.map((tx) => (
-                    <div key={tx.id} className="flex items-center gap-3 px-4 py-3">
+                    <button key={tx.id} type="button" onClick={() => setSelectedTransaction(tx)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40 active:bg-muted/60">
                       {/* Icon */}
                       <div className={cn(
                         "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
@@ -790,7 +763,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
                           {isDebit(tx.type) ? '−' : '+'}KSh {tx.amount.toLocaleString('en-KE')}
                         </p>
                         {isDebit(tx.type) && tx.status === 'completed' && (
-                          <p className="text-[10px] text-muted-foreground/70">Fee: KSh {(tx.platform_fee || platformFee(tx.amount, tx.type)).toFixed(2)}</p>
+                          <p className="text-[10px] text-muted-foreground/70">Fee: KSh {Number(tx.platform_fee || 0).toFixed(2)}</p>
                         )}
                         <p className={cn(
                           "text-[10px] font-semibold capitalize",
@@ -799,7 +772,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
                           "text-destructive"
                         )}>{tx.status}</p>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -808,6 +781,7 @@ export default function BalanceSheet({ isOpen, onClose, currentBalance, onBalanc
         </div>
       </div>
       <DependantsSheet isOpen={isDependantsOpen} onClose={() => setIsDependantsOpen(false)} />
+      <TransactionDetailSheet transaction={selectedTransaction} onClose={() => setSelectedTransaction(null)} />
     </div>
   )
 }

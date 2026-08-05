@@ -88,7 +88,7 @@ You are Ongea Pesa — Kenya's fast voice wallet assistant for {{user_name}}. Yo
 | b2c | "send to customer from business" | amount, recipient |
 | b2b | "business to business" | amount, recipient |
 | send_phone | "send to 07...", "tuma M-Pesa kwa nambari" | amount, phone |
-| buy_goods_pochi | ~~DISABLED — COMING SOON~~ | ~~NEVER EMIT~~ |
+| buy_goods_pochi | "pochi", "buy goods pochi" | amount, phone |
 | buy_goods_till | "till [number]", "lipa till" | amount, till |
 | paybill | "paybill", "lipa bill [number]" | amount, paybill, account |
 | withdraw | "withdraw", "toa pesa", "cash out" | amount, agent, store |
@@ -173,13 +173,13 @@ Use this glossary to understand what users say, even when they mix Kiswahili/She
 | Term | Meaning | Example |
 |------|---------|---------|
 | soo / mia | 100 (hundred) | "soo tano" = 500 |
-| elfu | 1,000 (thousand) | "elfu mbili" = 2,000 |
+| elfu / thao | 1,000 (thousand) | "elfu mbili" = 2,000 |
 | ngiri / ngwanye / nge | 1,000 (Sheng) | "ngiri tano" = 5,000 |
 | ketheng / keth | 1,000 (Sheng) | "ketheng moja" = 1,000 |
 | finje / finje moja | 50 | "finje mbili" = 100 |
-| rwabe | 40 | |
+| rwabe | 200 | |
 | mbao | 20 | |
-| chwani | 5 | |
+| chwani | 50- | |
 | bei | price / amount | "bei yake ni?" = what's the price? |
 | kiasi | amount / quantity | "kiasi gani?" = how much? |
 | nusu | half | "nusu ya elfu" = 500 |
@@ -193,7 +193,7 @@ Use this glossary to understand what users say, even when they mix Kiswahili/She
 | toa | withdraw / take out |
 | weka / deposit | deposit / put in |
 | rudisha | return / refund |
-| check / angalia | check / look at |
+| check / angalia | check / look at | 
 | maliza | finish / complete |
 | simama | stop / cancel |
 | sawa | okay / confirm |
@@ -237,7 +237,7 @@ Use this glossary to understand what users say, even when they mix Kiswahili/She
 | nambari | number |
 | till | till number (M-Pesa buy goods) |
 | paybill | paybill number |
-| pochi | Pochi la Biashara — COMING SOON, not available yet. When user says "pochi", tell them it's coming soon and offer Till, Paybill, or M-Pesa phone send. Do NOT call send_money. |
+| pochi | Pochi la Biashara (buy goods via phone) |
 | lipa na mpesa | pay with M-Pesa |
 | stk | STK push prompt |
 | wallet / mkoba | wallet / purse |
@@ -336,24 +336,7 @@ You can send to several people or pay several bills in a single conversation usi
 - ALWAYS enumerate the list with numbers (1. 2. 3.) before confirming — never a comma-joined sentence.
 - Confirm the full list **once** before calling send_batch. Do NOT ask per-item confirmations.
 - Do NOT state a post-batch balance — the new balance is not returned.
-- Do NOT call send_money for each item — always use send_batch for multi-destination sends.
-
-## Slot Staging (stage_payment tool)
-As you identify any payment detail from the user's speech — amount, recipient, or payment type — immediately call stage_payment with all fields known so far. Do not wait until all three are identified.
-
-**Single payment:**
-- User says "send two thousand" → call stage_payment({ amount: 2000 })
-- User then says "to John" → call stage_payment({ amount: 2000, recipientName: "John", type: "send_phone" })
-- After calling send_money, call stage_payment again with the full details so the display is complete.
-
-**Multi-payment (send_batch):**
-- Stage each payment by its 0-based index as soon as you identify it:
-  - stage_payment({ index: 0, amount: 500, recipientName: "John", type: "send_phone" })
-  - stage_payment({ index: 1, amount: 1000, paybill: "888880", account: "12345", type: "paybill" })
-- Stage all items progressively as you hear them, before calling send_batch.
-- Omit index for a single payment (defaults to 0).
-
-This creates the animated identification panel the user sees — single payment shows cards, multiple shows a live table. Always call stage_payment before confirm_payment or send_money/send_batch.`;
+- Do NOT call send_money for each item — always use send_batch for multi-destination sends.`;
 
 const FIRST_MESSAGE = 'Send Money using Ongea Pesa';
 
@@ -423,7 +406,7 @@ const CLIENT_TOOLS = [
                 description: 'Destination type. Inferred from other fields if omitted.',
                 enum: ['phone', 'till', 'paybill', 'bill', 'internal'],
               },
-              phone: { type: 'string', description: 'Kenyan phone number 07XXXXXXXX or 254XXXXXXXXX for phone payments (send_phone only; pochi is disabled)' },
+              phone: { type: 'string', description: 'Kenyan phone number 07XXXXXXXX or 254XXXXXXXXX for phone/pochi payments' },
               till: { type: 'string', description: '6-7 digit till number for buy-goods payments' },
               paybill: { type: 'string', description: '6-7 digit paybill number' },
               account: { type: 'string', description: 'Account number for paybill or bill payments' },
@@ -438,30 +421,6 @@ const CLIENT_TOOLS = [
           type: 'string',
           description: 'Global narration applied to all items that do not have their own narration (optional)',
         },
-      },
-    },
-  },
-  {
-    name: 'stage_payment',
-    description:
-      "Called progressively as you identify payment details from the user's speech. " +
-      "Call this as SOON as you extract any of amount, recipient, or payment type — before the full payment is confirmed. " +
-      "The frontend will animate each field ticking into a display panel. " +
-      "Call it again with updated fields as you learn more.",
-    expects_response: true,
-    response_timeout_secs: 10,
-    parameters: {
-      type: 'object',
-      required: [],
-      properties: {
-        index:         { type: 'number', description: '0-based payment index for multi-payment / batch flows. Omit (or 0) for a single payment.' },
-        amount:        { type: 'number', description: 'Amount in KES identified so far, if known' },
-        phone:         { type: 'string', description: 'Recipient phone number, if sending to phone' },
-        till:          { type: 'string', description: 'Till number, if buying goods' },
-        paybill:       { type: 'string', description: 'Paybill number' },
-        account:       { type: 'string', description: 'Account number for paybill' },
-        type:          { type: 'string', description: 'Payment type: send_phone | buy_goods_till | paybill | internal | receipt' },
-        recipientName: { type: 'string', description: 'Recipient name if known' },
       },
     },
   },
@@ -561,29 +520,12 @@ async function main() {
   });
   console.log('    ✅ Agent updated');
 
-  // Step 6: Optionally fix send_money → immediate + response schema + restrict type enum
+  // Step 6: Optionally fix send_money → immediate + response schema
   if (fixSendMoney) {
-    console.log('\n[6] Upgrading send_money (async → immediate + response schema + type enum)...');
+    console.log('\n[6] Upgrading send_money (async → immediate + response schema)...');
     try {
       const smResp = await el('GET', `/v1/convai/tools/${SEND_MONEY_ID}`);
       const existingCfg = smResp.tool_config ?? {};
-
-      // Patch type field in request_body_schema: remove buy_goods_pochi from enum
-      // (pochi is coming soon; server rejects it anyway but tool enum is a second line of defense)
-      const existingApiSchema = smResp.api_schema ?? {};
-      const existingBodySchema = existingApiSchema.request_body_schema ?? {};
-      const existingProps = existingBodySchema.properties ?? [];
-      const patchedProps = existingProps.map((p) => {
-        if (p.id === 'type') {
-          return {
-            ...p,
-            description: 'Transaction type: send_phone, buy_goods_till, paybill, withdraw, bank_to_mpesa, bank_to_bank, c2c, c2b, b2c, b2b',
-            enum: ['send_phone', 'buy_goods_till', 'paybill', 'withdraw', 'bank_to_mpesa', 'bank_to_bank', 'c2c', 'c2b', 'b2c', 'b2b'],
-          };
-        }
-        return p;
-      });
-
       await el('PATCH', `/v1/convai/tools/${SEND_MONEY_ID}`, {
         tool_config: {
           ...existingCfg,
@@ -591,15 +533,8 @@ async function main() {
           response_body_schema: SEND_MONEY_RESPONSE_SCHEMA,
           description: "Executes a financial transaction from the user's Ongea Pesa wallet. Handles internal wallet-to-wallet transfers (c2c/c2b/b2c/b2b) and external M-Pesa payments (till/paybill/phone/withdraw/bank). Returns success/error with agent_message for voice feedback.",
         },
-        api_schema: {
-          ...existingApiSchema,
-          request_body_schema: {
-            ...existingBodySchema,
-            properties: patchedProps,
-          },
-        },
       });
-      console.log('    ✅ execution_mode → immediate, response_body_schema added, buy_goods_pochi removed from type enum');
+      console.log('    ✅ execution_mode → immediate, response_body_schema added');
       console.log('    ⚠️  CONFIRM with backend: prompt uses 0.5% fee / 20 free sends');
     } catch (err) {
       console.warn(`    ⚠️  send_money PATCH failed (non-fatal): ${err.message}`);

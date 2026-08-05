@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Check, Clock3, Loader2, Mic2, Phone, ShieldCheck, WalletCards } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/components/providers/auth-provider"
-import { useTransactionPolling } from "@/hooks/use-transaction-polling"
 import { depositFeeBreakdown } from "@/lib/transaction-fees"
-import { VOICE_FUNDING_PURPOSE, VOICE_STARTER_AMOUNT } from "@/lib/voice-funding"
+import { VOICE_FUNDING_PURPOSE, VOICE_RATE_PER_MINUTE, VOICE_STARTER_AMOUNT } from "@/lib/voice-funding"
 
 type FundingState = "loading" | "idle" | "submitting" | "pending" | "completing" | "success" | "error"
 
@@ -19,7 +18,6 @@ export function VoiceFundingScreen() {
   const router = useRouter()
   const { user } = useAuth()
   const [phone, setPhone] = useState("")
-  const [gateName, setGateName] = useState("")
   const [transactionId, setTransactionId] = useState("")
   const [state, setState] = useState<FundingState>("loading")
   const [error, setError] = useState("")
@@ -43,7 +41,6 @@ export function VoiceFundingScreen() {
           return
         }
         setPhone(normalizePhone(data?.mpesa_number || data?.phone_number || ""))
-        setGateName(data?.gate_name || "")
         setState("idle")
       } catch {
         if (active) setState("idle")
@@ -73,22 +70,43 @@ export function VoiceFundingScreen() {
     }, 900)
   }, [router])
 
-  const polling = useTransactionPolling({
-    transactionId,
-    gateName,
-    enabled: Boolean(transactionId && gateName),
-    maxAttempts: 60,
-    intervalMs: 5000,
-    onSuccess: () => void finishFunding(transactionId),
-    onFailure: (message) => {
-      setError(message || "M-Pesa did not complete the payment. Please retry.")
-      setState("error")
-    },
-    onTimeout: () => {
-      setError("The payment is still pending. Check your M-Pesa messages, then check again.")
-      setState("error")
-    },
-  })
+  useEffect(() => {
+    if (!transactionId || state !== "pending") return
+    let cancelled = false
+    let attempts = 0
+    let timer: ReturnType<typeof setTimeout> | null = null
+
+    const poll = async () => {
+      attempts += 1
+      try {
+        const response = await fetch("/api/daraja/stk-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ transaction_id: transactionId }),
+        })
+        const result = await response.json().catch(() => ({}))
+        if (cancelled) return
+        if (result.status === "completed") return void finishFunding(transactionId)
+        if (result.status === "failed") {
+          setError(result.error_message || "M-Pesa did not complete the payment. Please retry.")
+          setState("error")
+          return
+        }
+      } catch {
+        // A transient polling error must not create a second STK prompt.
+      }
+
+      if (attempts >= 40) {
+        setError("The payment is still pending. Check your M-Pesa messages, then check again.")
+        setState("error")
+        return
+      }
+      timer = setTimeout(poll, 3000)
+    }
+
+    void poll()
+    return () => { cancelled = true; if (timer) clearTimeout(timer) }
+  }, [finishFunding, state, transactionId])
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -97,14 +115,9 @@ export function VoiceFundingScreen() {
       setError("Enter a valid Kenyan M-Pesa number, for example 0712 345 678.")
       return
     }
-    if (!gateName) {
-      setError("Your wallet is still being prepared. Sign in again or contact support.")
-      return
-    }
-
     setError("")
     setState("submitting")
-    const response = await fetch("/api/gate/deposit", {
+    const response = await fetch("/api/daraja/stk-deposit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -140,9 +153,9 @@ export function VoiceFundingScreen() {
         </div>
 
         <div className="voice-funding-copy">
-          <p className="orbital-label">Before you begin</p>
+          <p className="orbital-label">Voice beta · transparent pricing</p>
           <h1 className="orbital-display">Load <span>KSh 200</span><br />to start speaking</h1>
-          <p>Fund your wallet so voice payments can work from your first command. The money remains visible in your wallet and can be used to send or pay.</p>
+          <p>Ongea Pesa Voice is still in beta and real-time AI audio is costly to run. Voice is charged at KSh {VOICE_RATE_PER_MINUTE} per minute, calculated to the second. Your remaining money stays visible and spendable in your wallet.</p>
         </div>
 
         <div className="voice-funding-breakdown">
@@ -150,6 +163,8 @@ export function VoiceFundingScreen() {
           <div><span>Ongea Pesa deposit fee</span><strong>Free</strong></div>
           <div><span>Estimated M-Pesa charge</span><strong>KSh {fees.mpesaCharge}</strong></div>
           <div className="voice-funding-breakdown__total"><span>Total from M-Pesa</span><strong>KSh {fees.totalFromMpesa}</strong></div>
+          <div><span>Voice usage</span><strong>KSh {VOICE_RATE_PER_MINUTE}/minute</strong></div>
+          <div><span>Ongea Pesa service fee</span><strong>0.5% per debit</strong></div>
         </div>
 
         <form onSubmit={submit} className="voice-funding-form">
@@ -176,7 +191,7 @@ export function VoiceFundingScreen() {
           {state === "success" && <p role="status" className="voice-funding-status is-success"><Check /> KSh 200 confirmed. Your wallet is ready.</p>}
 
           {state === "error" && transactionId ? (
-            <button type="button" onClick={() => { setError(""); setState("pending"); polling.resetPolling() }} className="onboarding-primary">
+            <button type="button" onClick={() => { setError(""); setState("pending") }} className="onboarding-primary">
               Check payment again
             </button>
           ) : (

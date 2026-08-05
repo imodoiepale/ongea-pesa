@@ -1,10 +1,12 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from 'react';
 import { useConversation } from '@elevenlabs/react';
 import { useUser } from './UserContext';
 import { normalizeVoiceItem, summariseBatchResults } from '@/lib/batch-payments';
 import type { BatchItem, BatchResponse } from '@/lib/batch-payments';
+import { PLATFORM_FEE_RATE } from '@/lib/transaction-fees';
+import { VOICE_RATE_PER_MINUTE } from '@/lib/voice-funding';
 
 interface Message {
   id: string;
@@ -56,6 +58,9 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [userBalance, setUserBalance] = useState<number>(0);
+  const voiceSessionIdRef = useRef<string | null>(null);
+  const voiceBudgetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionSettledRef = useRef(false);
 
   // Handler registry for client-tool delegates
   const toolHandlersRef = useRef<ToolHandlers>({});
@@ -67,6 +72,31 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   const unregisterToolHandlers = (keys: (keyof ToolHandlers)[]) => {
     keys.forEach(k => { delete toolHandlersRef.current[k]; });
   };
+
+  const settleVoiceSession = useCallback(async () => {
+    const voiceSessionId = voiceSessionIdRef.current;
+    if (!voiceSessionId || sessionSettledRef.current) return;
+    sessionSettledRef.current = true;
+    if (voiceBudgetTimerRef.current) clearTimeout(voiceBudgetTimerRef.current);
+
+    try {
+      const response = await fetch('/api/voice/session/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voice_session_id: voiceSessionId }),
+        keepalive: true,
+      });
+      const result = await response.json().catch(() => ({}));
+      if (response.ok && Number.isFinite(Number(result.balance))) {
+        setUserBalance(Number(result.balance));
+        window.dispatchEvent(new CustomEvent('ongea:wallet-balance-updated', { detail: { balance: Number(result.balance) } }));
+      } else if (!response.ok) {
+        sessionSettledRef.current = false;
+      }
+    } catch {
+      sessionSettledRef.current = false;
+    }
+  }, []);
 
   // ElevenLabs conversation hook
   const conversation = useConversation({
@@ -83,6 +113,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
       console.trace('Disconnect call stack');
       setIsConnected(false);
       setIsLoading(false); // Reset loading state to prevent stuck state
+      void settleVoiceSession();
     },
     onMessage: (message: any) => {
       console.log('📨 ElevenLabs message:', message);
@@ -207,7 +238,7 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
   };
 
   // Get signed URL for ElevenLabs
-  const getSignedUrl = async (): Promise<{ signedUrl: string; balance: number; userName: string; userEmail: string; userId: string; gateName: string; gateId: string }> => {
+  const getSignedUrl = async (): Promise<{ signedUrl: string; balance: number; userName: string; userEmail: string; userId: string; gateName: string; gateId: string; voiceSessionId: string | null }> => {
     try {
       const response = await fetch('/api/get-signed-url', {
         method: 'POST',
@@ -220,9 +251,9 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
         throw new Error('Failed to get signed URL');
       }
       
-      const { signedUrl, userId: returnedUserId, balance, userName, userEmail, gateName, gateId } = await response.json();
+      const { signedUrl, userId: returnedUserId, balance, userName, userEmail, gateName, gateId, voiceSessionId } = await response.json();
       console.log('✅ Got signed URL for userId:', returnedUserId, 'email:', userEmail, 'balance:', balance, 'name:', userName);
-      return { signedUrl, balance, userName, userEmail, userId: returnedUserId, gateName: gateName || '', gateId: gateId || '' };
+      return { signedUrl, balance, userName, userEmail, userId: returnedUserId, gateName: gateName || '', gateId: gateId || '', voiceSessionId: voiceSessionId || null };
     } catch (error) {
       console.error('❌ Error getting signed URL:', error);
       throw error;
@@ -296,7 +327,12 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
         throw new Error('Microphone access is required for voice interaction');
       }
       
-      const { signedUrl, balance, userName, userEmail, userId: returnedUserId, gateName, gateId } = await getSignedUrl();
+      const { signedUrl, balance, userName, userEmail, userId: returnedUserId, gateName, gateId, voiceSessionId } = await getSignedUrl();
+      const firstMinuteDebit = VOICE_RATE_PER_MINUTE * (1 + PLATFORM_FEE_RATE);
+      if (balance < firstMinuteDebit) {
+        throw new Error(`Add at least KSh ${firstMinuteDebit.toFixed(2)} to use voice.`);
+      }
+      sessionSettledRef.current = false;
       console.log('📝 Received signed URL (first 100 chars):', signedUrl.substring(0, 100));
       
       // Prepare dynamic variables to pass to the session
@@ -316,6 +352,22 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
         signedUrl: signedUrl,
         dynamicVariables: dynamicVariables
       });
+
+      voiceSessionIdRef.current = voiceSessionId;
+
+      if (voiceSessionId) {
+        await fetch('/api/voice/session', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ voice_session_id: voiceSessionId }),
+        }).catch(() => undefined);
+      }
+
+      const affordableSeconds = Math.max(1, Math.floor((balance / firstMinuteDebit) * 60));
+      voiceBudgetTimerRef.current = setTimeout(() => {
+        void conversation.endSession?.();
+        void settleVoiceSession();
+      }, Math.min(affordableSeconds, 15 * 60) * 1000);
       
       console.log('✅ conversation.startSession() completed - waiting for onConnect callback');
       
@@ -350,6 +402,8 @@ export function ElevenLabsProvider({ children }: { children: ReactNode }) {
       if (conversation?.endSession && conversation.status === 'connected') {
         await conversation.endSession();
       }
+
+      await settleVoiceSession();
 
       setIsConnected(false);
       setIsLoading(false);

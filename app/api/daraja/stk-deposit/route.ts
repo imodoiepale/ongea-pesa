@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { normalizePhone } from '@/lib/phone';
+import { mpesaPaybillCharge } from '@/lib/transaction-fees';
+import { isVoiceFundingPurpose, VOICE_STARTER_AMOUNT } from '@/lib/voice-funding';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { amount, phone } = body;
+    const { amount, phone, purpose } = body;
 
     // --- Validation ---
     if (!amount || !phone) {
@@ -47,6 +49,8 @@ export async function POST(request: NextRequest) {
       );
     }
     const cleanPhone = phone.replace(/\s/g, '');
+    const voiceFunding = isVoiceFundingPurpose(purpose) && depositAmount >= VOICE_STARTER_AMOUNT;
+    const customerCharge = mpesaPaybillCharge(depositAmount);
 
     // --- Insert transaction row (service-role to bypass RLS) ---
     const admin = createServiceClient();
@@ -59,6 +63,16 @@ export async function POST(request: NextRequest) {
         amount: depositAmount,
         phone: cleanPhone,
         provider: 'safaricom_stk',
+        platform_fee: 0,
+        transaction_cost: customerCharge,
+        net_amount: depositAmount,
+        description: voiceFunding ? 'Voice starter wallet funding' : 'Wallet top-up',
+        metadata: {
+          purpose: voiceFunding ? 'voice_service_funding' : 'wallet_top_up',
+          cost_bearer: 'customer',
+          mpesa_charge_estimate: customerCharge,
+          rail: 'daraja_stk',
+        },
         external_ref: null,
         created_at: new Date().toISOString(),
       })
@@ -89,7 +103,7 @@ export async function POST(request: NextRequest) {
           amount: depositAmount,
           phone: darajaPhone,
           accountRef: user.id,
-          description: 'Wallet top-up',
+          description: voiceFunding ? 'Voice starter wallet funding' : 'Wallet top-up',
         }),
       });
 

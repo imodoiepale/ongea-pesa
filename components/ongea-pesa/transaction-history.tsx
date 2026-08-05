@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { ArrowDownLeft, ArrowUpRight, ShoppingCart, CreditCard, Smartphone, Building, RefreshCw, ArrowLeft, Users, Search, SlidersHorizontal, ChevronRight, ReceiptText } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, ShoppingCart, CreditCard, Smartphone, Building, RefreshCw, ArrowLeft, Users, Search, SlidersHorizontal, ChevronRight } from 'lucide-react';
 import DependantsSheet from './dependants-sheet';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
@@ -9,30 +9,9 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { useRouter } from 'next/navigation';
 import { ScreenShell, FluidNav, mobileNavItems } from '@/components/foundation';
 import { cn } from '@/lib/utils';
-import { platformFee } from '@/lib/transaction-fees';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { TransactionDetailSheet, isDebitTransaction, type TransactionRecord } from './transaction-detail-sheet';
 
-interface Transaction {
-  id: string;
-  type: string;
-  amount: number;
-  status: string;
-  created_at: string;
-  recipient_phone?: string;
-  recipient_email?: string;
-  paybill_number?: string;
-  till_number?: string;
-  account_number?: string;
-  description?: string;
-  platform_fee?: number;
-  transaction_cost?: number;
-  net_amount?: number;
-  provider_ref?: string;
-  external_ref?: string;
-  mpesa_transaction_id?: string;
-  completed_at?: string;
-  metadata?: Record<string, unknown> | null;
-}
+type Transaction = TransactionRecord;
 
 const getTransactionIcon = (type: string) => {
   switch (type) {
@@ -80,15 +59,6 @@ const getTransactionDetails = (tx: Transaction) => {
   return getTransactionLabel(tx.type);
 };
 
-const calculateFee = (tx: Transaction): number => {
-  const persisted = tx.platform_fee ?? 0;
-  return persisted > 0 ? persisted : platformFee(tx.amount, tx.type);
-};
-
-const isDebitTransaction = (type: string): boolean => {
-  return ['send_phone', 'send', 'buy_goods_till', 'buy_goods_pochi', 'paybill', 'withdraw', 'bank_to_mpesa'].includes(type);
-};
-
 export default function TransactionHistory() {
   const { user } = useAuth();
   const router = useRouter();
@@ -111,6 +81,7 @@ export default function TransactionHistory() {
         .from('transactions')
         .select('*')
         .eq('user_id', user.id)
+        .neq('type', 'platform_fee')
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -206,7 +177,7 @@ export default function TransactionHistory() {
           <div className="divide-y divide-black/8 dark:divide-white/8">
             {visibleTransactions.map((tx) => {
               const isDebit = isDebitTransaction(tx.type);
-              const fee = isDebit ? calculateFee(tx) : 0;
+              const fee = isDebit ? Number(tx.platform_fee || 0) : 0;
               return (
                 <button
                   key={tx.id}
@@ -260,55 +231,7 @@ export default function TransactionHistory() {
         onClose={() => setIsDependantsOpen(false)}
       />
 
-      <Sheet open={Boolean(selectedTransaction)} onOpenChange={(open) => { if (!open) setSelectedTransaction(null) }}>
-        <SheetContent side="bottom" className="max-h-[88dvh] overflow-y-auto rounded-t-[1.75rem] border-t border-brand/15 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6">
-          {selectedTransaction && (() => {
-            const tx = selectedTransaction;
-            const debit = isDebitTransaction(tx.type);
-            const persistedPlatformFee = Number(tx.platform_fee || 0);
-            const ongeaFee = persistedPlatformFee > 0 ? persistedPlatformFee : debit ? platformFee(Number(tx.amount), tx.type) : 0;
-            const customerProviderCost = tx.metadata?.cost_bearer === 'customer' ? Number(tx.transaction_cost || 0) : 0;
-            const totalPaid = Number(tx.amount) + ongeaFee + customerProviderCost;
-            const reference = tx.provider_ref || tx.external_ref || tx.mpesa_transaction_id || tx.id;
-            const purpose = tx.metadata?.purpose === 'voice_service_funding' ? 'Voice starter wallet funding' : getTransactionDetails(tx);
-            return (
-              <div className="mx-auto w-full max-w-md">
-                <SheetHeader className="pr-8 text-left">
-                  <span className="grid h-11 w-11 place-items-center rounded-full bg-brand/10 text-brand"><ReceiptText className="h-5 w-5" /></span>
-                  <SheetTitle className="orbital-display pt-3 text-3xl">Transaction details</SheetTitle>
-                  <SheetDescription>{purpose}</SheetDescription>
-                </SheetHeader>
-
-                <div className="mt-7 text-center">
-                  <p className="text-xs text-muted-foreground">{debit ? 'Amount sent' : 'Amount credited'}</p>
-                  <p className="orbital-display mt-2 text-5xl">KSh {Number(tx.amount).toLocaleString('en-KE', { minimumFractionDigits: 2 })}</p>
-                  <span className={cn(
-                    "mt-3 inline-flex rounded-full px-3 py-1 text-[10px] font-semibold capitalize",
-                    tx.status === 'completed' ? "bg-brand/10 text-brand" : tx.status === 'pending' ? "bg-amber-500/10 text-amber-600" : "bg-destructive/10 text-destructive"
-                  )}>{tx.status}</span>
-                </div>
-
-                <dl className="mt-7 divide-y divide-black/8 border-y border-black/8 text-sm dark:divide-white/8 dark:border-white/8">
-                  <div className="flex min-h-12 items-center justify-between gap-4"><dt className="text-muted-foreground">Transaction amount</dt><dd className="font-mono">KSh {Number(tx.amount).toFixed(2)}</dd></div>
-                  <div className="flex min-h-12 items-center justify-between gap-4"><dt className="text-muted-foreground">Ongea Pesa fee</dt><dd className="font-mono">{ongeaFee ? `KSh ${ongeaFee.toFixed(2)}` : 'Free'}</dd></div>
-                  <div className="flex min-h-12 items-center justify-between gap-4"><dt className="text-muted-foreground">M-Pesa/provider charge</dt><dd className="font-mono">{customerProviderCost ? `KSh ${customerProviderCost.toFixed(2)}` : 'KSh 0.00'}</dd></div>
-                  <div className="flex min-h-14 items-center justify-between gap-4 font-semibold"><dt>{debit ? 'Total wallet debit' : 'Total paid from M-Pesa'}</dt><dd className="font-mono text-brand">KSh {totalPaid.toFixed(2)}</dd></div>
-                </dl>
-
-                <dl className="mt-5 space-y-3 text-xs">
-                  <div className="flex justify-between gap-5"><dt className="text-muted-foreground">Date</dt><dd className="text-right">{formatDate(tx.completed_at || tx.created_at)}</dd></div>
-                  <div className="flex justify-between gap-5"><dt className="text-muted-foreground">Type</dt><dd className="text-right">{getTransactionLabel(tx.type)}</dd></div>
-                  <div className="flex justify-between gap-5"><dt className="text-muted-foreground">Reference</dt><dd className="max-w-[65%] break-all text-right font-mono">{reference}</dd></div>
-                </dl>
-
-                <p className="mt-6 text-center text-[10px] leading-relaxed text-muted-foreground">
-                  Costs shown here come from the saved transaction record. Provider charges marked as customer-paid are separate from Ongea Pesa fees.
-                </p>
-              </div>
-            );
-          })()}
-        </SheetContent>
-      </Sheet>
+      <TransactionDetailSheet transaction={selectedTransaction} onClose={() => setSelectedTransaction(null)} />
 
       {/* Canonical bottom nav — route mode (all items are Links, activeKey = "transactions") */}
       <FluidNav items={mobileNavItems} activeKey="transactions" />

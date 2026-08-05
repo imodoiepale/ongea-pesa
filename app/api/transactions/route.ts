@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
       .from('transactions')
       .select('*')
       .eq('user_id', user.id)
+      .neq('type', 'platform_fee')
       .order('created_at', { ascending: false })
 
     if (txError) {
@@ -28,25 +29,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Calculate balance from transactions
-    let calculatedBalance = 0
-    
-    for (const tx of transactions || []) {
-      if (tx.status === 'completed') {
-        if (tx.type === 'deposit' || tx.type === 'receive') {
-          // Add money
-          calculatedBalance += parseFloat(tx.amount)
-        } else {
-          // Subtract money (sends, payments, withdrawals)
-          calculatedBalance -= parseFloat(tx.amount)
-        }
-      }
-    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('wallet_balance')
+      .eq('id', user.id)
+      .single()
 
     return NextResponse.json({
       success: true,
       transactions: transactions || [],
-      calculatedBalance: calculatedBalance,
+      balance: Number(profile?.wallet_balance || 0),
     })
 
   } catch (error) {
