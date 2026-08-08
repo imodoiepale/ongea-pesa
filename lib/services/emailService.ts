@@ -28,6 +28,9 @@ export async function sendOtpEmail(email: string, code: string): Promise<void> {
   }
 
   const from = process.env.RESEND_FROM ?? EMAIL_BRAND.from;
+  // A monitored reply address is a positive deliverability signal; a
+  // send-only identity with nowhere to reply is not.
+  const replyTo = process.env.RESEND_REPLY_TO ?? EMAIL_BRAND.replyTo;
 
   const html = emailLayout({
     title:     'Your Ongea Pesa verification code',
@@ -43,6 +46,7 @@ export async function sendOtpEmail(email: string, code: string): Promise<void> {
     const { error } = await resend.emails.send({
       from,
       to: email,
+      replyTo,
       subject: 'Your Ongea Pesa verification code',
       html,
       text: otpText(code),

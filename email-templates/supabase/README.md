@@ -10,6 +10,7 @@ All emails are routed through **Resend SMTP** from `ongeapesa@nsait.co.ke`.
 ```
 RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 RESEND_FROM="Ongea Pesa <ongeapesa@nsait.co.ke>"
+RESEND_REPLY_TO=info@nsait.co.ke
 ```
 
 > The same API key is used for both the Resend SDK (custom OTP emails) and Supabase SMTP. Never commit it.
@@ -105,6 +106,47 @@ Each template uses only the variables documented here.
 The same tokens live in `lib/services/emailTemplates.ts` (used by the Resend SDK OTP email), keeping all emails visually consistent.
 
 ---
+
+## Deliverability rules — do not regress these
+
+These emails were being spam-foldered by Gmail. The markup is the part we
+control, so anything added to these templates (or to `emailLayout()`) must keep
+to the following:
+
+- **No remote images.** The old templates pulled a 1600px hero background from
+  `mp.astria.ai` — an unrelated third-party host, with a query string, referenced
+  as a CSS background that Gmail strips anyway. Off-domain assets read as
+  tracking pixels. If an image is ever needed, host it on `ongeapesa.nsait.co.ke`.
+- **No `<style>` block, no `@keyframes`, no `animation:`.** Gmail discards head
+  styles; the animations rendered nowhere and only added weight.
+- **No `position:absolute` layering.** Tables and inline styles only.
+- **Every send carries a `text/plain` alternative.** See `otpText()` in
+  `lib/services/emailService.ts`.
+- **No `List-Unsubscribe`.** These are transactional auth emails; an unsubscribe
+  header on a password reset is wrong.
+
+`lib/services/emailTemplates.ts` is the source of truth for the shell. The six
+HTML files here must stay byte-comparable to its output — if you change one,
+change both.
+
+## DNS state (`nsait.co.ke`, verified 2026-08-06)
+
+| Record | Value | Status |
+|---|---|---|
+| SPF (root) | `v=spf1 ip4:84.16.249.171 include:relay.mailbaby.net +a +mx ~all` | No SES include — fine, Resend bounces via `send.` |
+| SPF (`send.`) | `v=spf1 include:amazonses.com ~all` | ✅ relaxed-aligns with `nsait.co.ke` |
+| DKIM | `resend._domainkey.nsait.co.ke` | ✅ present, but 1024-bit — regenerate at 2048 |
+| DMARC | `v=DMARC1; p=none;` | ⚠️ no `rua`, no enforcement |
+
+**Outstanding DNS/dashboard work:**
+
+1. Add reporting to DMARC: `v=DMARC1; p=none; rua=mailto:dmarc@nsait.co.ke; fo=1`.
+   After 1–2 weeks of clean reports, move to `p=quarantine; pct=25`, then ramp to 100.
+2. Regenerate the Resend DKIM key at 2048-bit and update `resend._domainkey`.
+3. Enrol `nsait.co.ke` in [Google Postmaster Tools](https://postmaster.google.com)
+   — the only way to see Gmail's own reputation verdict.
+4. Confirm custom SMTP is actually enabled (Step 2 above). If it is off, auth mail
+   leaves from Supabase's shared sender and none of the above matters.
 
 ## Verification checklist
 
