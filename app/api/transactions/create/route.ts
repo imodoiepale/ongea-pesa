@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { ONGEA_ENV } from '@/lib/environment'
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
     // Prepare transaction data matching n8n schema
     const transactionData: any = {
       user_id: user.id,
+      environment: ONGEA_ENV,
       type,
       status: status || 'pending',
       voice_verified: voice_verified || false,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { mpesaPaybillCharge } from '@/lib/transaction-fees';
 import { isVoiceFundingPurpose } from '@/lib/voice-funding';
+import { ONGEA_ENV } from '@/lib/environment'
 
 export async function POST(request: NextRequest) {
   try {
@@ -183,6 +184,7 @@ export async function POST(request: NextRequest) {
       .from('transactions')
       .insert({
         user_id: user.id,
+        environment: ONGEA_ENV,
         type: 'deposit',
         amount: depositAmount,
         phone: phone,
