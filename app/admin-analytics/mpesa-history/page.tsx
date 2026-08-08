@@ -85,7 +85,9 @@ export default function MpesaHistoryPage() {
         const persistedFee = tx.platform_fee ?? 0
         return {
           ...tx,
-          platform_fee: persistedFee > 0 ? persistedFee : platformFee(tx.amount || 0, tx.type?.toLowerCase()), // Deposits have 0% fee
+          // Persisted platform_fee is authoritative; no 0.5% recompute fallback,
+          // which used to show waived fees as if they had been charged.
+          platform_fee: persistedFee,
           source: "supabase",
           profiles: profilesMap[tx.user_id] || null
         }

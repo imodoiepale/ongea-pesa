@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { ONGEA_ENV } from '@/lib/environment'
 
 export async function POST(request: NextRequest) {
   try {
@@ -150,6 +151,7 @@ export async function POST(request: NextRequest) {
         .from('voice_sessions')
         .insert({
           user_id: user.id,
+          environment: ONGEA_ENV,
           session_id: sessionId,
           agent_id: agentId,
           signed_url: signedUrl,

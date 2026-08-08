@@ -1,0 +1,228 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Motion + surface system, ported from the DepthMe design system.
+
+   Mechanics only — the palette stays Ongea's (teal/mint on abyss). Borrowing
+   DepthMe's violet/gold would give us a second brand, not a better one.
+
+   The single most important value here is --ease-settle:
+   cubic-bezier(0.23, 1, 0.32, 1) is easeOutQuint — it covers ~80% of the
+   distance in the first ~20% of the duration. Everything moves NOW and settles
+   gently. Paired with genuinely short durations (120/200/240ms), that is the
+   entire reason DepthMe feels fast.
+
+   Two rules, both learned the hard way in DepthMe:
+     1. Use these curves rather than inventing new ones. The shared vocabulary
+        is what makes motion read as designed instead of decorated.
+     2. Animate transform / opacity / filter only, and never animate a blur
+        value — compositing blur per-frame drops frames in a mobile WebView.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --ease-settle: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-breath: cubic-bezier(0.45, 0, 0.55, 1);
+
+  --dur-tap: 120ms;
+  --dur-quick: 200ms;
+  --dur-settle: 240ms;
+  --dur-reveal: 280ms;
+
+  /* Glass. Three details make this read expensive rather than cheap-frosted:
+     the 145deg gradient (not a flat rgba), the `inset 0 1px 0` top highlight
+     that simulates a lit edge, and saturate() on the blur. */
+  --glass-border: 1px solid hsl(var(--teal) / 0.16);
+  --glass-bg: linear-gradient(145deg, hsl(var(--deep-sea) / 0.68), hsl(var(--abyss) / 0.72));
+  --glass-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 20px 48px hsl(var(--abyss) / 0.3);
+  --glass-blur: blur(24px) saturate(120%);
+}
+
+/* Light theme needs its own glass, or the dark gradient muddies a pale page. */
+:root:not(.dark) {
+  --glass-border: 1px solid hsl(var(--teal) / 0.14);
+  --glass-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.78));
+  --glass-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 12px 32px hsl(var(--abyss) / 0.08);
+}
+
+/* ── Surfaces ─────────────────────────────────────────────────────────────── */
+
+.og-glass {
+  border-radius: 1.35rem;
+  border: var(--glass-border);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+/* Inset-grouped list, the iOS Settings pattern. overflow:hidden plus a radius
+   is what clips child rows into the group corners. */
+.og-list-group {
+  overflow: hidden;
+  border-radius: 1.1rem;
+  border: var(--glass-border);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+/* Section caption. Apple sets these small, uppercase and tracked, inset to the
+   group rounded edge — not sentence-case at body size. */
+.og-list-caption {
+  margin: 0 0 0.5rem 0.9rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Divider inset past the icon, aligned to the text column. Full-bleed rules are
+   the Material pattern; Apple aligns the hairline with the text, which is what
+   makes a settings list read as iOS rather than Android.
+   28px tile + 12px gap + 16px padding = 52px = 3.25rem. */
+.og-row-divider { position: relative; }
+.og-row-divider::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 3.25rem;
+  height: 1px;
+  background: hsl(var(--foreground) / 0.08);
+  pointer-events: none;
+}
+
+/* Apple 44pt minimum. Tailwind h-11 is 44px only at a 16px root — use this on
+   anything tappable rather than trusting a rem utility. */
+.og-tap {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+/* ── Press feedback ───────────────────────────────────────────────────────── */
+/* 120ms transform / 200ms colour. The asymmetry matters: transform has to be
+   near-instant to feel responsive, colour can afford to lag. */
+.og-press {
+  transition:
+    transform var(--dur-tap) var(--ease-settle),
+    box-shadow var(--dur-quick) var(--ease-settle),
+    background-color var(--dur-quick) var(--ease-settle);
+}
+.og-press:active { transform: scale(0.97); }
+
+/* ── Entrance vocabulary ──────────────────────────────────────────────────── */
+
+/* Default. Stagger with style={{ "--i": n }}. */
+@keyframes og-rise {
+  from { opacity: 0; transform: translate3d(0, 0.55rem, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.og-rise {
+  animation: og-rise var(--dur-settle) var(--ease-settle) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+/* The premium one: ~2.5x slower, with a blur-off so content resolves into focus
+   rather than sliding in. blur(8px) -> 0 is the highest-leverage trick here.
+   Text stays selectable and screen-readable throughout, which is why this beats
+   a character-by-character typewriter. */
+@keyframes og-uncover {
+  from { opacity: 0; transform: translate3d(0, 0.9rem, 0); filter: blur(8px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
+}
+.og-uncover {
+  animation: og-uncover 620ms var(--ease-settle) both;
+  animation-delay: calc(var(--i, 0) * 110ms);
+}
+
+/* CSS-only sibling cascade — any page gets the reveal just by nesting sections,
+   with no --i threaded through JSX.
+   CAPPED at the 5th child on purpose: a naive calc(var(--i) * 110ms) on a
+   12-section page makes the last section wait 1.3s, which reads as slow. */
+.og-stagger > * { animation: og-uncover 620ms var(--ease-settle) both; }
+.og-stagger > *:nth-child(1) { animation-delay: 190ms; }
+.og-stagger > *:nth-child(2) { animation-delay: 300ms; }
+.og-stagger > *:nth-child(3) { animation-delay: 410ms; }
+.og-stagger > *:nth-child(4) { animation-delay: 520ms; }
+.og-stagger > *:nth-child(n + 5) { animation-delay: 630ms; }
+
+/* Route transition. A touch of upward travel gives the change direction —
+   pure opacity reads as a flicker rather than a transition. */
+@keyframes og-screen-in {
+  from { opacity: 0; transform: translate3d(0, 0.25rem, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.og-screen-in { animation: og-screen-in var(--dur-settle) var(--ease-settle) both; }
+
+/* ── Typography ───────────────────────────────────────────────────────────── */
+/* Tracking is the premium signal: tight at display size, wide on uppercase
+   eyebrows. Tight display / wide eyebrow is the whole trick. */
+.og-display {
+  font-size: clamp(1.75rem, 7.6vw, 2.2rem);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.042em;
+}
+.og-screen-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.og-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.og-eyebrow {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Stat figures must not jitter as they update. */
+.og-num { font-variant-numeric: tabular-nums; }
+
+/* ── Reduced motion ───────────────────────────────────────────────────────── */
+/* Entrances degrade to a short fade rather than to nothing: an instant pop is
+   more disorienting than a gentle one, which is not what this setting asks for. */
+@keyframes og-fade-only {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .og-rise,
+  .og-uncover,
+  .og-stagger > *,
+  .og-screen-in {
+    animation-name: og-fade-only !important;
+    animation-duration: 160ms !important;
+    animation-delay: 0ms !important;
+  }
+  .og-press:active { transform: none; }
+  button:active,
+  [role="button"]:active,
+  [role="switch"]:active { transform: none !important; }
+}
+
+/* Opaque fallbacks — a glass surface with no blur support is unreadable. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .og-glass,
+  .og-list-group {
+    background: linear-gradient(145deg, hsl(var(--deep-sea) / 0.97), hsl(var(--abyss) / 0.98));
+  }
+  :root:not(.dark) .og-glass,
+  :root:not(.dark) .og-list-group { background: hsl(var(--card)); }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .og-glass,
+  .og-list-group {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

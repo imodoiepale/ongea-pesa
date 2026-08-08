@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
-import { Bell, ChevronRight, Fingerprint, Globe2, HelpCircle, Languages, LogOut, Mic2, MoonStar, ShieldCheck, SunMedium, UsersRound } from "lucide-react"
+import { Bell, ChevronRight, Fingerprint, Globe2, HelpCircle, Languages, LogOut, MessageSquareWarning, Mic2, MoonStar, ShieldCheck, SunMedium, UsersRound } from "lucide-react"
 import { useAuth } from "@/components/providers/auth-provider"
 import { FluidNav, mobileNavItems } from "@/components/foundation"
 
@@ -12,6 +12,8 @@ const rows = [
   { label: "Permissions", detail: "Microphone, camera and notifications", href: "/permissions", icon: Mic2 },
   { label: "Family & friends", detail: "People you support", href: "/?screen=dependants", icon: UsersRound },
   { label: "Help & support", detail: "Answers and ways to reach us", href: "/support", icon: HelpCircle },
+  { label: "Report a problem", detail: "Tell us what broke, or how you use Ongea", href: "/feedback", icon: MessageSquareWarning },
+  { label: "Teach Ongea Sheng", detail: "Record phrases to improve voice", href: "/training", icon: Languages },
 ]
 
 export default function Settings() {

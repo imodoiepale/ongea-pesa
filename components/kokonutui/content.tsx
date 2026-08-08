@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { platformFee } from "@/lib/transaction-fees"
 
 // Date range options
 type DateRange = "today" | "yesterday" | "7days" | "30days" | "this_month" | "last_month" | "all"
@@ -148,14 +147,13 @@ export default function Content() {
         .select("*", { count: "exact", head: true })
         .eq("status", "active")
 
-      // Prefer the persisted platform_fee, falling back for legacy rows (deposits have 0% fee)
-      const txWithFees = (transactions || []).map(tx => {
-        const persisted = tx.platform_fee ?? 0
-        return {
-          ...tx,
-          calculated_fee: persisted > 0 ? persisted : platformFee(tx.amount || 0, tx.type?.toLowerCase())
-        }
-      })
+      // platform_fee as persisted is authoritative. The former fallback to
+      // recomputing 0.5% could not tell a waived fee from a missing one, so
+      // free transactions were counted as revenue on this dashboard.
+      const txWithFees = (transactions || []).map(tx => ({
+        ...tx,
+        calculated_fee: parseFloat(String(tx.platform_fee ?? 0)) || 0,
+      }))
 
       const completedTx = txWithFees.filter(tx => tx.status === "completed")
       const pendingTx = txWithFees.filter(tx => tx.status === "pending")

@@ -42,7 +42,7 @@ import {
   Cell,
 } from "recharts"
 
-import { PLATFORM_FEE_RATE, platformFee } from "@/lib/transaction-fees"
+import { PLATFORM_FEE_RATE } from "@/lib/transaction-fees"
 
 const PROVIDER_LABELS: Record<string, string> = {
   ncba_stk: "NCBA STK",
@@ -137,8 +137,8 @@ export default function RevenuePage() {
     totalTransactionVolume: 0,
     totalTransactions: 0,
     premiumUsers: 0,
-    bankPartnerships: 3,
-    licensingRevenue: 50000,
+    bankPartnerships: 0,
+    licensingRevenue: 0,
     avgFeePerTransaction: 0,
   })
   const [breakdown, setBreakdown] = useState<RevenueBreakdown[]>([])
@@ -176,16 +176,13 @@ export default function RevenuePage() {
       // Calculate stats - only completed transactions
       const completedTx = (transactions || []).filter(tx => tx.status === "completed")
       
-      // Use persisted platform_fee where available (post-migration 021).
-      // Fall back to the shared platformFee helper for legacy rows where platform_fee is still 0.
-      const txWithFees = completedTx.map(tx => {
-        const fallbackFee = platformFee(tx.amount || 0, tx.type?.toLowerCase())
-        const persistedFee = parseFloat(String(tx.platform_fee ?? 0))
-        return {
-          ...tx,
-          calculated_fee: persistedFee > 0 ? persistedFee : fallbackFee,
-        }
-      })
+      // The persisted platform_fee is authoritative. The former fallback to
+      // recomputing 0.5% treated every waived fee as if it had been charged,
+      // overstating revenue on this screen.
+      const txWithFees = completedTx.map(tx => ({
+        ...tx,
+        calculated_fee: parseFloat(String(tx.platform_fee ?? 0)) || 0,
+      }))
 
       // Deposit rails seen in the period — deposits carry no platform fee, and their
       // Safaricom charge is paid by the customer, so they add nothing to revenue or cost.
@@ -243,8 +240,8 @@ export default function RevenuePage() {
         totalTransactionVolume: totalVolume,
         totalTransactions: completedTx.length,
         premiumUsers: premiumCount || 0,
-        bankPartnerships: 3,
-        licensingRevenue: 50000,
+        bankPartnerships: 0,
+        licensingRevenue: 0,
         avgFeePerTransaction: completedTx.length > 0 ? totalFees / completedTx.length : 0,
       })
 
@@ -271,21 +268,27 @@ export default function RevenuePage() {
     }).format(amount)
   }
 
-  // PROJECTED / DEMO data — not live. Replace with real partnership records when available.
-  const partnerships = [
-    { name: "Equity Bank", type: "Banking Partner", status: "active", monthlyFee: 25000, since: "2024-01" },
-    { name: "KCB Bank", type: "Banking Partner", status: "active", monthlyFee: 20000, since: "2024-03" },
-    { name: "Safaricom M-Pesa", type: "Mobile Money", status: "active", monthlyFee: 15000, since: "2023-11" },
-    { name: "Airtel Money", type: "Mobile Money", status: "pending", monthlyFee: 10000, since: "2024-06" },
-  ]
+  // Invented partnership figures were removed: fabricated revenue on a finance
+  // dashboard is worse than a blank panel, since nothing distinguishes it from
+  // real data once the "Projected" badge is scrolled past. Populate from a real
+  // partnerships table when one exists.
+  const partnerships: Array<{
+    name: string
+    type: string
+    status: string
+    monthlyFee: number
+    since: string
+  }> = []
 
-  // PROJECTED / DEMO data — not live. Replace with real subscription records when available.
-  const premiumTiers = [
-    { tier: "Basic", users: 45, monthlyFee: 99, features: "5 free transfers/month" },
-    { tier: "Pro", users: 23, monthlyFee: 299, features: "Unlimited transfers, lower fees" },
-    { tier: "Business", users: 8, monthlyFee: 999, features: "API access, bulk payments" },
-    { tier: "Enterprise", users: 2, monthlyFee: 4999, features: "Custom integration, dedicated support" },
-  ]
+  // Invented subscriber counts removed for the same reason as `partnerships`.
+  // Real subscription revenue now lands in /admin-analytics/economics via the
+  // `subscription_revenue` split, sourced from actual transactions.
+  const premiumTiers: Array<{
+    tier: string
+    users: number
+    monthlyFee: number
+    features: string
+  }> = []
 
   const totalPremiumRevenue = premiumTiers.reduce((sum, tier) => sum + (tier.users * tier.monthlyFee), 0)
   const totalPartnershipRevenue = partnerships.filter(p => p.status === "active").reduce((sum, p) => sum + p.monthlyFee, 0)
@@ -594,6 +597,13 @@ export default function RevenuePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40">
+                  {partnerships.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
+                        No partnership records yet
+                      </td>
+                    </tr>
+                  )}
                   {partnerships.map((partner, index) => (
                     <tr key={partner.name} className="hover:bg-muted/50">
                       <td className="px-3 py-2 text-muted-foreground font-mono">{index + 1}</td>
@@ -651,6 +661,13 @@ export default function RevenuePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40">
+                {premiumTiers.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
+                      No subscription tiers configured — see Economics for actual subscription revenue
+                    </td>
+                  </tr>
+                )}
                 {premiumTiers.map((tier, index) => (
                   <tr key={tier.tier} className="hover:bg-muted/50">
                     <td className="px-3 py-2 text-muted-foreground font-mono">{index + 1}</td>

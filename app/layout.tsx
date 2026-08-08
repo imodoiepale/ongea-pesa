@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next"
 import { Bodoni_Moda, Inter, JetBrains_Mono, Sora } from "next/font/google"
 import "./globals.css"
+// Motion + surface system ported from DepthMe. Loaded after globals.css so its
+// tokens can reference --teal/--abyss/--deep-sea defined there.
+import "./motion-system.css"
 import { Analytics } from "@vercel/analytics/next"
 import { Providers } from "./providers"
 

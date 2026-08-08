@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { ONGEA_ENV } from '@/lib/environment';
 import {
   calculateTransactionFees,
   NCBA_TARIFF_VERSION,
@@ -124,6 +125,7 @@ export class WalletService {
       .from('transactions')
       .insert({
         user_id: userId,
+        environment: ONGEA_ENV,
         type: 'deposit',
         amount: amount,
         status: 'completed',
@@ -383,6 +385,7 @@ export class WalletService {
       .from('transactions')
       .insert({
         user_id: userId,
+        environment: ONGEA_ENV,
         type: txType,
         amount,
         status: 'processing',

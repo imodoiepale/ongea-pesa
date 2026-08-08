@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { ONGEA_ENV } from '@/lib/environment'
 
 /**
  * GET /api/contacts
@@ -365,6 +366,7 @@ export async function POST(request: NextRequest) {
       .from('transactions')
       .insert({
         user_id: user.id,
+        environment: ONGEA_ENV,
         type: 'transfer_out',
         amount: transferAmount,
         status: 'completed',
@@ -404,6 +406,7 @@ export async function POST(request: NextRequest) {
         .from('transactions')
         .insert({
           user_id: recipientProfile.id,
+          environment: ONGEA_ENV,
           type: 'receive',
           amount: transferAmount,
           status: 'completed',

@@ -3,6 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { normalizePhone } from '@/lib/phone';
 import { mpesaPaybillCharge } from '@/lib/transaction-fees';
 import { isVoiceFundingPurpose, VOICE_STARTER_AMOUNT } from '@/lib/voice-funding';
+import { ONGEA_ENV } from '@/lib/environment'
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
       .from('transactions')
       .insert({
         user_id: user.id,
+        environment: ONGEA_ENV,
         type: 'deposit',
         status: 'processing',
         amount: depositAmount,
@@ -81,8 +83,15 @@ export async function POST(request: NextRequest) {
 
     if (txError || !txData) {
       console.error('❌ Failed to create transaction row:', txError);
+      // Surface the Postgres error — it names the failing column or constraint
+      // and carries no user PII. Without it a schema drift looks identical to
+      // an auth or network failure from the client side.
       return NextResponse.json(
-        { error: 'Failed to create transaction record' },
+        {
+          error: 'Failed to create transaction record',
+          details: txError?.message,
+          code: txError?.code,
+        },
         { status: 500 }
       );
     }

@@ -4,6 +4,7 @@ import { WalletService } from '@/lib/services/walletService';
 import { consumeStepupToken, isLocked } from '@/lib/services/securityService';
 import { logSecurityEvent, requestContext } from '@/lib/services/auditService';
 import { customerTransactionCost } from '@/lib/transaction-fees';
+import { ONGEA_ENV } from '@/lib/environment'
 
 export async function POST(request: NextRequest) {
   try {
@@ -225,6 +226,7 @@ export async function PUT(request: NextRequest) {
           .from('transactions')
           .insert({
             user_id: transaction.user_id,
+            environment: ONGEA_ENV,
             type: 'receive',
             amount: refundAmount,
             status: 'completed',
