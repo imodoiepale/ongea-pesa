@@ -115,6 +115,20 @@ function AppShell({ initialScreen = "dashboard" }: { initialScreen?: Screen }) {
         return
       }
 
+      // Optional final step: send a little to your own M-Pesa. Nudged once, and
+      // only until it is either done or explicitly dismissed. This sits AFTER
+      // the onboarding_completed_at gate on purpose — it must never be able to
+      // block access to the dashboard.
+      const firstSendSettled =
+        profile?.first_send_completed_at ||
+        profile?.first_send_skipped_at ||
+        metadata.first_send_completed_at ||
+        metadata.first_send_skipped_at
+      if (!firstSendSettled && Number(profile?.wallet_balance ?? 0) > 0) {
+        router.replace('/first-send')
+        return
+      }
+
       // Show phone setup dialog if phone is not verified
       if (!profile?.phone_verified) {
         setIsPhoneSetupOpen(true)

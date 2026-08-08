@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { NCBA_TARIFF_VERSION, ncbaTransactionCost, platformFee } from '@/lib/transaction-fees';
+import { getPlatformFeeRate } from '@/lib/services/platformSettings';
 
 // n8n webhook URL and auth (env-overridable for Railway → Hostinger cutover).
 const N8N_BASE = process.env.N8N_WEBHOOK_BASE_URL || 'https://n8n-lc5r.srv1631847.hstgr.cloud';
@@ -441,7 +442,9 @@ export async function POST(request: NextRequest) {
         console.log('  Amount:', requestedAmount, '(>= KES 1,000)')
         console.log('  Free transactions remaining:', freeTxRemaining)
       } else {
-        platformFeeAmount = platformFee(requestedAmount, body.type)
+        // Live rate from platform_settings, so an admin fee change on
+        // /admin-analytics/settings applies to real charges, not just reporting.
+        platformFeeAmount = platformFee(requestedAmount, body.type, await getPlatformFeeRate())
         console.log('💰 REGULAR TRANSACTION (0.5% fee)')
         console.log('  Platform fee:', platformFeeAmount)
 
@@ -755,6 +758,10 @@ export async function POST(request: NextRequest) {
               cost_bearer: 'customer',
               fee_tariff: NCBA_TARIFF_VERSION,
               transaction_cost_estimated: true,
+              // Distinguishes "fee deliberately waived" from "fee not recorded".
+              // Reporting reads platform_fee as authoritative, so without this a
+              // free transaction is indistinguishable from a missing value.
+              fee_waived: isFreeTransaction ? 'true' : 'false',
             },
           })
           .eq('id', transactionId)

@@ -17,6 +17,8 @@ import {
   ShieldCheck,
   UsersRound,
   TrendingDown,
+  Coins,
+  Languages,
 } from "lucide-react"
 
 import { Home } from "lucide-react"
@@ -105,11 +107,20 @@ export default function Sidebar() {
                   <NavItem href="/admin-analytics" icon={BarChart2}>
                     Dashboard
                   </NavItem>
+                  <NavItem href="/admin-analytics/economics" icon={Coins}>
+                    Economics
+                  </NavItem>
                   <NavItem href="/admin-analytics/revenue" icon={CreditCard}>
                     Revenue
                   </NavItem>
                   <NavItem href="/admin-analytics/transaction-costs" icon={TrendingDown}>
                     Transaction Costs
+                  </NavItem>
+                  <NavItem href="/admin-analytics/sheng-review" icon={Languages}>
+                    Sheng Review
+                  </NavItem>
+                  <NavItem href="/admin-analytics/feedback" icon={MessagesSquare}>
+                    Feedback
                   </NavItem>
                 </div>
               </div>

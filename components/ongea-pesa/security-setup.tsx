@@ -161,14 +161,16 @@ export function SecuritySetupScreen() {
       setBusy(null)
       return
     }
-    router.replace("/dashboard")
+    // onboarding_completed_at is already stamped above, so the user can never be
+    // trapped if they abandon the optional first-send step that follows.
+    router.replace("/first-send")
     router.refresh()
   }
 
   return (
     <main id="main-content" className="onboarding-page onboarding-page--light onboarding-security">
       <section className="onboarding-frame">
-        <OnboardingProgress step={3} />
+        <OnboardingProgress step={3} total={4} />
 
         <div className="onboarding-security__intro">
           <h1 className="orbital-display">Protect your money</h1>

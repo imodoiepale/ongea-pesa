@@ -69,10 +69,18 @@ export function mpesaPaybillCharge(amount: number): number {
   return MPESA_PAYBILL_TARIFF_2026[MPESA_PAYBILL_TARIFF_2026.length - 1].fee;
 }
 
-export function platformFee(amount: number, type?: string): number {
+/**
+ * @param rate Overrides PLATFORM_FEE_RATE. Server money paths pass the live
+ *   value from `platform_settings` via getPlatformFeeRate() so an admin change
+ *   on /admin-analytics/settings actually affects what customers are charged.
+ *   This stays a plain sync parameter rather than an async lookup because this
+ *   function is called from client components, which cannot reach the DB.
+ */
+export function platformFee(amount: number, type?: string, rate: number = PLATFORM_FEE_RATE): number {
   if (type && NO_PLATFORM_FEE_TYPES.includes(type)) return 0;
   if (!Number.isFinite(amount) || amount <= 0) return 0;
-  return Math.round(amount * PLATFORM_FEE_RATE * 100) / 100;
+  const effective = Number.isFinite(rate) && rate >= 0 ? rate : PLATFORM_FEE_RATE;
+  return Math.round(amount * effective * 100) / 100;
 }
 
 export function depositFeeBreakdown(amount: number): DepositFeeBreakdown {
@@ -102,9 +110,11 @@ export function calculateTransactionFees(
   amount: number,
   rail: NcbaTariffRail = 'mobile_wallet',
   type?: string,
+  /** Live platform fee rate; see platformFee(). */
+  rate: number = PLATFORM_FEE_RATE,
 ): TransactionFees {
   const providerFee = ncbaTransactionCost(amount, rail);
-  const platformFeeAmount = platformFee(amount, type);
+  const platformFeeAmount = platformFee(amount, type, rate);
   const totalTransactionCost = providerFee + platformFeeAmount;
   return {
     amount,

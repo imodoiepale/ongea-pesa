@@ -137,7 +137,7 @@ export function ProfileCreationScreen() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <OnboardingProgress step={1} />
+          <OnboardingProgress step={1} total={4} />
           <span className="w-11" aria-hidden="true" />
         </header>
 

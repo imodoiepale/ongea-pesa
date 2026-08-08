@@ -1,170 +1,266 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Layout from "@/components/kokonutui/layout"
+import { VoiceEnginePanel } from "@/components/admin/voice-engine-panel"
+import { SettingsGroup, SettingsRow } from "@/components/admin/settings-row"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
-import {
-  Bell,
-  Shield,
-  Wallet,
-  Save,
-} from "lucide-react"
+import { AlertTriangle, Bell, Check, Coins, Gauge, Loader2, ShieldCheck } from "lucide-react"
+
+/**
+ * Admin settings.
+ *
+ * Previously three of its four panels were useState stubs that persisted
+ * nothing — and the platform fee was displayed 100x wrong (it held 0.00005 and
+ * rendered "0.00500%", while PLATFORM_FEE_RATE is 0.005, i.e. 0.5%). Everything
+ * here now reads and writes /api/admin/settings.
+ *
+ * Visual system is the DepthMe port: og-list-group / og-list-caption for the
+ * inset-grouped list, og-stagger for the reveal, og-press for tap feedback.
+ * Optimistic writes with revert-on-failure, following DepthMe's SettingsScreen.
+ */
+
+interface SettingRow {
+  key: string
+  value: unknown
+  description: string | null
+  updated_by: string | null
+  updated_at: string
+}
+
+type SettingsMap = Record<string, unknown>
 
 export default function SettingsPage() {
-  const [platformFee, setPlatformFee] = useState("0.00005")
-  const [notifications, setNotifications] = useState(true)
-  const [autoApprove, setAutoApprove] = useState(false)
+  const [settings, setSettings] = useState<SettingsMap>({})
+  const [meta, setMeta] = useState<Record<string, SettingRow>>({})
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState<string | null>(null)
+  const [savedKey, setSavedKey] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fee is a text field, so it needs its own draft state — reformatting the
+  // input on every keystroke fights the user mid-typing.
+  const [feeDraft, setFeeDraft] = useState("")
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/admin/settings")
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Could not load settings")
+      const map: SettingsMap = {}
+      const metaMap: Record<string, SettingRow> = {}
+      for (const row of (json.settings ?? []) as SettingRow[]) {
+        map[row.key] = row.value
+        metaMap[row.key] = row
+      }
+      setSettings(map)
+      setMeta(metaMap)
+      setFeeDraft(String(Number(map.platform_fee_rate ?? 0) * 100))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not load settings")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const save = async (key: string, value: unknown) => {
+    const previous = settings[key]
+    setSettings((s) => ({ ...s, [key]: value })) // optimistic
+    setSaving(key)
+    setError(null)
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: { [key]: value } }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Could not save")
+      setSavedKey(key)
+      window.setTimeout(() => setSavedKey((k) => (k === key ? null : k)), 1800)
+    } catch (err) {
+      setSettings((s) => ({ ...s, [key]: previous })) // revert
+      setError(err instanceof Error ? err.message : "Could not save")
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  const commitFee = async () => {
+    const pct = Number(feeDraft)
+    if (!Number.isFinite(pct) || pct < 0 || pct > 5) {
+      setError("Platform fee must be between 0% and 5%.")
+      setFeeDraft(String(Number(settings.platform_fee_rate ?? 0) * 100))
+      return
+    }
+    const rate = Math.round((pct / 100) * 1e6) / 1e6
+    if (rate === Number(settings.platform_fee_rate)) return
+    await save("platform_fee_rate", rate)
+  }
+
+  const savedTick = (key: string) =>
+    saving === key ? (
+      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+    ) : savedKey === key ? (
+      <Check className="h-4 w-4 text-brand" />
+    ) : null
+
+  const feeRate = Number(settings.platform_fee_rate ?? 0)
 
   return (
     <Layout>
-      <div className="space-y-4">
-        {/* Header */}
-        <div>
-          <h1 className="text-lg font-semibold text-foreground">Settings</h1>
-          <p className="text-xs text-muted-foreground">Configure platform settings and preferences</p>
-        </div>
+      <div className="og-screen-in space-y-5">
+        <header className="og-uncover" style={{ "--i": 0 } as React.CSSProperties}>
+          <h1 className="og-screen-title text-foreground">Settings</h1>
+          <p className="mt-1.5 text-[0.9rem] leading-relaxed text-muted-foreground">
+            Platform-wide configuration. Changes take effect immediately and are audited.
+          </p>
+        </header>
 
-        {/* Platform Fee Settings */}
-        <div
-          className={cn(
-            "rounded-xl overflow-hidden",
-            "bg-card",
-            "border border-border/40",
-            "shadow-sm backdrop-blur-xl"
-          )}
-        >
-          <div className="p-4 border-b border-border/40">
-            <div className="flex items-center gap-2">
-              <div className={cn("p-2 rounded-lg", "bg-muted")}>
-                <Wallet className="w-4 h-4 text-brand" />
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-foreground">Platform Fee Configuration</h2>
-                <p className="text-[11px] text-muted-foreground">Configure the platform fee percentage charged on transactions</p>
-              </div>
-            </div>
+        {error && (
+          <div className={cn("og-glass flex items-start gap-2 p-3", "border-red-500/40")}>
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+            <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
           </div>
-          <div className="p-4 space-y-3">
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-foreground">Platform Fee (%)</label>
-              <Input
-                type="text"
-                value={platformFee}
-                onChange={(e) => setPlatformFee(e.target.value)}
-                placeholder="0.00005"
-                className="max-w-xs bg-muted/30 border-border/60"
-              />
-              <p className="text-[11px] text-muted-foreground">
-                Current fee: {(parseFloat(platformFee) * 100).toFixed(5)}% per transaction
-              </p>
-            </div>
-          </div>
-        </div>
+        )}
 
-        {/* Notification Settings */}
-        <div
-          className={cn(
-            "rounded-xl overflow-hidden",
-            "bg-card",
-            "border border-border/40",
-            "shadow-sm backdrop-blur-xl"
-          )}
-        >
-          <div className="p-4 border-b border-border/40">
-            <div className="flex items-center gap-2">
-              <div className={cn("p-2 rounded-lg", "bg-muted")}>
-                <Bell className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-foreground">Notifications</h2>
-                <p className="text-[11px] text-muted-foreground">Configure admin notification preferences</p>
-              </div>
-            </div>
+        {loading ? (
+          <div className="og-glass flex items-center justify-center p-12">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
-          <div className="divide-y divide-border/40">
-            <div className="flex items-center justify-between p-4">
-              <div>
-                <p className="text-xs font-medium text-foreground">Email Notifications</p>
-                <p className="text-[11px] text-muted-foreground">Receive email alerts for large transactions</p>
-              </div>
-              <Switch
-                checked={notifications}
-                onCheckedChange={setNotifications}
-              />
-            </div>
-            <div className="flex items-center justify-between p-4">
-              <div>
-                <p className="text-xs font-medium text-foreground">Auto-approve Transactions</p>
-                <p className="text-[11px] text-muted-foreground">Automatically approve transactions under KES 10,000</p>
-              </div>
-              <Switch
-                checked={autoApprove}
-                onCheckedChange={setAutoApprove}
-              />
-            </div>
-          </div>
-        </div>
+        ) : (
+          <div className="og-stagger space-y-5">
+            {/* Nested sections each inherit the staggered reveal for free. */}
+            <VoiceEnginePanel />
 
-        {/* Security Settings */}
-        <div
-          className={cn(
-            "rounded-xl overflow-hidden",
-            "bg-card",
-            "border border-border/40",
-            "shadow-sm backdrop-blur-xl"
-          )}
-        >
-          <div className="p-4 border-b border-border/40">
-            <div className="flex items-center gap-2">
-              <div className={cn("p-2 rounded-lg", "bg-muted")}>
-                <Shield className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-foreground">Security</h2>
-                <p className="text-[11px] text-muted-foreground">Security and access control settings</p>
-              </div>
-            </div>
-          </div>
-          <div className="p-4 space-y-3">
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-foreground">Admin Emails</p>
-              <div className="space-y-1">
-                {["ijepale@gmail.com", "admin@ongeapesa.com", "ongeapesa.kenya@gmail.com"].map((email) => (
-                  <div
-                    key={email}
-                    className={cn(
-                      "flex items-center gap-2 p-2 rounded-lg",
-                      "bg-muted/30"
-                    )}
-                  >
-                    <div className="w-2 h-2 rounded-full bg-brand" />
-                    <span className="text-[11px] text-foreground">{email}</span>
+            <SettingsGroup caption="Revenue">
+              <SettingsRow
+                icon={Coins}
+                iconColor="#10b981"
+                label="Platform fee"
+                description={`Currently ${(feeRate * 100).toFixed(3)}% of every outbound transaction`}
+                control={
+                  <div className="flex items-center gap-2">
+                    {savedTick("platform_fee_rate")}
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="5"
+                        value={feeDraft}
+                        onChange={(e) => setFeeDraft(e.target.value)}
+                        onBlur={commitFee}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") e.currentTarget.blur()
+                        }}
+                        className="og-num h-9 w-20 border-border/60 bg-muted/30 text-right"
+                      />
+                      <span className="text-xs text-muted-foreground">%</span>
+                    </div>
                   </div>
-                ))}
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-2">
-                Edit ADMIN_EMAILS in page files to add/remove admins
+                }
+              />
+              <SettingsRow
+                icon={Gauge}
+                iconColor="#f59e0b"
+                label="Large transaction threshold"
+                description="Above this amount a transaction is flagged as large"
+                divider={false}
+                control={
+                  <div className="flex items-center gap-2">
+                    {savedTick("large_transaction_threshold")}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground">KSh</span>
+                      <Input
+                        type="number"
+                        step="500"
+                        min="0"
+                        value={String(settings.large_transaction_threshold ?? 0)}
+                        onChange={(e) =>
+                          setSettings((s) => ({
+                            ...s,
+                            large_transaction_threshold: Number(e.target.value),
+                          }))
+                        }
+                        onBlur={(e) =>
+                          save("large_transaction_threshold", Number(e.target.value))
+                        }
+                        className="og-num h-9 w-24 border-border/60 bg-muted/30 text-right"
+                      />
+                    </div>
+                  </div>
+                }
+              />
+            </SettingsGroup>
+
+            <SettingsGroup caption="Operations">
+              <SettingsRow
+                icon={Bell}
+                iconColor="#3b82f6"
+                label="Email notifications"
+                description="Alert admins when a large transaction completes"
+                control={
+                  <div className="flex items-center gap-2">
+                    {savedTick("email_notifications_enabled")}
+                    <Switch
+                      checked={Boolean(settings.email_notifications_enabled)}
+                      onCheckedChange={(v) => save("email_notifications_enabled", v)}
+                      disabled={saving === "email_notifications_enabled"}
+                    />
+                  </div>
+                }
+              />
+              <SettingsRow
+                icon={ShieldCheck}
+                iconColor="#a855f7"
+                label="Auto-approve small transactions"
+                description="Skip manual review below the threshold above"
+                divider={false}
+                control={
+                  <div className="flex items-center gap-2">
+                    {savedTick("auto_approve_enabled")}
+                    <Switch
+                      checked={Boolean(settings.auto_approve_enabled)}
+                      onCheckedChange={(v) => save("auto_approve_enabled", v)}
+                      disabled={saving === "auto_approve_enabled"}
+                    />
+                  </div>
+                }
+              />
+            </SettingsGroup>
+
+            {/* Where the value came from and who last touched it. A settings page
+                that cannot answer "who changed the fee?" is missing the point. */}
+            {meta.platform_fee_rate?.updated_by && (
+              <p className="px-1 text-[11px] text-muted-foreground">
+                Platform fee last changed by {meta.platform_fee_rate.updated_by} on{" "}
+                {new Date(meta.platform_fee_rate.updated_at).toLocaleDateString("en-KE")}.
+              </p>
+            )}
+
+            <div className="og-glass flex items-start gap-2 p-3">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  The platform fee applies to real charges.
+                </span>{" "}
+                Server money paths read this value live, cached for up to 60 seconds — saving here
+                clears the cache so the next transaction uses the new rate. Client-side estimates
+                shown to users before a payment still use the compiled default until the page is
+                rebuilt, so avoid large mid-session changes.
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <button
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg",
-              "bg-brand hover:bg-brand/90",
-              "text-white text-xs font-medium",
-              "transition-colors duration-200"
-            )}
-          >
-            <Save className="w-3.5 h-3.5" />
-            Save Settings
-          </button>
-        </div>
+        )}
       </div>
     </Layout>
   )
