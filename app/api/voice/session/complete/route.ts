@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
 import { createClient, createServiceClient } from "@/lib/supabase/server"
-import { platformFee } from "@/lib/transaction-fees"
+import { PLATFORM_FEE_RATE, platformFee } from "@/lib/transaction-fees"
+import { getPlatformFeeRate } from "@/lib/services/platformSettings"
 import { VOICE_RATE_PER_MINUTE, voiceUsageCharge } from "@/lib/voice-funding"
+import { ONGEA_ENV } from "@/lib/environment"
 
 function isMissingColumn(error: { code?: string; message?: string } | null) {
   return Boolean(error && (error.code === "42703" || error.code === "PGRST204" || /column .* does not exist|could not find/i.test(error.message || "")))
@@ -66,9 +68,11 @@ export async function POST(request: Request) {
     .eq("id", user.id)
     .single()
   const available = Math.max(0, Number(profile?.wallet_balance || 0))
-  const maximumUsageAmount = Math.floor((available / (1 + 0.005)) * 100) / 100
+  const maximumUsageAmount = Math.floor((available / (1 + PLATFORM_FEE_RATE)) * 100) / 100
   const usageAmount = Math.min(requestedUsageAmount, maximumUsageAmount)
-  const fee = platformFee(usageAmount, "voice_usage")
+  // Live rate from platform_settings, so an admin fee change actually applies.
+  const feeRate = await getPlatformFeeRate()
+  const fee = platformFee(usageAmount, "voice_usage", feeRate)
 
   const enhancedSessionUpdate = {
     status: "completed",
@@ -78,13 +82,26 @@ export async function POST(request: Request) {
     rate_per_minute: VOICE_RATE_PER_MINUTE,
     billing_error: usageAmount < requestedUsageAmount ? "Session charge limited by available wallet balance" : null,
   }
-  const { data: reserved } = await admin
+  const { data: reserved, error: reserveError } = await admin
     .from("voice_sessions")
     .update(enhancedBillingSchema ? enhancedSessionUpdate : { status: "completed" })
     .eq("id", session.id)
     .eq("status", "active")
     .select("id")
     .maybeSingle()
+
+  // This error used to be discarded, which hid a total billing outage: the
+  // status CHECK constraint did not allow 'completed', so the UPDATE failed
+  // every time, `reserved` came back null, and the route reported success
+  // without ever charging. Never swallow it again — a failed reservation is
+  // not the same as an already-settled session.
+  if (reserveError) {
+    console.error("❌ Voice session reservation failed:", reserveError)
+    return NextResponse.json(
+      { error: "We couldn't settle the voice session", details: reserveError.message },
+      { status: 500 },
+    )
+  }
 
   if (!reserved) {
     return NextResponse.json({ ok: true, already_completed: true })
@@ -98,6 +115,7 @@ export async function POST(request: Request) {
     .from("transactions")
     .insert({
       user_id: user.id,
+      environment: ONGEA_ENV,
       type: "voice_usage",
       amount: usageAmount,
       platform_fee: fee,

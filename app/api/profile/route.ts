@@ -208,6 +208,20 @@ export async function PATCH(request: Request) {
     }
     databaseUpdate = { voice_calibration_score: score, voice_calibrated_at: now }
     metadataUpdate = databaseUpdate
+  } else if (body?.stage === "first-send") {
+    // The send itself already happened through /api/wallet/withdraw, which owns
+    // the step-up check and the money movement. This only records that the
+    // onboarding step was satisfied.
+    databaseUpdate = {
+      first_send_completed_at: now,
+      first_send_transaction_id: body.transaction_id ?? null,
+    }
+    metadataUpdate = databaseUpdate
+  } else if (body?.stage === "first-send-skip") {
+    // Skipping is a first-class outcome, not a failure. Recording it is what
+    // stops the nudge — without this the user would be sent back here forever.
+    databaseUpdate = { first_send_skipped_at: now }
+    metadataUpdate = databaseUpdate
   } else if (body?.stage === "onboarding-complete") {
     databaseUpdate = {
       onboarding_completed_at: now,
@@ -223,6 +237,20 @@ export async function PATCH(request: Request) {
   if (updateError && !missingColumns) {
     console.error("Onboarding progress save failed:", updateError)
     return NextResponse.json({ error: "We couldn’t save your progress. Please try again." }, { status: 400 })
+  }
+  if (missingColumns) {
+    // Postgres rejects the whole UPDATE when any one column is absent, so a
+    // single missing column silently drops every field in this stage — which is
+    // exactly how onboarding_completed_at went unpersisted while the metadata
+    // mirror said the user was done, trapping them on /security-setup forever.
+    // The metadata fallback below still runs, but this must be loud, not silent.
+    console.error(
+      `🚨 Onboarding stage "${body?.stage}" could NOT be written to profiles — a column in ` +
+        `[${Object.keys(databaseUpdate).join(", ")}] does not exist. Falling back to user_metadata ` +
+        `only, which the client reads from a cached JWT and will not see until the session refreshes. ` +
+        `Add the missing column.`,
+      updateError,
+    )
   }
 
   const { error: metadataError } = await service.auth.admin.updateUserById(user.id, {
