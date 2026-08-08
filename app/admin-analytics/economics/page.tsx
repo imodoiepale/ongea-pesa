@@ -17,6 +17,7 @@ import Layout from "@/components/kokonutui/layout"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { VOICE_RATE_PER_MINUTE } from "@/lib/voice-funding"
+import { fetchJson } from "@/lib/fetch-json"
 import {
   AlertTriangle,
   ArrowDownToLine,
@@ -128,9 +129,7 @@ export default function EconomicsPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/admin/economics?period=${period}&environment=${environment}`)
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Failed to load economics")
+      const json: any = await fetchJson(`/api/admin/economics?period=${period}&environment=${environment}`)
       setTotals(json.totals)
       setByDay(json.by_day ?? [])
       setUsers(json.users ?? [])

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { Bug, Check, Heart, Lightbulb, Loader2, MessageSquare, Send } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
+import { fetchJson } from "@/lib/fetch-json"
 import { cn } from "@/lib/utils"
 
 /**
@@ -70,7 +71,7 @@ export function FeedbackForm({ onDone }: { onDone?: () => void }) {
     setBusy(true)
     setError("")
     try {
-      const res = await fetch("/api/feedback", {
+      await fetchJson("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -81,8 +82,6 @@ export function FeedbackForm({ onDone }: { onDone?: () => void }) {
           amount: amount ? Number(amount) : undefined,
         }),
       })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "We couldn't send that. Please try again.")
       setSent(true)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "We couldn't send that.")

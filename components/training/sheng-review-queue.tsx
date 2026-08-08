@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { Check, Loader2, Pencil, RefreshCw, X } from "lucide-react"
+import { fetchJson } from "@/lib/fetch-json"
 
 /**
  * Sheng training review queue.
@@ -41,9 +42,7 @@ export function ShengReviewQueue() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch("/api/training/review?limit=25")
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Could not load the queue")
+      const json: any = await fetchJson("/api/training/review?limit=25")
       setQueue(json.queue ?? [])
       setRequiredReviews(json.required_reviews ?? 2)
     } catch (err) {
@@ -61,7 +60,7 @@ export function ShengReviewQueue() {
     setBusyId(item.id)
     setError(null)
     try {
-      const res = await fetch("/api/training/review", {
+      const json: any = await fetchJson("/api/training/review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -70,8 +69,6 @@ export function ShengReviewQueue() {
           corrected_transcript: verdict === "correct" ? corrections[item.id]?.trim() : undefined,
         }),
       })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Could not save the review")
       setQueue((prev) => prev.filter((q) => q.id !== item.id))
       setReviewed((n) => n + 1)
       setEditing(null)

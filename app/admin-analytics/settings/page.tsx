@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import { AlertTriangle, Bell, Check, Coins, Gauge, Loader2, ShieldCheck } from "lucide-react"
+import { fetchJson } from "@/lib/fetch-json"
 
 /**
  * Admin settings.
@@ -48,9 +49,7 @@ export default function SettingsPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch("/api/admin/settings")
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Could not load settings")
+      const json: any = await fetchJson("/api/admin/settings")
       const map: SettingsMap = {}
       const metaMap: Record<string, SettingRow> = {}
       for (const row of (json.settings ?? []) as SettingRow[]) {
@@ -77,13 +76,11 @@ export default function SettingsPage() {
     setSaving(key)
     setError(null)
     try {
-      const res = await fetch("/api/admin/settings", {
+      const json: any = await fetchJson("/api/admin/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ settings: { [key]: value } }),
       })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Could not save")
       setSavedKey(key)
       window.setTimeout(() => setSavedKey((k) => (k === key ? null : k)), 1800)
     } catch (err) {

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { AlertTriangle, Loader2, Mic, RefreshCw, Search } from "lucide-react"
+import { fetchJson } from "@/lib/fetch-json"
 
 /**
  * Admin control for which voice runtime each account uses.
@@ -35,9 +36,7 @@ export function VoiceEnginePanel() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch("/api/admin/voice-engine")
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Could not load users")
+      const json: any = await fetchJson("/api/admin/voice-engine")
       setRows(json.users ?? [])
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load users")
@@ -54,13 +53,11 @@ export function VoiceEnginePanel() {
     setBusyId(row.id)
     setError(null)
     try {
-      const res = await fetch("/api/admin/voice-engine", {
+      const json: any = await fetchJson("/api/admin/voice-engine", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: row.id, engine }),
       })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Could not change the engine")
       setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, voice_engine: engine } : r)))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not change the engine")

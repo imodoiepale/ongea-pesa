@@ -5,6 +5,7 @@ import Layout from "@/components/kokonutui/layout"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { Bug, Heart, Lightbulb, Loader2, MessageSquare, RefreshCw } from "lucide-react"
+import { fetchJson } from "@/lib/fetch-json"
 
 /**
  * Feedback triage.
@@ -58,9 +59,7 @@ export default function FeedbackTriagePage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/admin/feedback?status=${filter}`)
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Could not load feedback")
+      const json: any = await fetchJson(`/api/admin/feedback?status=${filter}`)
       setRows(json.submissions ?? [])
       setOpenCount(json.open_count ?? 0)
     } catch (err) {
@@ -78,13 +77,11 @@ export default function FeedbackTriagePage() {
     setBusyId(id)
     setError(null)
     try {
-      const res = await fetch("/api/admin/feedback", {
+      const json: any = await fetchJson("/api/admin/feedback", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, ...changes }),
       })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Could not update")
       setRows((prev) =>
         prev
           .map((r) => (r.id === id ? { ...r, ...json.submission } : r))
