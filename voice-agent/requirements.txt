@@ -1,0 +1,20 @@
+# Ongea Pesa LiveKit voice worker. Python 3.10+.
+#
+# Versions matter here: the livekit-agents API changed shape across 1.x, and
+# livekit-plugins-fishaudio is TTS-ONLY (no STT class). Pin to the 1.6 line,
+# which is what fishaudio 1.6.9 was published against.
+#
+# Install:  python -m venv .venv && source .venv/bin/activate
+#           pip install -r requirements.txt
+#           python agent.py download-files    # Silero + turn-detector weights
+#
+# Then SMOKE TEST before trusting it — see README.md. The API surface must be
+# verified against the installed version, not assumed.
+
+livekit-agents[silero,turn-detector]>=1.6,<2
+livekit-plugins-openai>=1.6,<2
+livekit-plugins-deepgram>=1.6,<2
+livekit-plugins-fishaudio>=1.6,<2
+
+aiohttp~=3.10
+python-dotenv~=1.0
