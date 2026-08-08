@@ -131,17 +131,16 @@ export default function TransactionsPage() {
       }
 
       // Mark Supabase transactions and attach profiles.
-      // Use persisted platform_fee from DB (migration 021) with fallback for legacy rows.
+      // The persisted platform_fee is authoritative. There is deliberately no
+      // `> 0 ? persisted : recompute 0.5%` fallback: it could not distinguish a
+      // waived fee from a missing one, so free transactions were shown as charged.
       const supabaseTx = (supabaseData || []).map(tx => {
         const amount = tx.amount || 0
-        const fallbackFee = platformFee(amount, tx.type?.toLowerCase())
-        const persistedFee = parseFloat(String(tx.platform_fee ?? 0))
-        const resolvedFee = persistedFee > 0 ? persistedFee : fallbackFee
-        const feeRate = fallbackFee > 0 ? PLATFORM_FEE_RATE * 100 : 0
+        const persistedFee = parseFloat(String(tx.platform_fee ?? 0)) || 0
         return {
           ...tx,
-          platform_fee: resolvedFee,
-          fee_rate: feeRate,
+          platform_fee: persistedFee,
+          fee_rate: amount > 0 ? (persistedFee / amount) * 100 : 0,
           source: "supabase",
           profiles: profilesMap[tx.user_id] || null
         }

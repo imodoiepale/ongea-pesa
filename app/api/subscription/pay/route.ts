@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { ONGEA_ENV } from '@/lib/environment'
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,9 +62,16 @@ export async function POST(request: NextRequest) {
         .from('transactions')
         .insert({
           user_id: user.id,
+          environment: ONGEA_ENV,
           type: 'subscription',
           amount: subscriptionFee,
           status: 'completed',
+          // The subscription fee IS the revenue, so v_transaction_economics counts
+          // `amount` for this type. platform_fee stays 0 to avoid double-counting.
+          platform_fee: 0,
+          transaction_cost: 0,
+          net_amount: subscriptionFee,
+          description: 'Ongea Pesa subscription',
           voice_command_text: 'Subscription payment (wallet)',
           external_ref: payment_reference || `SUB${Date.now()}`,
           metadata: { payment_method: 'wallet', subscription_fee: subscriptionFee },

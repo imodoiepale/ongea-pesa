@@ -7,8 +7,13 @@ import { isAdminEmail } from '@/lib/admin';
 // deltas without issuing two requests. Guarded by the shared admin
 // allowlist (lib/admin.ts); reads via the service role client.
 
-const LEGACY_FEE_RATE = 0.005; // 0.5% — fallback for pre-migration-021 rows with platform_fee = 0
-const NON_REVENUE_TYPES = new Set(['deposit', 'receive']);
+// Revenue/cost classification must match public.v_transaction_economics exactly
+// (migration 20260806120000_revenue_truth_layer), or this endpoint and
+// /api/admin/economics report different margins for the same period — which is
+// precisely what they used to do.
+//
+// Rows where the amount IS the product, rather than a transfer we take a cut of.
+const PRODUCT_TYPES = new Set(['voice_usage', 'platform_fee', 'subscription']);
 
 type RangeKey = 'today' | '7d' | '30d' | '90d' | 'mtd' | 'ytd' | 'all';
 
@@ -23,6 +28,7 @@ interface TxRow {
   voice_verified: boolean | null;
   error_message: string | null;
   phone: string | null;
+  metadata: { cost_bearer?: string; fee_waived?: string } | null;
 }
 
 function resolveWindow(range: RangeKey, now: Date): { start: Date | null; prevStart: Date | null } {
@@ -63,10 +69,19 @@ function bucketKey(iso: string, granularity: 'hour' | 'day' | 'week'): string {
   return d.toISOString().slice(0, 10);
 }
 
-function effectiveFee(tx: TxRow, amount: number): number {
-  if (NON_REVENUE_TYPES.has(tx.type)) return 0;
-  const persisted = parseFloat(String(tx.platform_fee ?? 0));
-  return persisted > 0 ? persisted : amount * LEGACY_FEE_RATE;
+// platform_fee is authoritative. The old `persisted > 0 ? persisted : amount * 0.005`
+// fallback could not tell a deliberately waived fee from a missing one, so every
+// free transaction was silently re-charged 0.5% in the report.
+function platformRevenue(tx: TxRow, amount: number): number {
+  const persisted = parseFloat(String(tx.platform_fee ?? 0)) || 0;
+  return persisted + (PRODUCT_TYPES.has(tx.type) ? amount : 0);
+}
+
+// Only charges Ongea Pesa absorbs. Customer-borne provider fees are pass-through:
+// the customer pays Safaricom directly and we never see the money.
+function ongeaCost(tx: TxRow): number {
+  if (tx.metadata?.cost_bearer === 'customer' || tx.type === 'deposit') return 0;
+  return parseFloat(String(tx.transaction_cost ?? 0)) || 0;
 }
 
 function round2(n: number): number { return Math.round(n * 100) / 100; }
@@ -107,8 +122,8 @@ function aggregate(rows: TxRow[]): WindowStats {
     if (tx.status === 'completed') {
       completed++;
       volume += amount;
-      revenue += effectiveFee(tx, amount);
-      costs += parseFloat(String(tx.transaction_cost ?? 0)) || 0;
+      revenue += platformRevenue(tx, amount);
+      costs += ongeaCost(tx);
       users.add(tx.user_id);
       if (tx.voice_verified) voice++;
     } else if (tx.status === 'failed' || tx.status === 'cancelled') {
@@ -151,7 +166,7 @@ export async function GET(request: NextRequest) {
     // One fetch covers both windows (previous window feeds the deltas).
     let txQuery = admin
       .from('transactions')
-      .select('user_id, type, amount, status, created_at, platform_fee, transaction_cost, voice_verified, error_message, phone')
+      .select('user_id, type, amount, status, created_at, platform_fee, transaction_cost, voice_verified, error_message, phone, metadata')
       .order('created_at', { ascending: false })
       .limit(10000);
     if (prevStart) txQuery = txQuery.gte('created_at', prevStart.toISOString());
@@ -186,7 +201,7 @@ export async function GET(request: NextRequest) {
       const b = buckets.get(key) ?? { revenue: 0, volume: 0, completed: 0, failed: 0 };
       const amount = parseFloat(String(tx.amount)) || 0;
       if (tx.status === 'completed') {
-        b.revenue += effectiveFee(tx, amount);
+        b.revenue += platformRevenue(tx, amount);
         b.volume += amount;
         b.completed++;
       } else if (tx.status === 'failed' || tx.status === 'cancelled') {
@@ -206,7 +221,7 @@ export async function GET(request: NextRequest) {
       if (tx.status === 'completed') {
         r.count++;
         r.volume += amount;
-        r.revenue += effectiveFee(tx, amount);
+        r.revenue += platformRevenue(tx, amount);
       } else if (tx.status === 'failed' || tx.status === 'cancelled') {
         r.failed++;
       }

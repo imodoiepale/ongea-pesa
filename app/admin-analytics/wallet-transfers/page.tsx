@@ -83,7 +83,9 @@ export default function WalletTransfersPage() {
         const persistedFee = tx.platform_fee ?? 0
         return {
           ...tx,
-          platform_fee: persistedFee > 0 ? persistedFee : platformFee(tx.amount || 0, tx.type?.toLowerCase()), // Deposits have 0% fee
+          // platform_fee as persisted is authoritative. Do not fall back to
+          // recomputing 0.5% — a waived fee is a real zero, not a missing value.
+          platform_fee: persistedFee,
           source: "supabase",
           profiles: profilesMap[tx.user_id] || null
         }
