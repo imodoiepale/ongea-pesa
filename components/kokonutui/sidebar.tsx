@@ -133,6 +133,9 @@ export default function Sidebar() {
                   <NavItem href="/admin-analytics/transactions" icon={Wallet}>
                     Transactions
                   </NavItem>
+                  <NavItem href="/admin-analytics/paybill-live" icon={Receipt}>
+                    PayBill / Till Live
+                  </NavItem>
                   <NavItem href="/admin-analytics/mpesa-history" icon={Receipt}>
                     M-Pesa History
                   </NavItem>
